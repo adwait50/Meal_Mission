@@ -41,6 +41,12 @@ const ngoSchema = new mongoose.Schema({
     registrationDate: {
         type: Date,
         default: Date.now
+    },
+    resetPasswordOTP: {
+        type: String,
+    },
+    resetPasswordOTPExpires: {
+        type: Date,
     }
 });
 

@@ -120,4 +120,145 @@ router.post("/logout", authMiddleware, async (req, res) => {
     res.json({message: "Logged out successfully"});
 });
 
+// Initiate password reset
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const NGO = await NGOModel.findOne({ email });
+    if (!NGO) {
+      return res.status(400).json({ message: "Email not found" });
+    }
+
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
+
+    NGO.resetPasswordOTP = otp;
+    NGO.resetPasswordOTPExpires = otpExpires;
+    await NGO.save();
+
+    await sendEmail(
+      email,
+      "Password Reset OTP",
+      `Your password reset OTP is: ${otp}`
+    );
+
+    res.status(200).json({ message: "Password reset OTP sent to email" });
+  } catch (error) {
+    res.status(500).json({ message: "Error initiating password reset" });
+  }
+});
+
+// Verify reset password OTP
+router.post("/verify-reset-otp", async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const NGO = await NGOModel.findOne({ email });
+    if (!NGO) {
+      return res.status(400).json({ message: "Email not found" });
+    }
+
+    if (
+      NGO.resetPasswordOTP !== otp ||
+      NGO.resetPasswordOTPExpires < new Date()
+    ) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    res.status(200).json({ message: "OTP verified successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error verifying OTP" });
+  }
+});
+
+// Reset password
+router.post("/reset-password", async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    const NGO = await NGOModel.findOne({ email });
+    if (!NGO) {
+      return res.status(400).json({ message: "Email not found" });
+    }
+
+    if (
+      NGO.resetPasswordOTP !== otp ||
+      NGO.resetPasswordOTPExpires < new Date()
+    ) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    NGO.password = hashedPassword;
+    NGO.resetPasswordOTP = null;
+    NGO.resetPasswordOTPExpires = null;
+    await NGO.save();
+
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error resetting password" });
+  }
+});
+
+// Resend registration OTP
+router.post("/resend-otp", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const NGO = await NGOModel.findOne({ email });
+    if (!NGO) {
+      return res.status(400).json({ message: "Email not found" });
+    }
+
+    if (NGO.isVerified) {
+      return res.status(400).json({ message: "Email already verified" });
+    }
+
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
+
+    NGO.otp = otp;
+    NGO.otpExpires = otpExpires;
+    await NGO.save();
+
+    await sendEmail(email, "Your New OTP Code", `Your OTP is: ${otp}`);
+
+    res.status(200).json({ message: "New OTP sent to email" });
+  } catch (error) {
+    res.status(500).json({ message: "Error resending OTP" });
+  }
+});
+
+// Resend password reset OTP
+router.post("/resend-reset-otp", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const NGO = await NGOModel.findOne({ email });
+    if (!NGO) {
+      return res.status(400).json({ message: "Email not found" });
+    }
+
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
+
+    NGO.resetPasswordOTP = otp;
+    NGO.resetPasswordOTPExpires = otpExpires;
+    await NGO.save();
+
+    await sendEmail(
+      email,
+      "Your New Password Reset OTP",
+      `Your password reset OTP is: ${otp}`
+    );
+
+    res.status(200).json({ message: "New password reset OTP sent to email" });
+  } catch (error) {
+    res.status(500).json({ message: "Error resending OTP" });
+  }
+});
+
 module.exports = router;
+
+

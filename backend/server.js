@@ -5,11 +5,19 @@ const donorRoutes = require("./routes/donorRoutes.js");
 const ngoRoutes = require("./routes/ngoRoutes.js");
 const authMiddleware = require("./middlewares/authMiddleware.js");
 const path = require("path");
+const cors = require("cors");
 
 const app = express();
 connectDB();
 
+app.use(cors({
+    origin: 'http://localhost:5173', // Your frontend URL
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

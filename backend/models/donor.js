@@ -40,6 +40,14 @@ const donorSchema = new mongoose.Schema({
   otpExpires: {
     type: Date,
   },
+
+  resetPasswordOTP: {
+    type: String,
+  },
+
+  resetPasswordOTPExpires: {
+    type: Date,
+  },
 });
 
 module.exports = mongoose.model("Donor", donorSchema);
