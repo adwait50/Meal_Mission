@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -40,3 +41,6 @@
 .read-the-docs {
   color: #888;
 }
+=======
+@import "tailwindcss";
+>>>>>>> 57dd0599a151e5ed947fe39c4096cd8882502e3e
