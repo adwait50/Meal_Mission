@@ -8,6 +8,7 @@ const App = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -22,13 +23,14 @@ const App = () => {
         { email, password }
       );
       if (response.status === 200) {
-        // console.log(response.data);
         const data = response.data;
         localStorage.setItem("token", data.token);
+        setErrorMessage("");
       }
       navigate("/donor-home");
     } catch (error) {
       console.error("Login failed:", error);
+      setErrorMessage("Invalid email or password.");
     }
   };
 
@@ -41,6 +43,7 @@ const App = () => {
           </h2>
           <p className="text-gray-600">Sign in to continue your journey</p>
         </div>
+
         <form onSubmit={(e) => submitHandler(e)} className="space-y-6">
           <div>
             <label
@@ -88,6 +91,33 @@ const App = () => {
               </button>
             </div>
           </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                name="rememberMe"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label
+                htmlFor="rememberMe"
+                className="ml-2 block text-sm text-gray-300"
+              >
+                Remember me
+              </label>
+            </div>
+            <Link to={"/donor-forgot-password"}>
+              <button
+                type="button"
+                className="text-sm text-blue-500 hover:text-blue-400"
+              >
+                Forgot Password?
+              </button>
+            </Link>
+          </div>
+          {errorMessage && (
+            <div className="text-red-500 text-center mb-4">{errorMessage}</div>
+          )}
           <button
             type="submit"
             className="!rounded-button w-full py-3 px-4 border border-transparent text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

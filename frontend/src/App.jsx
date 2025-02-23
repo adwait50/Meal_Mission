@@ -7,6 +7,8 @@ import DonorHome from "../pages/DonorHome";
 import DonorLogout from "../pages/DonorLogout";
 import DonorProtectedWrapper from "../pages/DonorProtectedWrapper";
 import NgoRegister from "../pages/NgoRegister";
+import NgoLogin from "../pages/NgoLogin";
+import DonorForgotPassword from "../pages/DonorForgotPassword";
 
 function App() {
   return (
@@ -24,8 +26,13 @@ function App() {
           }
         />
         <Route path="/donor-logout" element={<DonorLogout />} />
+        <Route
+          path="/donor-forgot-password"
+          element={<DonorForgotPassword />}
+        />
 
-        <Route path="ngo-register" element={<NgoRegister />} />
+        <Route path="/ngo-register" element={<NgoRegister />} />
+        <Route path="/ngo-login" element={<NgoLogin />} />
       </Routes>
     </div>
   );

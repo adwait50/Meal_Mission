@@ -19,12 +19,16 @@ function Home() {
             ))}
           </div>
           <div className="flex mx-4 gap-3 font-semibold ">
-            <button className="bg-[#F4C752] text-[#141C25] px-3 py-2 rounded-xl transform transition-transform duration-200 hover:scale-115 ">
-              Sign In
-            </button>
-            <button className="bg-[#1C2B36] px-3 py-2 rounded-xl transform transition-transform duration-200 hover:scale-115 ">
-              Sign Up
-            </button>
+            <Link to={"/donor-login"}>
+              <button className="bg-[#F4C752] text-[#141C25] px-3 py-2 rounded-xl transform transition-transform duration-200 hover:scale-115 ">
+                Donor
+              </button>
+            </Link>
+            <Link to={"/ngo-login"}>
+              <button className="bg-[#1C2B36] px-3 py-2 rounded-xl transform transition-transform duration-200 hover:scale-115 ">
+                NGO
+              </button>
+            </Link>
           </div>
         </div>
       </nav>
