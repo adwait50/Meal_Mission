@@ -1,7 +1,7 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import axios from "axios";
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, redirect, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 
 const App = () => {
@@ -34,6 +34,11 @@ const App = () => {
       setErrorMessage("Invalid email or password.");
     }
   };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    return () => {};
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#141C25]  ">

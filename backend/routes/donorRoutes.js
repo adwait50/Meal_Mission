@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
 const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
+const authMiddleware = require("../middlewares/authMiddleware.js");
 
 const router = express.Router();
 
@@ -150,6 +151,15 @@ router.post("/login", async (req, res) => {
     res.status(500).json({
       message: "Error logging in",
     });
+  }
+});
+
+router.get("/dashboard", authMiddleware, (req, res) => {
+  try {
+    if (!req.user) return res.status(200).json(req.user);
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
