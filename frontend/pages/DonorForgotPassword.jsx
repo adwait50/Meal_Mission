@@ -3,6 +3,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import NavBar from "../components/NavBar";
 
 const App = () => {
   const navigate = useNavigate();
@@ -108,8 +109,9 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-gray-800 p-8 rounded-lg shadow-xl">
+    <div className="min-h-screen bg-[#141C25] items-center  flex flex-col ">
+      <NavBar />
+      <div className="max-w-md w-full mt-15 space-y-8 bg-gray-800 p-8 rounded-lg shadow-xl">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Reset Password

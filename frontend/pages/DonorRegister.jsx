@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
+import NavBar from "../components/NavBar";
 
 const App = () => {
   const navigate = useNavigate();
@@ -53,12 +54,16 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-gray-800 p-8 rounded-lg shadow-xl">
+    <div className="min-h-screen bg-[#141C25] flex flex-col items-center ">
+      <NavBar />
+      <div className="max-w-lg mt-12 w-full space-y-8 bg-gray-800 p-8 rounded-lg shadow-xl">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-            Donor Registration
+            Register as Donor
           </h2>
+          <h5 className="text-center mt-3 text-zinc-200">
+            Join Us in Making Every Meal Matter
+          </h5>
         </div>
 
         <form
@@ -68,10 +73,10 @@ const App = () => {
           {!showOTP ? (
             <div className="space-y-4">
               <div>
-                <label htmlFor="name" className="sr-only">
+                <label htmlFor="name" className="text-zinc-300 text-sm  ">
                   Full Name
                 </label>
-                <div className="relative">
+                <div className="relative mt-1 ">
                   <i className="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   <input
                     id="name"
@@ -87,10 +92,10 @@ const App = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="sr-only">
+                <label htmlFor="email" className="text-zinc-300 text-sm">
                   Email
                 </label>
-                <div className="relative">
+                <div className="relative mt-1">
                   <i className="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   <input
                     id="email"
@@ -106,10 +111,10 @@ const App = () => {
               </div>
 
               <div>
-                <label htmlFor="password" className="sr-only">
+                <label htmlFor="password" className="text-zinc-300 text-sm">
                   Password
                 </label>
-                <div className="relative">
+                <div className="relative mt-1">
                   <i className="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   <input
                     id="password"
@@ -136,10 +141,10 @@ const App = () => {
               </div>
 
               <div>
-                <label htmlFor="phone" className="sr-only">
+                <label htmlFor="phone" className="text-zinc-300 text-sm">
                   Phone
                 </label>
-                <div className="relative">
+                <div className="relative mt-1">
                   <i className="fas fa-phone absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   <input
                     id="phone"
@@ -155,10 +160,10 @@ const App = () => {
               </div>
 
               <div>
-                <label htmlFor="address" className="sr-only">
+                <label htmlFor="address" className="text-zinc-300 text-sm">
                   Address
                 </label>
-                <div className="relative">
+                <div className="relative mt-1">
                   <i className="fas fa-home absolute left-3 top-3 text-gray-400"></i>
                   <textarea
                     id="address"
@@ -197,13 +202,25 @@ const App = () => {
             </div>
           )}
 
-          <div>
+          <div className="flex flex-col items-center">
             <button
               type="submit"
-              className="!rounded-button group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              className="!rounded-button rounded group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
             >
               {showOTP ? "Verify & Submit" : "Register"}
             </button>
+            {!showOTP ? (
+              <div className="flex text-zinc-400 text-sm mt-6 ">
+                <h3>Already have an account? </h3>
+                <Link
+                  to={"/donor-login"}
+                  className="text-blue-600 hover:text-blue-500"
+                >
+                  {" "}
+                  Sign in
+                </Link>
+              </div>
+            ) : null}
           </div>
         </form>
 

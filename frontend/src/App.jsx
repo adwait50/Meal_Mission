@@ -9,6 +9,7 @@ import DonorProtectedWrapper from "../pages/DonorProtectedWrapper";
 import NgoRegister from "../pages/NgoRegister";
 import NgoLogin from "../pages/NgoLogin";
 import DonorForgotPassword from "../pages/DonorForgotPassword";
+import NgoForgotPassword from "../pages/NgoForgotPassword";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
 
         <Route path="/ngo-register" element={<NgoRegister />} />
         <Route path="/ngo-login" element={<NgoLogin />} />
+        <Route path="/ngo-forgot-password" element={<NgoForgotPassword />} />
       </Routes>
     </div>
   );

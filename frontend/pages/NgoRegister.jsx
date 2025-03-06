@@ -1,23 +1,22 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 // start
 import React, { useState } from "react";
+import axios from "axios";
+import { Link } from "react-router";
+import NavBar from "../components/NavBar";
 
 const App = () => {
-  const [name, setname] = useState("");
-  const [email, setemail] = useState("");
-  const [password, setPassword] = useState("");
-  const [address, setaddress] = useState("");
-  const [otp, setotp] = useState("");
-  const [documentProof, setDocumentProof] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    ngoName: "",
+    name: "",
     email: "",
     password: "",
     address: "",
-    document: null,
+    documentProof: null,
     acceptTerms: false,
+    otp: "",
   });
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [otpError, setOtpError] = useState("");
@@ -26,17 +25,16 @@ const App = () => {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      setFormData((prev) => ({ ...prev, [name]: e.target.checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0] || null;
-    setFormData((prev) => ({ ...prev, document: file }));
+    setFormData((prev) => ({ ...prev, documentProof: file }));
   };
 
   const handleDragOver = (e) => {
@@ -53,13 +51,65 @@ const App = () => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    setFormData((prev) => ({ ...prev, document: file }));
+    setFormData((prev) => ({ ...prev, documentProof: file }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowOtpScreen(true);
-    startResendTimer();
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("password", formData.password);
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("address", formData.address);
+
+      if (formData.documentProof) {
+        formDataToSend.append("documentProof", formData.documentProof);
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/ngo/register`,
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log(response.data);
+      if (response.status === 200) {
+        const data = response.data;
+        console.log(data);
+      }
+
+      setShowOtpScreen(true);
+      startResendTimer();
+    } catch (error) {
+      console.error(error);
+      console.log(error.response.data);
+      setError(error.response.data.message);
+    }
+  };
+  const HandleOptSubmit = async (e) => {
+    e.preventDefault();
+    const formDataOtp = new FormData();
+    formDataOtp.append("email", formData.email);
+    formDataOtp.append("otp", formData.otp);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/ngo/verify-otp`,
+        { email: formData.email, otp: formData.otp }
+      );
+      console.log(response.data);
+      if (response.status === 200) {
+        const data = response.data;
+        console.log(data);
+        setisVerified(true);
+      }
+    } catch (error) {
+      console.error(error.response.data.message);
+      setOtpError(error.response.data.message);
+    }
   };
 
   const startResendTimer = () => {
@@ -96,17 +146,16 @@ const App = () => {
 
   const handleVerifyOtp = () => {
     const otpValue = otp.join("");
-    if (otpValue.length !== 4) {
-      setOtpError("Please enter a valid 4-digit OTP");
+    if (otpValue.length !== 6) {
+      setOtpError("Please enter a valid 6-digit OTP");
       return;
     }
     setIsVerifying(true);
     setOtpError("");
 
-    // Simulate OTP verification
     setTimeout(() => {
       setIsVerifying(false);
-      if (otpValue === "1234") {
+      if (otpValue === "123456") {
         console.log("OTP verified successfully");
       } else {
         setOtpError("Invalid OTP. Please try again.");
@@ -116,14 +165,15 @@ const App = () => {
 
   const handleResendOtp = () => {
     if (resendTimer === 0) {
-      setOtp(["", "", "", ""]);
+      setOtp(["", "", "", "", "", ""]);
       setOtpError("");
       startResendTimer();
       console.log("Resending OTP to:", formData.email);
     }
   };
   return (
-    <div className="min-h-screen bg-gray-900 py-12 px-4">
+    <div className="min-h-screen bg-gray-900 ">
+      <NavBar />
       {!showOtpScreen ? (
         <div className="max-w-2xl mx-auto">
           <div className="bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-700">
@@ -135,18 +185,20 @@ const App = () => {
                 Complete the form below to register your NGO
               </p>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={(e) => handleSubmit(e)} className="space-y-6">
               <div>
                 <label
-                  htmlFor="ngoName"
+                  htmlFor="name"
                   className="block text-sm font-medium text-gray-300 mb-1"
                 >
                   NGO Name
                 </label>
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setname(e.target.value)}
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-gray-700 text-white placeholder-gray-400"
                   required
                 />
@@ -154,7 +206,7 @@ const App = () => {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-gray-300 mb-1"
+                  className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   Email Address
                 </label>
@@ -162,8 +214,8 @@ const App = () => {
                   type="email"
                   id="email"
                   name="email"
-                  value={email}
-                  onChange={(e) => setemail(e.target.value)}
+                  value={formData.email}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-gray-700 text-white placeholder-gray-400"
                   required
                 />
@@ -171,7 +223,7 @@ const App = () => {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-300 mb-1"
+                  className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   Password
                 </label>
@@ -180,8 +232,8 @@ const App = () => {
                     type={showPassword ? "text" : "password"}
                     id="password"
                     name="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formData.password}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-gray-700 text-white placeholder-gray-400"
                     required
                   />
@@ -192,7 +244,7 @@ const App = () => {
                   >
                     <i
                       className={`fas ${
-                        showPassword ? "ri-eye-line" : "ri-eye-off-line"
+                        showPassword ? "fa-eye-slash" : "fa-eye"
                       }`}
                     ></i>
                   </button>
@@ -201,22 +253,22 @@ const App = () => {
               <div>
                 <label
                   htmlFor="address"
-                  className="block text-sm font-medium text-gray-300 mb-1"
+                  className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   Address
                 </label>
                 <textarea
                   id="address"
                   name="address"
-                  value={address}
-                  onChange={(e) => setaddress(e.target.value)}
+                  value={formData.address}
+                  onChange={handleInputChange}
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none bg-gray-700 text-white placeholder-gray-400"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Document Upload
                 </label>
                 <div
@@ -229,19 +281,22 @@ ${
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  onClick={() => document.getElementById("document")?.click()}
+                  onClick={() =>
+                    document.getElementById("documentProof")?.click()
+                  }
                 >
                   <input
                     type="file"
-                    value={documentProof}
-                    onChange={(e) => setDocumentProof(e.target.value)}
+                    id="documentProof"
+                    name="documentProof"
+                    onChange={handleFileChange}
                     className="hidden"
-                    accept=".pdf,.doc,.docx"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
                   />
                   <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
                   <p className="text-sm text-gray-400">
-                    {formData.document
-                      ? `Selected file: ${formData.document.name}`
+                    {formData.documentProof
+                      ? `Selected file: ${formData.documentProof.name}`
                       : "Click to upload or drag and drop"}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
@@ -269,18 +324,26 @@ ${
                   </a>
                 </label>
               </div>
+              {error && (
+                <div className="text-red-500 text-center mb-4">{error}</div>
+              )}
               <button
                 type="submit"
                 className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium !rounded-button whitespace-nowrap"
               >
                 Register NGO
               </button>
-              <p className="text-center text-sm text-gray-400">
-                Already have an account?{" "}
-                <a href="#" className="text-blue-600 hover:text-blue-800">
+              <div className="flex justify-center items-center">
+                <p className="text-center text-sm text-gray-400">
+                  Already have an account?{" "}
+                </p>
+                <Link
+                  className="text-blue-600 hover:text-blue-800"
+                  to={"/ngo-login"}
+                >
                   Sign in
-                </a>
-              </p>
+                </Link>
+              </div>
             </form>
           </div>
         </div>
@@ -298,37 +361,27 @@ ${
               </p>
             </div>
             <div className="space-y-6">
-              <div className="flex justify-center space-x-4">
-                {otp.map((digit, index) => (
-                  <input
-                    key={index}
-                    id={`otp-${index}`}
-                    type="text"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className="w-14 h-14 text-center text-2xl font-semibold border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-gray-700 text-white"
-                  />
-                ))}
-              </div>
-              {otpError && (
-                <p className="text-red-500 text-sm text-center">{otpError}</p>
-              )}
-              <button
-                onClick={handleVerifyOtp}
-                disabled={isVerifying}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed !rounded-button whitespace-nowrap"
-              >
-                {isVerifying ? (
-                  <span className="flex items-center justify-center">
-                    <i className="fas fa-circle-notch fa-spin mr-2"></i>
-                    Verifying...
-                  </span>
-                ) : (
-                  "Verify OTP"
+              <form onSubmit={(e) => HandleOptSubmit(e)}>
+                {otpError && (
+                  <p className="text-red-500 text-sm text-center">{otpError}</p>
                 )}
-              </button>
+                <div className="flex justify-center space-x-3">
+                  <input
+                    type="text"
+                    name="otp"
+                    value={formData.otp}
+                    onChange={handleInputChange}
+                    placeholder="OTP"
+                    className="appearance-none text-center rounded-lg relative block w-full pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full mt-7 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed !rounded-button whitespace-nowrap"
+                >
+                  Verify OTP
+                </button>
+              </form>
               <div className="text-center">
                 <p className="text-sm text-gray-400 mb-2">
                   Didn't receive the code?
@@ -352,6 +405,11 @@ ${
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {isVerified && (
+        <div className="text-green-500 text-center mt-4">
+          Email verified, please wait till admin approves.
         </div>
       )}
     </div>

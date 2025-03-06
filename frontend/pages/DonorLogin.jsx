@@ -1,7 +1,8 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import axios from "axios";
-import React, { use, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
+import NavBar from "../components/NavBar";
 
 const App = () => {
   const navigate = useNavigate();
@@ -35,45 +36,44 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#141C25] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
+    <div className="min-h-screen bg-[#141C25]  ">
+      <NavBar />
+      <div className="max-w-md mx-auto bg-[#1E2939] text-white mt-15 rounded-lg shadow-xl p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome Back
-          </h2>
-          <p className="text-gray-600">Sign in to continue your journey</p>
+          <h2 className="text-3xl font-bold  mb-2">Welcome Back</h2>
+          <p className="">Sign in to continue your journey</p>
         </div>
 
         <form onSubmit={(e) => submitHandler(e)} className="space-y-6">
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-zinc-300"
             >
-              Email Address <span className="text-red-500">*</span>
+              Email Address
             </label>
             <input
               type="email"
               value={email}
               name="email"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="you@example.com"
+              className="w-full mt-2 bg-[#364153] text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your email"
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-zinc-300"
             >
-              Password <span className="text-red-500">*</span>
+              Password
             </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 name="password"
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="w-full bg-[#364153] flex mt-2 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your password"
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -120,31 +120,21 @@ const App = () => {
           )}
           <button
             type="submit"
-            className="!rounded-button w-full py-3 px-4 border border-transparent text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="!rounded-button w-full py-3 px-4 border border-transparent text-sm font-medium text-white rounded-md bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Sign In
           </button>
         </form>
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            Already have an account?{" "}
+          <p className="text-sm text-zinc-400">
+            Don't have an account?{" "}
             <Link
               to={"/donor-register"}
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className=" text-blue-600 hover:text-blue-400"
             >
               Sign up
             </Link>
           </p>
-        </div>
-        <div className="mt-4 text-center text-xs text-gray-500">
-          By registering, you agree to our{" "}
-          <a href="#" className="text-indigo-600 hover:text-indigo-500">
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a href="#" className="text-indigo-600 hover:text-indigo-500">
-            Privacy Policy
-          </a>
         </div>
       </div>
     </div>

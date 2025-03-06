@@ -2,12 +2,13 @@ import React from "react";
 import HomeComponents from "../components/HomeComponents";
 import ContactForm from "../components/ContactForm";
 import { Link, useNavigate } from "react-router";
+import NavBar from "../components/NavBar";
 
 function Home() {
-  const navComp = ["About", "Donor", "NGOs", "Stories", "Get Started"];
+  // const navComp = ["About", "Donor", "NGOs", "Stories", "Get Started"];
   return (
     <div className="bg-[#141C25] w-full text-white ">
-      <nav className=" flex justify-between py-6 px-14 text-2xl border-b-[2px] border-[#1A2432] ">
+      {/* <nav className=" flex justify-between py-6 px-14 text-2xl border-b-[2px] border-[#1A2432] ">
         <div className="font-bold">Meal Mission</div>
         <div className="flex text-lg items-center gap-4 ">
           <div className="flex gap-8 ">
@@ -31,11 +32,12 @@ function Home() {
             </Link>
           </div>
         </div>
-      </nav>
+      </nav> */}
+      <NavBar />
       <div className="mt-8 relative ">
         <img
           className="w-[70%] h-[65vh] rounded-3xl object-cover block mx-auto"
-          src="https://s3-alpha-sig.figma.com/img/1206/4b5c/a33311f8b01f60c2130fa9364c938a28?Expires=1739750400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=ZopZzM8PO8OquJgtsPFTI7VxJYDhrFvLgRagSDCzBBrzYKYqEOeYr3MHhcGNsrsBBPDLzsYwWXrT~6UKRKaiail0LGKDbbXW0VLGhwOStLol1xbe2IE5p0p~wV8jiCuRGAH8krmohaX3TY8CZoySDXQQZcGEbyMCtKrdhAcDXOw63K-9k1ANhZYsltYE6m-PYe215lX1Ulk8vXy57ZTTj3E~bm0zmS3WDZJeFzH~zTfwQGffzdzUcB40HhDPd0O0f9nuK0Lsc3Z8tAIZFfRLNy29TFitho0vavHg6vNsbhGZjpkd-RbUSTXhBlUhJ9LB5SpCvHkWSdtG1RenV33PqA__"
+          src="https://media.istockphoto.com/id/1457738274/photo/unrecognizable-woman-hands-out-food-donations-during-charity-drive.jpg?s=612x612&w=0&k=20&c=6GjDAHu02Epgu19Zwlc7-YSxFsMmiPZWFfZTU5S2a5I="
           alt=""
         />
         <div className="slogan absolute top-[68%] left-[47%] transform -translate-x-1/2 -translate-y-1/2">
