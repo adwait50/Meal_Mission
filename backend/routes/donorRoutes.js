@@ -156,7 +156,8 @@ router.post("/login", async (req, res) => {
 
 router.get("/dashboard", authMiddleware, (req, res) => {
   try {
-    if (!req.user) return res.status(200).json(req.user);
+    if (!req.user) return res.status(400).json({ message: "Donor not Found" });
+    return res.json(req.user);
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error" });
