@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const donationSchema = new mongoose.Schema({
+  // donor: { type: mongoose.Schema.Types.ObjectId, ref: 'Donor', required: true },
   donorName: { type: String, required: true },
   contactPerson: { type: String, required: true },
   phone: { type: String, required: true },
@@ -11,11 +12,11 @@ const donationSchema = new mongoose.Schema({
   foodImage: { type: String, required: true },
   additionalNotes: String,
   requestId: { type: String, unique: true }, // For tracking
-  status: { 
-    type: String, 
-    default: 'pending'
-  },
+  status: { type: String, enum: ["In Progress", "Scheduled", "Pending", "Completed"], default: "Pending" },
   createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Donation', donationSchema);
+// Check if the model already exists
+const Donation = mongoose.models.Donation || mongoose.model('Donation', donationSchema);
+
+module.exports = Donation;

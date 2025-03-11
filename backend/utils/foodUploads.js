@@ -10,12 +10,11 @@ if (!fs.existsSync(uploadDir)) {
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, uploadDir); // Changed from 'uploads/' to 'uploads/food-proof/'
+    cb(null, uploadDir); // Set the destination for uploaded files
   },
   filename: function(req, file, cb) {
-    // Add file extension to the saved file
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'food-' + uniqueSuffix + path.extname(file.originalname));
+    cb(null, 'food-' + uniqueSuffix + path.extname(file.originalname)); // Set the filename
   }
 });
 

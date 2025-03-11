@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Donation = require('../models/Donation');
+const Donation = require('../models/Donation.js');
 const foodUploads = require('../utils/foodUploads');
 
 // Generate unique request ID
@@ -13,7 +13,8 @@ const generateRequestId = () => {
 // Request Pickup Route
 router.post('/request-pickup', foodUploads.single('foodImage'), async (req, res) => {
   try {
-    // Check if image was foodUploaded
+
+    // Check if image was uploaded
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -21,7 +22,7 @@ router.post('/request-pickup', foodUploads.single('foodImage'), async (req, res)
       });
     }
 
-    // Updated required fields
+    // Check required fields
     const requiredFields = ['donorName', 'contactPerson', 'phone', 'address', 'foodItems', 'quantity', 'pickupDate'];
     for (const field of requiredFields) {
       if (!req.body[field]) {
@@ -32,9 +33,11 @@ router.post('/request-pickup', foodUploads.single('foodImage'), async (req, res)
       }
     }
 
+    console.log(req.user)
     // Create new donation request
     const requestId = generateRequestId();
     const donation = new Donation({
+      // donor: req.body.id, // Ensure this is correctly set
       donorName: req.body.donorName,
       contactPerson: req.body.contactPerson,
       phone: req.body.phone,
