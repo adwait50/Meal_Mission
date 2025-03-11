@@ -1,63 +1,14 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import NavBar from "../components/NavBar";
+import React from "react";
+import SideBar from "../components/SideBar";
+import { useDonor } from "../context/DonorContext";
+import { Link } from "react-router";
 
-const DonorDashboard = () => {
-  const [donorData, setDonorData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchDonorData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/api/donors/dashboard`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        console.log(response);
-        setDonorData(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching donor data:", error);
-        setError("Failed to load dashboard data");
-        setLoading(false);
-      }
-    };
-
-    fetchDonorData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#141C25] text-white">
-        <NavBar />
-        <div className="flex justify-center items-center h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-[#141C25] text-white">
-        <NavBar />
-        <div className="flex justify-center items-center h-[80vh]">
-          <div className="text-red-500">{error}</div>
-        </div>
-      </div>
-    );
-  }
-
+function DonorProfile() {
+  const { donorData, loading, error, fetchDonorData } = useDonor();
   return (
-    <div className="min-h-screen bg-[#141C25] text-white">
-      <NavBar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen  bg-[#141C25] flex  text-white">
+      <SideBar />
+      <div className="w-full flex-1 ml-[300px] px-4 sm:px-6 lg:px-8 py-8">
         {/* User Profile Section */}
         <div className="bg-[#1E2939] rounded-lg shadow-xl p-6 mb-8">
           <div className="flex items-center space-x-4 mb-6">
@@ -167,14 +118,16 @@ const DonorDashboard = () => {
             <button className="w-full text-left px-4 py-2 hover:bg-[#2a3444] rounded-lg transition-colors">
               <i className="fas fa-key mr-2"></i> Change Password
             </button>
-            <button className="w-full text-left px-4 py-2 hover:bg-[#2a3444] rounded-lg transition-colors text-red-500">
-              <i className="fas fa-sign-out-alt mr-2"></i> Logout
-            </button>
+            <Link to={"/donor-logout"}>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#2a3444] rounded-lg transition-colors text-red-500">
+                <i className="fas fa-sign-out-alt mr-2"></i> Logout
+              </button>
+            </Link>
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
-export default DonorDashboard;
+export default DonorProfile;

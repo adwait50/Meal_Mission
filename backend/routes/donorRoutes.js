@@ -156,15 +156,14 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/dashboard", authMiddleware, (req, res) => {
+router.get("/dashboard", authMiddleware, async (req, res) => {
   try {
-    if (!req.user) return res.status(400).json({ message: "Donor not Found" });
-    return res.json(req.user);
+    return res.status(200).json(req.user); // ✅ Send user data
   } catch (error) {
-    console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 //logout of donor
 router.get("/logout", async (req, res) => {
@@ -314,25 +313,31 @@ router.post("/resend-reset-otp", async (req, res) => {
 // Fetch Active Requests
 router.get("/active-requests", authMiddleware, async (req, res) => {
   try {
-      const donorId = req.body._id; // Get the donor ID from the authenticated(body se aara abhi) user
+      const donorId = req.body._id; 
+      console.log("Donor ID:", donorId);
 
-      // Fetch active requests, selecting only requestId and status, excluding _id
-      const newRequests = await Donation.find(
-          { donor: donorId, status: { $ne: "Completed" } },
-          { _id: 0, requestId: 1, status: 1, foodItems:1, quantity: 1, pickupDate: 1 } // Exclude _id and include requestId and status
-      );
+      const activeRequests = await Donation.find({ 
+          donor: donorId, 
+          status: { $ne: "Completed" } 
+      }, { _id: 0, requestId: 1, status: 1 });
 
-      if (!newRequests.length) {
+      console.log("Active Requests:", activeRequests);
+
+      if (!activeRequests.length) {
           return res.status(404).json({ message: "No active requests found." });
       }
 
-      return res.status(200).json(newRequests); // Return the active requests
+      return res.status(200).json(activeRequests);
 
   } catch (error) {
       console.error("Error fetching active requests:", error);
-      return res.status(500).json({ message: "Internal server error" });
+      
+      if (!res.headersSent) { // Ensure we don’t send multiple responses
+          return res.status(500).json({ message: "Internal server error" });
+      }
   }
 });
+
 
 // Fetch Donation History
 router.get("/donation-history", authMiddleware, async (req, res) => {
