@@ -1,8 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const donationSchema = new mongoose.Schema({
   donorName: { type: String, required: true },
-  contactPerson: { type: String, required: true },
   phone: { type: String, required: true },
   address: { type: String, required: true },
   foodItems: { type: String, required: true },
@@ -11,11 +10,11 @@ const donationSchema = new mongoose.Schema({
   foodImage: { type: String, required: true },
   additionalNotes: String,
   requestId: { type: String, unique: true }, // For tracking
-  status: { 
-    type: String, 
-    default: 'pending'
+  status: {
+    type: String,
+    default: "pending",
   },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('Donation', donationSchema);
+module.exports = mongoose.model("Donation", donationSchema);

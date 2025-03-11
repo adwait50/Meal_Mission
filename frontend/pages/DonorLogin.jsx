@@ -1,7 +1,7 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link, redirect, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 
 const App = () => {
@@ -23,12 +23,13 @@ const App = () => {
         `${import.meta.env.VITE_BASE_URL}/api/donors/login`,
         { email, password }
       );
-      if (response.status === 200) {
-        const data = response.data;
-        localStorage.setItem("token", data.token);
-        setErrorMessage("");
-      }
-      navigate("/donor-home");
+
+      // Clear any existing token first
+      localStorage.removeItem("token");
+      // Then set the new token
+      localStorage.setItem("token", response.data.token);
+
+      navigate("/donor-dashboard");
     } catch (error) {
       console.error("Login failed:", error);
       setErrorMessage("Invalid email or password.");
@@ -131,11 +132,11 @@ const App = () => {
           </button>
         </form>
         <div className="mt-6 text-center">
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-gray-600">
             Don't have an account?{" "}
             <Link
               to={"/donor-register"}
-              className=" text-blue-600 hover:text-blue-400"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
             >
               Sign up
             </Link>

@@ -36,9 +36,11 @@ const authMiddleware = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await Donor.findOne(decoded._id).select(
+      req.user = await Donor.findById(decoded.id).select(
         "-password -resetPasswordOTP -resetPasswordOTPExpires -__v"
       );
+      // console.log(decoded);
+      // console.log(req.user);
       if (!req.user) response.status(404).json({ message: "User not found" });
       res.send(req.user);
       next();
@@ -50,4 +52,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware; // Ensure correct export
+module.exports = authMiddleware;
