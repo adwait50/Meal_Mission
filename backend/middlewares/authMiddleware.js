@@ -42,8 +42,8 @@ const authMiddleware = async (req, res, next) => {
       // console.log(decoded);
       // console.log(req.user);
       if (!req.user) response.status(404).json({ message: "User not found" });
-      res.send(req.user);
       next();
+      res.send(req.user);
     } catch (error) {
       return res.status(401).json({ message: "Unauthorized: Invalid token" });
     }

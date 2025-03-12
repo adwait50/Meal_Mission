@@ -307,5 +307,34 @@ router.post("/resend-reset-otp", async (req, res) => {
     res.status(500).json({ message: "Error resending OTP" });
   }
 });
+router.get("/active-requests", authMiddleware, async (req, res) => {
+  try {
+    const donorId = req.body._id;
+    console.log("Donor ID:", donorId);
+
+    const activeRequests = await Donation.find(
+      {
+        donor: donorId,
+        status: { $ne: "Completed" },
+      },
+      { _id: 0, requestId: 1, status: 1 }
+    );
+
+    console.log("Active Requests:", activeRequests);
+
+    if (!activeRequests.length) {
+      return res.status(404).json({ message: "No active requests found." });
+    }
+
+    return res.status(200).json(activeRequests);
+  } catch (error) {
+    console.error("Error fetching active requests:", error);
+
+    if (!res.headersSent) {
+      // Ensure we don’t send multiple responses
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  }
+});
 
 module.exports = router;
