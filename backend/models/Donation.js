@@ -15,7 +15,7 @@ const donationSchema = new mongoose.Schema({
     type: String,
     default: "pending",
   },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: String, default: () => new Date().toISOString() },
 });
 
 module.exports = mongoose.model("Donation", donationSchema);

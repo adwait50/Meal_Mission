@@ -317,7 +317,14 @@ router.get("/active-requests", authMiddleware, async (req, res) => {
         donor: donorId,
         status: { $ne: "Completed" },
       },
-      { _id: 0, requestId: 1, status: 1 }
+      {
+        _id: 0,
+        requestId: 1,
+        status: 1,
+        foodItems: 1,
+        quantity: 1,
+        createdAt: 1,
+      }
     );
 
     console.log("Active Requests:", activeRequests);
