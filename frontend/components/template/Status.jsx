@@ -1,53 +1,74 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
 const App = () => {
   const [donations, setDonations] = useState([]);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   // Simulate backend data fetching
   useEffect(() => {
-    const mockDonations = [
-      {
-        id: "DON-2024-001",
-        items: "Fresh Vegetables",
-        quantity: "5kg",
-        time: "Today, 2:00 PM",
-        status: "In Progress",
-      },
-      {
-        id: "DON-2024-002",
-        items: "Prepared Meals",
-        quantity: "3kg",
-        time: "Tomorrow, 10:00 AM",
-        status: "Scheduled",
-      },
-      {
-        id: "DON-2024-003",
-        items: "Bakery Items",
-        quantity: "2kg",
-        time: "Jan 17, 1:30 PM",
-        status: "Pending",
-      },
-      {
-        id: "DON-2024-004",
-        items: "Canned Goods",
-        quantity: "8kg",
-        time: "Jan 18, 9:00 AM",
-        status: "Scheduled",
-      },
-      {
-        id: "DON-2024-005",
-        items: "Fresh Fruits",
-        quantity: "4kg",
-        time: "Jan 19, 3:30 PM",
-        status: "Pending",
-      },
-    ];
+    const fetchActiveRequests = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/api/donors/active-requests`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.status === 200) {
+          console.log(response.data);
+          setDonations(response.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchActiveRequests();
 
-    setDonations(mockDonations);
+    // const mockDonations = [
+    //   {
+    //     id: "DON-2024-001",
+    //     items: "Fresh Vegetables",
+    //     quantity: "5kg",
+    //     time: "Today, 2:00 PM",
+    //     status: "In Progress",
+    //   },
+    //   {
+    //     id: "DON-2024-002",
+    //     items: "Prepared Meals",
+    //     quantity: "3kg",
+    //     time: "Tomorrow, 10:00 AM",
+    //     status: "Scheduled",
+    //   },
+    //   {
+    //     id: "DON-2024-003",
+    //     items: "Bakery Items",
+    //     quantity: "2kg",
+    //     time: "Jan 17, 1:30 PM",
+    //     status: "Pending",
+    //   },
+    //   {
+    //     id: "DON-2024-004",
+    //     items: "Canned Goods",
+    //     quantity: "8kg",
+    //     time: "Jan 18, 9:00 AM",
+    //     status: "Scheduled",
+    //   },
+    //   {
+    //     id: "DON-2024-005",
+    //     items: "Fresh Fruits",
+    //     quantity: "4kg",
+    //     time: "Jan 19, 3:30 PM",
+    //     status: "Pending",
+    //   },
+    // ];
   }, []);
 
   const getStatusClass = (status) => {
@@ -57,7 +78,7 @@ const App = () => {
       case "Scheduled":
         return "bg-blue-600";
       case "Pending":
-        return "bg-orange-600";
+        return "bg-orange-400 ";
       default:
         return "bg-gray-600";
     }
@@ -71,7 +92,10 @@ const App = () => {
       >
         ← Back to Dashboard
       </button>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mt-9 mx-auto">
+        <h2 className="text-3xl font-semibold mb-5 text-zinc-100 ">
+          Active Requests
+        </h2>
         <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -104,16 +128,16 @@ const App = () => {
                     `}
                   >
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation.id}
+                      {donation.requestId}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation.items}
+                      {donation.foodItems}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
                       {donation.quantity}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation.time}
+                      {donation.createdAt}
                     </td>
                     <td className="px-6 py-4">
                       <span

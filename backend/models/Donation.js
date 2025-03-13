@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const donationSchema = new mongoose.Schema({
-  // donor: { type: mongoose.Schema.Types.ObjectId, ref: "Donor", required: true },
+  donor: { type: mongoose.Schema.Types.ObjectId, ref: "Donor", required: true },
   donorName: { type: String, required: true },
   phone: { type: String, required: true },
   address: { type: String, required: true },
@@ -13,7 +13,7 @@ const donationSchema = new mongoose.Schema({
   requestId: { type: String, unique: true }, // For tracking
   status: {
     type: String,
-    default: "pending",
+    default: "Pending",
   },
   createdAt: { type: String, default: () => new Date().toISOString() },
 });
