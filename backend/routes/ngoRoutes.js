@@ -13,24 +13,22 @@ const router = express.Router();
 
 //register NGO
 router.post("/register", upload.single("documentProof"), async (req, res) => {
-  const { name, email, password, address } = req.body;
-
   try {
+    const { name, email, password, address } = req.body;
+
     if (!req.file) {
-      return res
-        .status(400)
-        .json({ message: "Please upload ID proof document" });
+      return res.status(400).json({ message: "Please upload ID proof document" });
     }
 
-    const existingNGO = await NGOModel.findOne({ email });
+    // Check if NGO already exists
+    let existingNGO = await NGOModel.findOne({ email });
+
     if (existingNGO) {
       if (!existingNGO.isVerified) {
-        // Generate a new OTP and update the existing donor
+        // ✅ Resend OTP for verification
         const otp = generateOTP();
-        const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
-
         existingNGO.otp = otp;
-        existingNGO.otpExpires = otpExpires;
+        existingNGO.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
         await existingNGO.save();
 
         await sendEmail(email, "Your new OTP code", `Your OTP is: ${otp}`);
@@ -41,23 +39,31 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
       }
       return res.status(400).json({ message: "Email already exists" });
     }
+
+    // ✅ FIX: Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate OTP for verification
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
-    const ngo = new NGOModel({
+    // ✅ FIX: Ensure `documentProof` is properly stored
+    const documentProofPath = req.file.path; // Modify this if using a cloud service (e.g., AWS S3)
+
+    const newNGO = new NGOModel({
       name,
       email,
       password: hashedPassword,
       address,
-      documentProof: req.file.path, // Save the file path
+      documentProof: documentProofPath,
       otp,
       otpExpires,
       isApproved: false,
     });
 
-    await ngo.save();
+    await newNGO.save();
+
+    // ✅ Send OTP via email
     await sendEmail(email, "Your OTP code", `Your OTP is: ${otp}`);
 
     res.status(201).json({
@@ -67,7 +73,7 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
     console.error("NGO Registration Error:", error);
     res.status(500).json({
       message: "Error registering NGO",
-      error: error.message, // Add this line to see the specific error
+      error: error.message, // This helps in debugging
     });
   }
 });
@@ -108,32 +114,37 @@ router.post("/login", async (req, res) => {
   try {
     const NGO = await NGOModel.findOne({ email });
 
-    if (!NGO)
+    if (!NGO) {
+      console.log("NGO not found for email:", email);
       return res.status(400).json({ message: "Invalid email or password" });
-    if (!NGO.isVerified)
-      return res.status(400).json({ message: "Email not verified" });
-    if (!NGO.isApproved)
-      return res
-        .status(400)
-        .json({ message: "Account pending admin approval" });
+    }
 
-    const isMatch = await bcrypt.compare(password, NGO.password);
-    if (!isMatch)
+    console.log("NGO found:", NGO);
+
+    if (!NGO.isVerified) return res.status(400).json({ message: "Email not verified" });
+    if (!NGO.isApproved) return res.status(400).json({ message: "Account pending admin approval" });
+
+    console.log("Stored hashed password:", NGO.password);
+    console.log("Entered password:", password.trim());
+
+    const isMatch = await bcrypt.compare(password.trim(), NGO.password);
+
+    if (!isMatch) {
+      console.log("Password mismatch");
       return res.status(400).json({ message: "Invalid email or password" });
+    }
 
-    const token = jwt.sign(
-      {
-        id: NGO._id,
-        type: "NGO", // Added to distinguish between donor and NGO
-      },
-      process.env.JWT_SECRET
-    );
+    console.log("Password matched successfully");
 
+    const token = jwt.sign({ id: NGO._id, type: "NGO" }, process.env.JWT_SECRET);
     res.status(200).json({ token });
+
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Error logging in" });
   }
 });
+
 
 router.get("/dashboard", authMiddleware, async (req, res) => {
   try {

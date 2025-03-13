@@ -309,7 +309,7 @@ router.post("/resend-reset-otp", async (req, res) => {
 });
 router.get("/active-requests", authMiddleware, async (req, res) => {
   try {
-    const donorId = req.body._id;
+    const donorId = req.user._id;
     console.log("Donor ID:", donorId);
 
     const activeRequests = await Donation.find(

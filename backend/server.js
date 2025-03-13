@@ -5,6 +5,7 @@ const donorRoutes = require("./routes/donorRoutes.js");
 const ngoRoutes = require("./routes/ngoRoutes.js");
 const authMiddleware = require("./middlewares/authMiddleware.js");
 const requestPickupRoutes = require("./routes/requestPickup.js");
+const adminRoutes = require("./routes/adminRoutes.js");
 const path = require("path");
 const cors = require("cors");
 
@@ -25,6 +26,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/donors", donorRoutes);
 app.use("/api/ngo", ngoRoutes);
 app.use("/api/pickup", requestPickupRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
