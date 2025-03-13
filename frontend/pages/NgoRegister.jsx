@@ -2,10 +2,11 @@
 // start
 import React, { useState } from "react";
 import axios from "axios";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 
 const App = () => {
+  const navigate = useNavigate();
   const [isVerified, setIsVerified] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -104,6 +105,7 @@ const App = () => {
       if (response.status === 200) {
         const data = response.data;
         console.log(data);
+        navigate("/ngo-dashboard");
         setisVerified(true);
       }
     } catch (error) {

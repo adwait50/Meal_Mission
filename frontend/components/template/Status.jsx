@@ -25,6 +25,7 @@ const App = () => {
         if (response.status === 200) {
           console.log(response.data);
           setDonations(response.data);
+          setLoading(false);
         }
       } catch (error) {
         console.error(error);
@@ -83,6 +84,9 @@ const App = () => {
         return "bg-gray-600";
     }
   };
+  if (loading) {
+    <p>Loading....</p>;
+  }
 
   return (
     <div className="min-h-screen bg-[#141C25] p-8">

@@ -301,4 +301,32 @@ router.post("/resend-reset-otp", async (req, res) => {
   }
 });
 
+// Example route to update the status of a donation
+router.put("/donation/:id/status", authMiddleware, async (req, res) => {
+  const { status } = req.body; // Expecting the new status in the request body
+
+  // Validate the status
+  const validStatuses = ["Pending", "Accepted", "In Progress", "Completed"];
+  if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+  }
+
+  try {
+      const updatedDonation = await Donation.findByIdAndUpdate(
+          req.params.id,
+          { status },
+          { new: true } // Return the updated document
+      );
+
+      if (!updatedDonation) {
+          return res.status(404).json({ message: "Donation not found" });
+      }
+
+      res.status(200).json(updatedDonation);
+  } catch (error) {
+      console.error("Error updating donation status:", error);
+      res.status(500).json({ message: "Error updating donation status" });
+  }
+});
+
 module.exports = router;
