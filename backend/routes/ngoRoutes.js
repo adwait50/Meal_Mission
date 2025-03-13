@@ -6,6 +6,8 @@ const randomstring = require("randomstring");
 const sendEmail = require("../utils/sendEmail.js");
 const authMiddleware = require("../middlewares/authMiddleware.js");
 const upload = require("../utils/multerConfig.js");
+const Donation = require("../models/Donation.js");
+
 
 const generateOTP = () =>
   randomstring.generate({ length: 4, charset: "numeric" });
@@ -312,6 +314,7 @@ router.put("/donation/:id/status", authMiddleware, async (req, res) => {
   }
 
   try {
+      // Find the donation by ID and update the status
       const updatedDonation = await Donation.findByIdAndUpdate(
           req.params.id,
           { status },
@@ -322,11 +325,17 @@ router.put("/donation/:id/status", authMiddleware, async (req, res) => {
           return res.status(404).json({ message: "Donation not found" });
       }
 
-      res.status(200).json(updatedDonation);
+     
+      res.status(200).json({ 
+        message: "success",
+        status: updatedDonation.status 
+      }); 
+
   } catch (error) {
       console.error("Error updating donation status:", error);
       res.status(500).json({ message: "Error updating donation status" });
   }
 });
+
 
 module.exports = router;
