@@ -13,8 +13,9 @@ const donationSchema = new mongoose.Schema({
   requestId: { type: String, unique: true }, // For tracking
   status: {
     type: String,
-    default: "pending",
-  },
+    enum: ["Pending", "Accepted", "In Progress", "Completed"], // Define allowed statuses
+    default: "Pending" // Set default status to "Pending"
+},
   createdAt: { type: String, default: () => new Date().toISOString() },
 });
 
