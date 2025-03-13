@@ -19,6 +19,7 @@ import RequestPickup from "../components/template/RequestPickup";
 import DonorDashboardContent from "../pages/DonorDashboardContent";
 import Status from "../components/template/Status";
 import DonationHistory from "../components/template/DonationHistory";
+import PickupConfirm from "../components/template/PickupConfirm";
 
 function App() {
   return (
@@ -38,7 +39,9 @@ function App() {
             }
           >
             <Route index element={<DonorDashboardContent />} />
-            <Route path="request-pickup" element={<RequestPickup />} />
+            <Route path="request-pickup" element={<RequestPickup />}>
+              <Route index element={<PickupConfirm />} />
+            </Route>
             <Route path="status" element={<Status />} />
             <Route path="donation-history" element={<DonationHistory />} />
           </Route>

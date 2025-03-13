@@ -1,5 +1,11 @@
 import axios from "axios";
-import { createContext, useCallback, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
 
 const DonorContext = createContext();
 
@@ -16,27 +22,48 @@ export const DonorProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Function to fetch donor data
   const fetchDonorData = useCallback(async () => {
     setLoading(true);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      console.error("No token found in localStorage");
+      setError("No authentication token available. Please log in.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("token");
+      // console.log("Fetching donor data...");
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/api/donors/dashboard`,
+        `${import.meta.env.VITE_BASE_URL}/api/donors/dashboard`, // Ensure this is the correct API
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+      // console.log(
+      //   "Donor data API response:",
+      //   JSON.stringify(response.data, null, 2)
+      // );
+
       setDonorData(response.data);
       setError(null);
     } catch (error) {
-      console.error("Error fetching donor data", error);
-      setError(error);
+      console.error(
+        "Error fetching donor data:",
+        error.response?.data || error.message
+      );
+      setError(error.response?.data?.message || "Failed to fetch donor data");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // Dependency array left empty since localStorage updates won't trigger re-fetch
+
+  // Auto-fetch donor data on component mount
+  useEffect(() => {
+    fetchDonorData();
+  }, [fetchDonorData]);
 
   const value = {
     donorData,
@@ -44,6 +71,7 @@ export const DonorProvider = ({ children }) => {
     error,
     fetchDonorData,
   };
+
   return (
     <DonorContext.Provider value={value}>{children}</DonorContext.Provider>
   );

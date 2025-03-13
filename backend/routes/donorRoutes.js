@@ -5,6 +5,7 @@ const Donor = require("../models/donor.js");
 const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
 const authMiddleware = require("../middlewares/authMiddleware.js");
+const Donation = require("../models/Donation.js");
 
 const router = express.Router();
 
@@ -154,11 +155,10 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/dashboard", authMiddleware, (req, res) => {
+router.get("/dashboard", authMiddleware, async (req, res) => {
   try {
-    if (!req.user) return res.status(200).json(req.user);
+    return res.status(200).json(req.user); // ✅ Send user data
   } catch (error) {
-    console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -334,6 +334,63 @@ router.get("/active-requests", authMiddleware, async (req, res) => {
       // Ensure we don’t send multiple responses
       return res.status(500).json({ message: "Internal server error" });
     }
+  }
+});
+
+// Fetch Donation History
+router.get("/donation-history", authMiddleware, async (req, res) => {
+  try {
+    const donorId = req.user._id; // Get the donor ID from the authenticated user
+
+    // Total Impact
+    const [totalWeightData] = await Donation.aggregate([
+      { $match: { donor: donorId } },
+      { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
+    ]);
+
+    const totalDonations = await Donation.countDocuments({ donor: donorId });
+
+    // Monthly Donation Trend
+    const monthlyTrend = await Donation.aggregate([
+      { $match: { donor: donorId } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$pickupDate" } },
+          totalDonations: { $sum: 1 },
+          totalWeight: { $sum: "$quantity" },
+        },
+      },
+      { $sort: { _id: 1 } }, // Sort by date
+    ]);
+
+    // Donation Categories
+    const donationCategories = await Donation.aggregate([
+      { $match: { donor: donorId } },
+      {
+        $group: {
+          _id: "$category",
+          totalCount: { $sum: 1 },
+          totalWeight: { $sum: "$quantity" },
+        },
+      },
+    ]);
+
+    // Prepare response data
+    const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
+    const mealsServed = Math.floor(totalWeight / 0.25); // Assuming 0.25 kg per meal
+
+    return res.status(200).json({
+      totalImpact: {
+        totalDonations,
+        totalWeight,
+        mealsServed,
+      },
+      monthlyTrend,
+      donationCategories,
+    });
+  } catch (error) {
+    console.error("Error fetching donation history:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 

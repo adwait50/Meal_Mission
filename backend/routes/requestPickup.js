@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Donation = require("../models/Donation");
-const foodUploads = require("../utils/foodUploads");
+const Donation = require("../models/Donation.js");
+const foodUploads = require("../utils/foodUploads.js");
 
 // Generate unique request ID
 const generateRequestId = () => {
@@ -42,7 +42,7 @@ router.post(
         }
       }
 
-      // Create new donation request
+      // Create new donation requests
       const requestId = generateRequestId();
       const donation = new Donation({
         donorName: req.body.donorName,

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const donationSchema = new mongoose.Schema({
+  // donor: { type: mongoose.Schema.Types.ObjectId, ref: "Donor", required: true },
   donorName: { type: String, required: true },
   phone: { type: String, required: true },
   address: { type: String, required: true },
