@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
+const Admin = require("../models/Admin.js");
+const NGO = require("../models/ngoModel.js"); // Add NGO model
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -16,12 +18,21 @@ const authMiddleware = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await Donor.findById(decoded.id).select("-password -resetPasswordOTP -resetPasswordOTPExpires -__v");
 
-      if (!req.user) {
+      // Check if the user is an Admin, Donor, or NGO
+      let user = await Admin.findById(decoded.id).select("-password -__v");
+      if (!user) {
+        user = await Donor.findById(decoded.id).select("-password -resetPasswordOTP -resetPasswordOTPExpires -__v");
+      }
+      if (!user) {
+        user = await NGO.findById(decoded.id).select("-password -otp -otpExpires -__v"); // Check for NGO
+      }
+
+      if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
+      req.user = user;
       next(); // ✅ Move to the next middleware
     } catch (error) {
       return res.status(401).json({ message: "Unauthorized: Invalid token" });
