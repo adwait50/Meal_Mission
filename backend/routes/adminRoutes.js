@@ -1,6 +1,6 @@
 const express = require('express');
 const NGOModel = require('../models/ngoModel.js');
-const { authMiddleware, authorizeRoles } = require("../middlewares/authMiddleware.js");
+const authAdminMiddleware = require("../middlewares/authAdminMiddleware.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const AdminModel = require("../models/Admin.js"); // Import the Admin model
@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 //Admin approves NGO
-router.put("/approve-ngo/:id", authMiddleware,authorizeRoles("admin"), async (req, res) => {
+router.put("/approve-ngo/:id", authAdminMiddleware, async (req, res) => {
     if (!req.user.isAdmin) {
         return res.status(403).json({ message: "Access denied" });
     }
@@ -25,7 +25,7 @@ router.put("/approve-ngo/:id", authMiddleware,authorizeRoles("admin"), async (re
 });
 
    // Admin rejects an NGO
-   router.put("/reject-ngo/:id", authMiddleware, authorizeRoles("admin"), async (req, res) => {
+   router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res) => {
     if (!req.user.isAdmin) {
         return res.status(403).json({ message: "Access denied" });
     }
@@ -41,7 +41,7 @@ router.put("/approve-ngo/:id", authMiddleware,authorizeRoles("admin"), async (re
     }
 });
 
-router.get("/pending", authMiddleware,authorizeRoles("admin"), async (req, res) => {
+router.get("/pending", authAdminMiddleware, async (req, res) => {
     if (!req.user.isAdmin) {
         return res.status(403).json({ message: "Access denied" });
     }

@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const NGOModel = require("../models/ngoModel.js");
 const randomstring = require("randomstring");
 const sendEmail = require("../utils/sendEmail.js");
-const { authMiddleware, authorizeRoles } = require("../middlewares/authMiddleware.js");
+const authNgoMiddleware = require("../middlewares/authNgoMiddleware.js");
 const upload = require("../utils/multerConfig.js");
 const Donation = require("../models/Donation.js");
 
@@ -152,7 +152,7 @@ router.post("/login", async (req, res) => {
 });
 
 
-router.get("/dashboard", authMiddleware,authorizeRoles("ngo"), async (req, res) => {
+router.get("/dashboard", authNgoMiddleware, async (req, res) => {
   try {
     const NGO = await NGOModel.findById(req.user.id).select("-password");
     if (!NGO) {
@@ -164,7 +164,7 @@ router.get("/dashboard", authMiddleware,authorizeRoles("ngo"), async (req, res) 
   }
 });
 
-router.post("/logout", authMiddleware,authorizeRoles("ngo"), async (req, res) => {
+router.post("/logout", authNgoMiddleware, async (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
@@ -308,7 +308,7 @@ router.post("/resend-reset-otp", async (req, res) => {
 });
 
 // Example route to update the status of a donation
-router.put("/donation/:id/status", authMiddleware,authorizeRoles("ngo"), async (req, res) => {
+router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
   const { status } = req.body; // Expecting the new status in the request body
 
   // Validate the status

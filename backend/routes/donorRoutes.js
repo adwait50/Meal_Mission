@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
 const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
-const { authMiddleware, authorizeRoles } = require("../middlewares/authMiddleware.js");
+const  authDonorMiddleware  = require("../middlewares/authDonorMiddleware.js");
 const Donation = require("../models/Donation.js");
 
 const router = express.Router();
@@ -284,15 +284,21 @@ router.post("/resend-reset-otp", async (req, res) => {
   }
 });
 
-router.get("/dashboard", authMiddleware, async (req, res) => {
+router.get("/dashboard", authDonorMiddleware, async (req, res) => {
   try {
-    return res.status(200).json(req.user); // ✅ Send user data
+      const donor = await Donor.findById(req.user._id).select("-password"); // Exclude password
+      if (!donor) {
+          return res.status(404).json({ message: "Donor not found" });
+      }
+
+      res.status(200).json(donor);
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+      console.error("Error fetching donor dashboard data:", error);
+      res.status(500).json({ message: "Error fetching donor dashboard data" });
   }
 });
 // Fetch Active Requests
-router.get("/active-requests", authMiddleware,authorizeRoles("donor"), async (req, res) => {
+router.get("/active-requests", authDonorMiddleware, async (req, res) => {
   try {
     const donorId = req.user._id;
     console.log("Donor ID:", donorId);
@@ -330,7 +336,7 @@ router.get("/active-requests", authMiddleware,authorizeRoles("donor"), async (re
 });
 
 // Fetch Donation History
-router.get("/donation-history", authMiddleware,authorizeRoles("donor"), async (req, res) => {
+router.get("/donation-history", authDonorMiddleware, async (req, res) => {
     try {
         const donorId = req.user._id; // Get the donor ID from the authenticated user
 
