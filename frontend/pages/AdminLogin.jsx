@@ -55,7 +55,7 @@ const App = () => {
       localStorage.removeItem("token");
       localStorage.setItem("token", response.data.token);
 
-      navigate("/admin-home");
+      navigate("/admin-dashboard");
     } catch (error) {
       console.error(error);
     }

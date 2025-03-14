@@ -2,14 +2,12 @@
 
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 const App = () => {
   const [donations, setDonations] = useState([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-
-  // Simulate backend data fetching
   useEffect(() => {
     const fetchActiveRequests = async () => {
       try {
@@ -23,7 +21,7 @@ const App = () => {
           }
         );
         if (response.status === 200) {
-          console.log(response.data);
+          // console.log(response.data);
           setDonations(response.data);
           setLoading(false);
         }
@@ -32,44 +30,6 @@ const App = () => {
       }
     };
     fetchActiveRequests();
-
-    // const mockDonations = [
-    //   {
-    //     id: "DON-2024-001",
-    //     items: "Fresh Vegetables",
-    //     quantity: "5kg",
-    //     time: "Today, 2:00 PM",
-    //     status: "In Progress",
-    //   },
-    //   {
-    //     id: "DON-2024-002",
-    //     items: "Prepared Meals",
-    //     quantity: "3kg",
-    //     time: "Tomorrow, 10:00 AM",
-    //     status: "Scheduled",
-    //   },
-    //   {
-    //     id: "DON-2024-003",
-    //     items: "Bakery Items",
-    //     quantity: "2kg",
-    //     time: "Jan 17, 1:30 PM",
-    //     status: "Pending",
-    //   },
-    //   {
-    //     id: "DON-2024-004",
-    //     items: "Canned Goods",
-    //     quantity: "8kg",
-    //     time: "Jan 18, 9:00 AM",
-    //     status: "Scheduled",
-    //   },
-    //   {
-    //     id: "DON-2024-005",
-    //     items: "Fresh Fruits",
-    //     quantity: "4kg",
-    //     time: "Jan 19, 3:30 PM",
-    //     status: "Pending",
-    //   },
-    // ];
   }, []);
 
   const getStatusClass = (status) => {
@@ -120,6 +80,9 @@ const App = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
                     Status
                   </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -128,14 +91,14 @@ const App = () => {
                     key={donation.id}
                     className={`
                       border-b border-gray-700 hover:bg-gray-700/50 transition-colors
-                      ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-800/50"}
+                      
                     `}
                   >
-                    <td className="px-6 py-4 text-sm text-white">
+                    <td className="px-6 py-4  text-sm text-white">
                       {donation.requestId}
                     </td>
-                    <td className="px-6 py-4 text-sm text-white">
-                      {donation.foodItems}
+                    <td className="px-6 py-4 text-sm  text-white">
+                      {donation.foodItems.slice(0, 40)}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
                       {donation.quantity}
@@ -152,6 +115,13 @@ const App = () => {
                       >
                         {donation.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link
+                        to={`/donor-dashboard/status/${donation.requestId}`}
+                      >
+                        <i className="ri-eye-line cursor-pointer"></i>
+                      </Link>
                     </td>
                   </tr>
                 ))}

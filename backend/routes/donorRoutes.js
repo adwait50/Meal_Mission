@@ -338,7 +338,7 @@ router.get("/active-requests", authMiddleware, async (req, res) => {
     console.error("Error fetching active requests:", error);
 
     if (!res.headersSent) {
-      // Ensure we don’t send multiple responses
+      // Ensure we don't send multiple responses
       return res.status(500).json({ message: "Internal server error" });
     }
   }
@@ -349,51 +349,31 @@ router.get("/donation-history", authMiddleware, async (req, res) => {
   try {
     const donorId = req.user._id; // Get the donor ID from the authenticated user
 
-    // Total Impact
+    // Total Weight
     const [totalWeightData] = await Donation.aggregate([
       { $match: { donor: donorId } },
       { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
     ]);
 
+    const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
+
+    // Total Donations
     const totalDonations = await Donation.countDocuments({ donor: donorId });
 
-    // Monthly Donation Trend
-    const monthlyTrend = await Donation.aggregate([
-      { $match: { donor: donorId } },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m", date: "$pickupDate" } },
-          totalDonations: { $sum: 1 },
-          totalWeight: { $sum: "$quantity" },
-        },
-      },
-      { $sort: { _id: 1 } }, // Sort by date
-    ]);
+    // Times Donated
+    const timesDonated = await Donation.countDocuments({ donor: donorId });
 
-    // Donation Categories
-    const donationCategories = await Donation.aggregate([
-      { $match: { donor: donorId } },
-      {
-        $group: {
-          _id: "$category",
-          totalCount: { $sum: 1 },
-          totalWeight: { $sum: "$quantity" },
-        },
-      },
-    ]);
+    // Donation History with specific fields
+    const donationHistory = await Donation.find({ donor: donorId })
+      .select("foodItem createdAt address status quantity")
+      .sort({ createdAt: -1 }); // sort by date
 
     // Prepare response data
-    const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
-    const mealsServed = Math.floor(totalWeight / 0.25); // Assuming 0.25 kg per meal
-
     return res.status(200).json({
-      totalImpact: {
-        totalDonations,
-        totalWeight,
-        mealsServed,
-      },
-      monthlyTrend,
-      donationCategories,
+      totalWeight,
+      totalDonations,
+      timesDonated,
+      donationHistory,
     });
   } catch (error) {
     console.error("Error fetching donation history:", error);

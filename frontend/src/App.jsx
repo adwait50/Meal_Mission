@@ -27,6 +27,7 @@ import NgoProtectedWrapper from "../pages/NgoProtectedWrapper";
 import NgoLogout from "../pages/NgoLogout";
 import NgoSetting from "../pages/NgoSetting";
 import NgoProfile from "../pages/NgoProfile";
+import RequestDetail from "../components/template/RequestDetail";
 
 function App() {
   return (
@@ -46,10 +47,9 @@ function App() {
             }
           >
             <Route index element={<DonorDashboardContent />} />
-            <Route path="request-pickup" element={<RequestPickup />}>
-              <Route index element={<PickupConfirm />} />
-            </Route>
+            <Route path="request-pickup" element={<RequestPickup />} />
             <Route path="status" element={<Status />} />
+            <Route path="status/:donationId" element={<RequestDetail />} />
             <Route path="donation-history" element={<DonationHistory />} />
           </Route>
           <Route
