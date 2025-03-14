@@ -122,7 +122,7 @@ const DonationHistory = () => {
                     `}
                   >
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation._id}
+                      {donation.requestId}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
                       {donation.address}

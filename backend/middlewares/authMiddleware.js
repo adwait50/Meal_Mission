@@ -1,53 +1,54 @@
 const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
 const Admin = require("../models/Admin.js");
-const NGO = require("../models/ngoModel.js");
+const NGO = require("../models/ngoModel.js"); // Add NGO model
 
-const userRoles = { admin: Admin, donor: Donor, ngo: NGO };
-
-const authMiddleware = async (req, res, next) => {
+const authDonorMiddleware = async (req, res, next) => {
   try {
-    const token = req.header("Authorization")?.split(" ")[1];
+    const authHeader = req.header("Authorization");
+    if (!authHeader) {
+      return res.status(401).json({ message: "Unauthorized: No token given" });
+    }
+
+    // Extract token from 'Bearer <token>'
+    const token = authHeader.split(" ")[1];
     if (!token) {
-      return res.status(401).json({ message: "Unauthorized: No token provided" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid token format" });
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.id) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token structure" });
-    }
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    console.log("Decoded Token:", decoded); // Debugging
+      // Check if the user is an Admin, Donor, or NGO
+      let user = await Donor.findById(decoded.id).select("-password -__v");
+      // if (!user) {
+      //   user = await Donor.findById(decoded.id).select(
+      //     "-password -resetPasswordOTP -resetPasswordOTPExpires -__v"
+      //   );
+      // }
+      // if (!user) {
+      //   user = await NGO.findById(decoded.id).select(
+      //     "-password -otp -otpExpires -__v"
+      //   ); // Check for NGO
+      // }
 
-    // Check user across all roles
-    for (const [role, model] of Object.entries(userRoles)) {
-      const user = await model.findById(decoded.id).select("-password -__v");
-      if (user) {
-        req.user = { ...user.toObject(), role };
-        console.log("User authenticated:", req.user); // Debugging
-        return next();
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
+
+      req.user = user;
+      next(); // ✅ Move to the next middleware
+    } catch (error) {
+      return res.status(401).json({ message: "Unauthorized: Invalid token" });
     }
-
-    return res.status(404).json({ message: "User not found. Please check your token or login again." });
   } catch (error) {
-    console.error("Auth Error:", error.message);
-    return res.status(401).json({ message: "Unauthorized: Invalid or expired token" });
+    console.error(error);
+    if (!res.headersSent) {
+      return res.status(500).json({ message: "Internal server error" });
+    }
   }
 };
 
-// Role-based access control
-const authorizeRoles = (...roles) => (req, res, next) => {
-  if (!req.user) {
-    return res.status(403).json({ message: "Forbidden: User not authenticated" });
-  }
-
-  if (roles.includes(req.user.role)) {
-    return next();
-  }
-
-  return res.status(403).json({ message: "Forbidden: Access denied for this role" });
-};
-
-module.exports = { authMiddleware, authorizeRoles };
+module.exports = authDonorMiddleware;

@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
 const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
-const  authDonorMiddleware  = require("../middlewares/authDonorMiddleware.js");
+const authDonorMiddleware = require("../middlewares/authMiddleware.js");
 const Donation = require("../models/Donation.js");
 
 const router = express.Router();
@@ -108,42 +108,40 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-      const donor = await Donor.findOne({ email });
+    const donor = await Donor.findOne({ email });
 
-      if (!donor) {
-          console.log("Donor not found for email:", email);
-          return res.status(400).json({ message: "Invalid email or password" });
-      }
+    if (!donor) {
+      console.log("Donor not found for email:", email);
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
 
-      console.log("Donor found:", donor);
+    console.log("Donor found:", donor);
 
-      if (!donor.isVerified) {
-          console.log("Email not verified for:", email);
-          return res.status(400).json({ message: "Email not verified" });
-      }
+    if (!donor.isVerified) {
+      console.log("Email not verified for:", email);
+      return res.status(400).json({ message: "Email not verified" });
+    }
 
-      const isMatch = await bcrypt.compare(password.trim(), donor.password);
+    const isMatch = await bcrypt.compare(password.trim(), donor.password);
 
-      if (!isMatch) {
-          console.log("Password mismatch for:", email);
-          return res.status(400).json({ message: "Invalid email or password" });
-      }
+    if (!isMatch) {
+      console.log("Password mismatch for:", email);
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
 
-      console.log("Password matched successfully");
+    console.log("Password matched successfully");
 
-      const token = jwt.sign(
-          { id: donor._id, role: "Donor" }, 
-          process.env.JWT_SECRET
-      );
+    const token = jwt.sign(
+      { id: donor._id, role: "Donor" },
+      process.env.JWT_SECRET
+    );
 
-      res.status(200).json({ token });
-
+    res.status(200).json({ token });
   } catch (error) {
-      console.error("Donor Login Error:", error);
-      res.status(500).json({ message: "Error logging in" });
+    console.error("Donor Login Error:", error);
+    res.status(500).json({ message: "Error logging in" });
   }
 });
-
 
 // Initiate password reset
 router.post("/forgot-password", async (req, res) => {
@@ -283,18 +281,22 @@ router.post("/resend-reset-otp", async (req, res) => {
     res.status(500).json({ message: "Error resending OTP" });
   }
 });
+router.get("/logout", async (req, res) => {
+  res.clearCookie("token", { sameSite: "None", secure: true });
+  res.status(200).json({ message: "logged out successfully" });
+});
 
 router.get("/dashboard", authDonorMiddleware, async (req, res) => {
   try {
-      const donor = await Donor.findById(req.user._id).select("-password"); // Exclude password
-      if (!donor) {
-          return res.status(404).json({ message: "Donor not found" });
-      }
+    const donor = await Donor.findById(req.user._id).select("-password"); // Exclude password
+    if (!donor) {
+      return res.status(404).json({ message: "Donor not found" });
+    }
 
-      res.status(200).json(donor);
+    res.status(200).json(donor);
   } catch (error) {
-      console.error("Error fetching donor dashboard data:", error);
-      res.status(500).json({ message: "Error fetching donor dashboard data" });
+    console.error("Error fetching donor dashboard data:", error);
+    res.status(500).json({ message: "Error fetching donor dashboard data" });
   }
 });
 // Fetch Active Requests
@@ -337,8 +339,8 @@ router.get("/active-requests", authDonorMiddleware, async (req, res) => {
 
 // Fetch Donation History
 router.get("/donation-history", authDonorMiddleware, async (req, res) => {
-    try {
-        const donorId = req.user._id; // Get the donor ID from the authenticated user
+  try {
+    const donorId = req.user._id; // Get the donor ID from the authenticated user
 
     // Total Weight
     const [totalWeightData] = await Donation.aggregate([
@@ -356,7 +358,7 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
 
     // Donation History with specific fields
     const donationHistory = await Donation.find({ donor: donorId })
-      .select("foodItem createdAt address status quantity")
+      .select("foodItem createdAt address status quantity requestId")
       .sort({ createdAt: -1 }); // sort by date
 
     // Prepare response data
