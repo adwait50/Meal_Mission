@@ -49,7 +49,7 @@ const App = () => {
     if (response.status === 200) {
       console.log("otp verified");
       setShowSuccess(true);
-      navigate("/donor-home");
+      navigate("/donor-dashboard");
     }
   };
 

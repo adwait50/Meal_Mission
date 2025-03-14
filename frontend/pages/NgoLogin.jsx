@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 
 const App = () => {
@@ -11,7 +11,7 @@ const App = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showError, setshowError] = useState("");
-
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -19,7 +19,13 @@ const App = () => {
         `${import.meta.env.VITE_BASE_URL}/api/ngo/login`,
         { email, password }
       );
-      console.log(response.data);
+      if (response.status === 200) {
+        localStorage.removeItem("token");
+
+        localStorage.setItem("token", response.data.token);
+
+        navigate("/ngo-dashboard");
+      }
     } catch (error) {
       console.error(error);
       setshowError(error.response.data.message);

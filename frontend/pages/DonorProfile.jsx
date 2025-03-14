@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import SideBar from "../components/SideBar";
 import { useDonor } from "../context/DonorContext";
 import { Link } from "react-router";
 
 function DonorProfile() {
   const { donorData, loading, error, fetchDonorData } = useDonor();
+  useEffect(() => {
+    fetchDonorData();
+  }, [fetchDonorData]);
+
   return (
     <div className="min-h-screen  bg-[#141C25] flex  text-white">
       <SideBar />
@@ -12,9 +16,6 @@ function DonorProfile() {
         {/* User Profile Section */}
         <div className="bg-[#1E2939] rounded-lg shadow-xl p-6 mb-8">
           <div className="flex items-center space-x-4 mb-6">
-            <div className="bg-blue-600 rounded-full p-4">
-              <span className="text-2xl">{donorData?.name?.charAt(0)}</span>
-            </div>
             <div>
               <h1 className="text-2xl font-bold">{donorData?.name}</h1>
               <p className="text-gray-400">{donorData?.email}</p>

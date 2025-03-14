@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const donationSchema = new mongoose.Schema({
-  donor: { type: mongoose.Schema.Types.ObjectId, ref: 'Donor', required: true },
+  donor: { type: mongoose.Schema.Types.ObjectId, ref: "Donor", required: true },
   donorName: { type: String, required: true },
   phone: { type: String, required: true },
   address: { type: String, required: true },
@@ -14,8 +14,8 @@ const donationSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["Pending", "Accepted", "In Progress", "Completed"], // Define allowed statuses
-    default: "Pending" // Set default status to "Pending"
-},
+    default: "Pending", // Set default status to "Pending"
+  },
   createdAt: { type: String, default: () => new Date().toISOString() },
 });
 

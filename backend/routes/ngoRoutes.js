@@ -139,7 +139,7 @@ router.post("/login", async (req, res) => {
     console.log("Password matched successfully");
 
     const token = jwt.sign(
-      { id: NGO._id, role: "NGO" }, // Add "role"
+      { id: NGO._id.toString(), role: "NGO" }, // Add "role"
       process.env.JWT_SECRET
     );
 

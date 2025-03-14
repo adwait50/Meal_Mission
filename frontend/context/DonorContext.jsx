@@ -1,5 +1,11 @@
 import axios from "axios";
-import { createContext, useCallback, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
 
 const DonorContext = createContext();
 
@@ -29,19 +35,25 @@ export const DonorProvider = ({ children }) => {
     }
 
     try {
-      console.log("Fetching donor data...");
+      // console.log("Fetching donor data...");
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/api/donors/dashboard`, // Ensure this is the correct API
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("Donor data API response:", JSON.stringify(response.data, null, 2));
+      // console.log(
+      //   "Donor data API response:",
+      //   JSON.stringify(response.data, null, 2)
+      // );
 
       setDonorData(response.data);
       setError(null);
     } catch (error) {
-      console.error("Error fetching donor data:", error.response?.data || error.message);
+      console.error(
+        "Error fetching donor data:",
+        error.response?.data || error.message
+      );
       setError(error.response?.data?.message || "Failed to fetch donor data");
     } finally {
       setLoading(false);
@@ -60,5 +72,7 @@ export const DonorProvider = ({ children }) => {
     fetchDonorData,
   };
 
-  return <DonorContext.Provider value={value}>{children}</DonorContext.Provider>;
+  return (
+    <DonorContext.Provider value={value}>{children}</DonorContext.Provider>
+  );
 };

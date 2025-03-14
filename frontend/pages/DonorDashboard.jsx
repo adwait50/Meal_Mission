@@ -6,10 +6,6 @@ import { useDonor } from "../context/DonorContext";
 const DonorDashboard = () => {
   const { donorData, loading, error, fetchDonorData } = useDonor();
 
-  useEffect(() => {
-    fetchDonorData();
-  }, [fetchDonorData]);
-
   if (error) {
     return <div>Error: {error}</div>;
   }

@@ -6,7 +6,6 @@ const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
 const { authMiddleware, authorizeRoles } = require("../middlewares/authMiddleware.js");
 const Donation = require("../models/Donation.js");
-const { ObjectId } = require('mongoose').Types;
 
 const router = express.Router();
 
@@ -108,66 +107,43 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  //wapas se checking ki donor is verified or not
   try {
-    const donor = await Donor.findOne({ email });
+      const donor = await Donor.findOne({ email });
 
-    if (!donor)
-      return res.status(400).json({
-        message: "Invalid email or password",
-      });
+      if (!donor) {
+          console.log("Donor not found for email:", email);
+          return res.status(400).json({ message: "Invalid email or password" });
+      }
 
-    if (!donor.isVerified)
-      return res.status(400).json({
-        message: "Email not verified",
-      });
+      console.log("Donor found:", donor);
 
-    //comparing pass
-    const isMatch = await bcrypt.compare(password, donor.password);
+      if (!donor.isVerified) {
+          console.log("Email not verified for:", email);
+          return res.status(400).json({ message: "Email not verified" });
+      }
 
-    if (!isMatch)
-      return res.status(400).json({
-        message: "Invalid email or password",
-      });
+      const isMatch = await bcrypt.compare(password.trim(), donor.password);
 
-    //jwt token generate
-    const token = jwt.sign(
-      { id: Donor._id, role: "Donor" }, //assing role
-      process.env.JWT_SECRET
-    );
+      if (!isMatch) {
+          console.log("Password mismatch for:", email);
+          return res.status(400).json({ message: "Invalid email or password" });
+      }
 
-    //token send to cookies
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-    });
+      console.log("Password matched successfully");
 
-    //responding with token
-    res.status(200).json({
-      token: token,
-    });
+      const token = jwt.sign(
+          { id: donor._id, role: "Donor" }, 
+          process.env.JWT_SECRET
+      );
+
+      res.status(200).json({ token });
+
   } catch (error) {
-    res.status(500).json({
-      message: "Error logging in",
-    });
+      console.error("Donor Login Error:", error);
+      res.status(500).json({ message: "Error logging in" });
   }
 });
 
-router.get("/dashboard", authMiddleware,authorizeRoles("donor"), async (req, res) => {
-  try {
-    return res.status(200).json(req.user); // ✅ Send user data
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-
-//logout of donor
-router.get("/logout",authorizeRoles("donor"), async (req, res) => {
-  res.clearCookie("token", { sameSite: "None", secure: true });
-  res.status(200).json({ message: "logged out successfully" });
-});
 
 // Initiate password reset
 router.post("/forgot-password", async (req, res) => {
@@ -308,71 +284,86 @@ router.post("/resend-reset-otp", async (req, res) => {
   }
 });
 
+router.get("/dashboard", authMiddleware, async (req, res) => {
+  try {
+    return res.status(200).json(req.user); // ✅ Send user data
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
 // Fetch Active Requests
 router.get("/active-requests", authMiddleware,authorizeRoles("donor"), async (req, res) => {
   try {
-      const donorId = req.user._id; 
-      console.log("Donor ID:", donorId);
+    const donorId = req.user._id;
+    console.log("Donor ID:", donorId);
 
-      const activeRequests = await Donation.find({ 
-          donor: donorId, 
-          status: { $ne: "Completed" } 
-      }, { _id: 0, requestId: 1, status: 1, foodItems: 1, quantity: 1, createdAt: 1 });
-
-      console.log("Active Requests:", activeRequests);
-
-      if (!activeRequests.length) {
-          return res.status(404).json({ message: "No active requests found." });
+    const activeRequests = await Donation.find(
+      {
+        donor: donorId,
+        status: { $ne: "Completed" },
+      },
+      {
+        _id: 0,
+        requestId: 1,
+        status: 1,
+        foodItems: 1,
+        quantity: 1,
+        createdAt: 1,
       }
+    );
 
-      return res.status(200).json(activeRequests);
+    console.log("Active Requests:", activeRequests);
 
+    if (!activeRequests.length) {
+      return res.status(404).json({ message: "No active requests found." });
+    }
+
+    return res.status(200).json(activeRequests);
   } catch (error) {
-      console.error("Error fetching active requests:", error);
-      
-      if (!res.headersSent) { // Ensure we don't send multiple responses
-          return res.status(500).json({ message: "Internal server error" });
-      }
+    console.error("Error fetching active requests:", error);
+
+    if (!res.headersSent) {
+      // Ensure we don't send multiple responses
+      return res.status(500).json({ message: "Internal server error" });
+    }
   }
 });
-
 
 // Fetch Donation History
 router.get("/donation-history", authMiddleware,authorizeRoles("donor"), async (req, res) => {
     try {
         const donorId = req.user._id; // Get the donor ID from the authenticated user
 
-        // Total Weight
-        const [totalWeightData] = await Donation.aggregate([
-            { $match: { donor: donorId } },
-            { $group: { _id: null, totalWeight: { $sum: "$quantity" } } }
-        ]);
+    // Total Weight
+    const [totalWeightData] = await Donation.aggregate([
+      { $match: { donor: donorId } },
+      { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
+    ]);
 
-        const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
+    const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
 
-        // Total Donations
-        const totalDonations = await Donation.countDocuments({ donor: donorId });
+    // Total Donations
+    const totalDonations = await Donation.countDocuments({ donor: donorId });
 
-        // Times Donated
-        const timesDonated = await Donation.countDocuments({ donor: donorId });
+    // Times Donated
+    const timesDonated = await Donation.countDocuments({ donor: donorId });
 
-        // Donation History with specific fields
-        const donationHistory = await Donation.find({ donor: donorId })
-            .select("foodItem createdAt address status quantity") 
-            .sort({ createdAt: -1 }); // sort by date
+    // Donation History with specific fields
+    const donationHistory = await Donation.find({ donor: donorId })
+      .select("foodItem createdAt address status quantity")
+      .sort({ createdAt: -1 }); // sort by date
 
-        // Prepare response data
-        return res.status(200).json({
-            totalWeight,
-            totalDonations,
-            timesDonated,
-            donationHistory
-        });
-
-    } catch (error) {
-        console.error("Error fetching donation history:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
+    // Prepare response data
+    return res.status(200).json({
+      totalWeight,
+      totalDonations,
+      timesDonated,
+      donationHistory,
+    });
+  } catch (error) {
+    console.error("Error fetching donation history:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 module.exports = router;
