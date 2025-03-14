@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
 const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
-const authMiddleware = require("../middlewares/authMiddleware.js");
+const { authMiddleware, authorizeRoles } = require("../middlewares/authMiddleware.js");
 const Donation = require("../models/Donation.js");
 const { ObjectId } = require('mongoose').Types;
 
@@ -132,9 +132,7 @@ router.post("/login", async (req, res) => {
 
     //jwt token generate
     const token = jwt.sign(
-      {
-        id: donor._id,
-      },
+      { id: Donor._id, role: "Donor" }, //assing role
       process.env.JWT_SECRET
     );
 
@@ -156,7 +154,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/dashboard", authMiddleware, async (req, res) => {
+router.get("/dashboard", authMiddleware,authorizeRoles("donor"), async (req, res) => {
   try {
     return res.status(200).json(req.user); // ✅ Send user data
   } catch (error) {
@@ -166,7 +164,7 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
 
 
 //logout of donor
-router.get("/logout", async (req, res) => {
+router.get("/logout",authorizeRoles("donor"), async (req, res) => {
   res.clearCookie("token", { sameSite: "None", secure: true });
   res.status(200).json({ message: "logged out successfully" });
 });
@@ -311,7 +309,7 @@ router.post("/resend-reset-otp", async (req, res) => {
 });
 
 // Fetch Active Requests
-router.get("/active-requests", authMiddleware, async (req, res) => {
+router.get("/active-requests", authMiddleware,authorizeRoles("donor"), async (req, res) => {
   try {
       const donorId = req.user._id; 
       console.log("Donor ID:", donorId);
@@ -340,7 +338,7 @@ router.get("/active-requests", authMiddleware, async (req, res) => {
 
 
 // Fetch Donation History
-router.get("/donation-history", authMiddleware, async (req, res) => {
+router.get("/donation-history", authMiddleware,authorizeRoles("donor"), async (req, res) => {
     try {
         const donorId = req.user._id; // Get the donor ID from the authenticated user
 

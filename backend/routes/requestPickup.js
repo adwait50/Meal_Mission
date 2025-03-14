@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Donation = require("../models/Donation.js");
 const foodUploads = require("../utils/foodUploads.js");
-const authMiddleware = require("../middlewares/authMiddleware.js"); // Import authMiddleware
+const { authMiddleware, authorizeRoles } = require("../middlewares/authMiddleware.js"); // Import authMiddleware
 const moment = require("moment");
 
 // Function to format the date
@@ -26,7 +26,7 @@ const formatDate = (date) => {
 // Request Pickup Route
 router.post(
   "/request-pickup",
-  authMiddleware, // ✅ Apply authentication middleware
+  authMiddleware,authorizeRoles("donor"), // ✅ Apply authentication middleware
   foodUploads.single("foodImage"),
   async (req, res) => {
     try {

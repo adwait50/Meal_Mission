@@ -1,48 +1,34 @@
 const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
 const Admin = require("../models/Admin.js");
-const NGO = require("../models/ngoModel.js"); // Add NGO model
+const NGO = require("../models/ngoModel.js");
+
+const userRoles = { admin: Admin, donor: Donor, ngo: NGO };
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const authHeader = req.header("Authorization");
-    if (!authHeader) {
-      return res.status(401).json({ message: "Unauthorized: No token given" });
+    const token = req.header("Authorization")?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Unauthorized: No token provided" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    for (const [role, model] of Object.entries(userRoles)) {
+      const user = await model.findById(decoded.id).select("-password -__v");
+      if (user) {
+        req.user = { ...user.toObject(), role };
+        return next();
+      }
     }
 
-    // Extract token from 'Bearer <token>'
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token format" });
-    }
-
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Check if the user is an Admin, Donor, or NGO
-      let user = await Admin.findById(decoded.id).select("-password -__v");
-      if (!user) {
-        user = await Donor.findById(decoded.id).select("-password -resetPasswordOTP -resetPasswordOTPExpires -__v");
-      }
-      if (!user) {
-        user = await NGO.findById(decoded.id).select("-password -otp -otpExpires -__v"); // Check for NGO
-      }
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      req.user = user;
-      next(); // ✅ Move to the next middleware
-    } catch (error) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token" });
-    }
+    return res.status(404).json({ message: "User not found" });
   } catch (error) {
-    console.error(error);
-    if (!res.headersSent) {
-      return res.status(500).json({ message: "Internal server error" });
-    }
+    res.status(401).json({ message: "Unauthorized: Invalid token" });
   }
 };
 
-module.exports = authMiddleware;
+const authorizeRoles = (...roles) => (req, res, next) =>
+  roles.includes(req.user.role)
+    ? next()
+    : res.status(403).json({ message: "Forbidden: Access denied" });
+
+module.exports = { authMiddleware, authorizeRoles };

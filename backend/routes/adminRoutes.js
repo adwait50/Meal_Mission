@@ -1,6 +1,6 @@
 const express = require('express');
 const NGOModel = require('../models/ngoModel.js');
-const authMiddleware = require('../middlewares/authMiddleware.js');
+const { authMiddleware, authorizeRoles } = require("../middlewares/authMiddleware.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const AdminModel = require("../models/Admin.js"); // Import the Admin model
@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 //Admin approves NGO
-router.put("/approve-ngo/:id", authMiddleware, async (req, res) => {
+router.put("/approve-ngo/:id", authMiddleware,authorizeRoles("admin"), async (req, res) => {
     if (!req.user.isAdmin) {
         return res.status(403).json({ message: "Access denied" });
     }
@@ -25,7 +25,7 @@ router.put("/approve-ngo/:id", authMiddleware, async (req, res) => {
 });
 
    // Admin rejects an NGO
-   router.put("/reject-ngo/:id", authMiddleware, async (req, res) => {
+   router.put("/reject-ngo/:id", authMiddleware, authorizeRoles("admin"), async (req, res) => {
     if (!req.user.isAdmin) {
         return res.status(403).json({ message: "Access denied" });
     }
@@ -41,7 +41,7 @@ router.put("/approve-ngo/:id", authMiddleware, async (req, res) => {
     }
 });
 
-router.get("/pending", authMiddleware, async (req, res) => {
+router.get("/pending", authMiddleware,authorizeRoles("admin"), async (req, res) => {
     if (!req.user.isAdmin) {
         return res.status(403).json({ message: "Access denied" });
     }
@@ -73,13 +73,9 @@ router.post("/login", async (req, res) => {
 
         // Generate a JWT token
         const token = jwt.sign(
-            {
-                id: admin._id,
-                isAdmin: admin.isAdmin,
-            },
-            process.env.JWT_SECRET, // Ensure you have a JWT secret in your environment variables
-            { expiresIn: "1h" } // Token expiration time
-        );
+            { id: Admin._id, role: "Admin" }, 
+            process.env.JWT_SECRET
+          );
 
         // Send the token back to the client
         res.status(200).json({ token });
