@@ -20,7 +20,7 @@ function AdminSideBar() {
                     : "text-white hover:bg-[#364153]"
                 }`
               }
-              to={"/ngo-dashboard"}
+              to={"/admin-dashboard"}
             >
               Dashboard
             </NavLink>
@@ -48,6 +48,18 @@ function AdminSideBar() {
               to={"/ngo-setting"}
             >
               Settings
+            </NavLink>
+            <NavLink
+              className={({ isActive }) =>
+                `flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-[#F4C752] text-[#141C25] font-semibold"
+                    : "text-white hover:bg-[#364153]"
+                }`
+              }
+              to={"/pending-ngos"}
+            >
+              Pending NGOs
             </NavLink>
           </div>
         </div>

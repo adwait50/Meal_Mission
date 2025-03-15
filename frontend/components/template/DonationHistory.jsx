@@ -47,6 +47,8 @@ const DonationHistory = () => {
         return "bg-blue-600";
       case "Pending":
         return "bg-orange-400 ";
+      case "Accepted":
+        return "bg-blue-600";
       default:
         return "bg-gray-600";
     }

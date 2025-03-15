@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
+import { Country, State, City } from "country-state-city";
 
 const App = () => {
   const navigate = useNavigate();
@@ -16,6 +17,9 @@ const App = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [timer, setTimer] = useState(300);
   const [error, setError] = useState("");
+  const [states, setStates] = useState(State.getStatesOfCountry("IN"));
+  const [cities, setCities] = useState([]);
+  console.log(states, cities);
 
   useEffect(() => {
     if (showOTP && timer > 0) {
@@ -54,7 +58,12 @@ const App = () => {
       navigate("/donor-dashboard");
     }
   };
-
+  const [selectedState, setSelectedState] = useState(null);
+  const [selectedCountry, setselectedCountry] = useState("IN");
+  const handleStateChange = (state) => {
+    setSelectedState(state);
+    setCities(City.getCitiesOfState(selectedCountry, state.isoCode));
+  };
   return (
     <div className="min-h-screen bg-[#141C25] flex flex-col items-center ">
       <NavBar />
@@ -79,7 +88,7 @@ const App = () => {
                   Full Name
                 </label>
                 <div className="relative mt-1 ">
-                  <i className="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  <i className="fas fa-user absolute z-10 left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   <input
                     id="name"
                     name="name"
@@ -98,7 +107,7 @@ const App = () => {
                   Email
                 </label>
                 <div className="relative mt-1">
-                  <i className="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  <i className="fas fa-envelope z-10 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   <input
                     id="email"
                     name="email"
@@ -117,7 +126,7 @@ const App = () => {
                   Password
                 </label>
                 <div className="relative mt-1">
-                  <i className="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  <i className="fas fa-lock z-10 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   <input
                     id="password"
                     name="password"
@@ -147,7 +156,7 @@ const App = () => {
                   Phone
                 </label>
                 <div className="relative mt-1">
-                  <i className="fas fa-phone absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  <i className="fas fa-phone absolute left-3 z-10 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   <input
                     id="phone"
                     name="phone"
@@ -160,13 +169,59 @@ const App = () => {
                   />
                 </div>
               </div>
-
+              <div className="flex justify-between gap-1  w-full ">
+                <div className="w-1/2 ">
+                  <label htmlFor="State" className="text-zinc-300 text-sm">
+                    State
+                  </label>
+                  <div className="relative mt-1">
+                    <select
+                      name="state"
+                      id="state"
+                      className="w-full rounded-lg relative block  pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                      onChange={(e) =>
+                        handleStateChange(
+                          states.find((s) => s.isoCode === e.target.value)
+                        )
+                      }
+                    >
+                      <option className="w-full" value="">
+                        Select State
+                      </option>
+                      {states.map((state) => (
+                        <option key={state.isoCode} value={state.isoCode}>
+                          {state.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="w-1/2 ">
+                  <label htmlFor="city" className="text-zinc-300 text-sm">
+                    City
+                  </label>
+                  <div className="relative mt-1">
+                    <select
+                      disabled={!selectedState}
+                      name="city"
+                      className="w-full rounded-lg relative block  pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                    >
+                      <option value="">Select City</option>
+                      {cities.map((city) => (
+                        <option key={city.name} value={city.name}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
               <div>
                 <label htmlFor="address" className="text-zinc-300 text-sm">
                   Address
                 </label>
                 <div className="relative mt-1">
-                  <i className="fas fa-home absolute left-3 top-3 text-gray-400"></i>
+                  <i className="fas fa-home absolute left-3 top-3 z-10 text-gray-400"></i>
                   <textarea
                     id="address"
                     name="address"

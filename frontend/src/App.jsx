@@ -19,9 +19,7 @@ import RequestPickup from "../components/template/RequestPickup";
 import DonorDashboardContent from "../pages/DonorDashboardContent";
 import Status from "../components/template/Status";
 import DonationHistory from "../components/template/DonationHistory";
-import PickupConfirm from "../components/template/PickupConfirm";
 import AdminLogin from "../pages/AdminLogin";
-import AdminHome from "../pages/AdminDashboard";
 import NgoDashboard from "../pages/NgoDashboard";
 import NgoProtectedWrapper from "../pages/NgoProtectedWrapper";
 import NgoLogout from "../pages/NgoLogout";
@@ -31,7 +29,10 @@ import RequestDetail from "../components/template/RequestDetail";
 import NgoDashboardContent from "../pages/NgoDashboardContent";
 import AdminProtectedWrapper from "../pages/AdminProtectedWrapper";
 import AdminDashboard from "../pages/AdminDashboard";
-
+import AdminDashboardContent from "../pages/AdminDashboardContent";
+import PendingNgos from "../pages/PendingNgos";
+import PendingNgosDetail from "../pages/PendingNgosDetail";
+import PendingNgosContent from "../pages/PendingNgosContent";
 function App() {
   return (
     <div>
@@ -126,7 +127,23 @@ function App() {
                 <AdminDashboard />{" "}
               </AdminProtectedWrapper>
             }
-          />
+          >
+            <Route index element={<AdminDashboardContent />} />
+          </Route>
+          <Route
+            path="/pending-ngos"
+            element={
+              <AdminProtectedWrapper>
+                <PendingNgos />{" "}
+              </AdminProtectedWrapper>
+            }
+          >
+            <Route index element={<PendingNgosContent />} />
+            <Route
+              path="/pending-ngos/:ngoId"
+              element={<PendingNgosDetail />}
+            />
+          </Route>
         </Routes>
       </DonorProvider>
     </div>
