@@ -30,6 +30,14 @@ const ngoSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    city:{
+        type: String,
+        required: true
+    },
+    state:{
+        type: String,
+        required: true
+    },
     otp: {
         type: String,
         default: null

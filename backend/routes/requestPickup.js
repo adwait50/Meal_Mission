@@ -56,6 +56,8 @@ router.post(
         "foodItems",
         "quantity",
         "pickupDate",
+        "city",
+        "state"
       ];
       for (const field of requiredFields) {
         if (!req.body[field]) {
@@ -82,6 +84,11 @@ router.post(
         address: req.body.address,
         foodItems: req.body.foodItems,
         quantity: req.body.quantity,
+        city: req.body.city,
+        state: req.body.state,
+        pickupDate: new Date(req.body.pickupDate),
+        foodImage: req.file.path,
+        additionalNotes: req.body.additionalNotes,
         pickupDate: new Date(req.body.pickupDate),
         foodImage: req.file.path,
         additionalNotes: req.body.additionalNotes,

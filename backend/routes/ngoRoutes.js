@@ -15,7 +15,7 @@ const router = express.Router();
 //register NGO
 router.post("/register", upload.single("documentProof"), async (req, res) => {
   try {
-    const { name, email, password, address } = req.body;
+    const { name, email, password, address, city, state } = req.body;
 
     if (!req.file) {
       return res
@@ -60,6 +60,8 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
       address,
       documentProof: documentProofPath,
       otp,
+      city,
+      state,
       otpExpires,
       isApproved: false,
     });
