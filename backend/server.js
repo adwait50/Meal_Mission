@@ -11,6 +11,10 @@ const cors = require("cors");
 const app = express();
 connectDB();
 
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  next();
+});
 app.use(
   cors({
     origin: "http://localhost:5173", // Your frontend URL

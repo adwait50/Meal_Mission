@@ -15,7 +15,7 @@ const router = express.Router();
 //register NGO
 router.post("/register", upload.single("documentProof"), async (req, res) => {
   try {
-    const { name, email, password, address } = req.body;
+    const { name, email, password, address, city, state } = req.body;
 
     if (!req.file) {
       return res
@@ -60,6 +60,8 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
       address,
       documentProof: documentProofPath,
       otp,
+      city: city.toLowerCase(),
+      state: state.toLowerCase(),
       otpExpires,
       isApproved: false,
     });
@@ -309,6 +311,31 @@ router.post("/resend-reset-otp", async (req, res) => {
     res.status(500).json({ message: "Error resending OTP" });
   }
 });
+
+// Route to browse food pickup requests based on NGO's city
+router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
+  try {
+     
+      const ngo = await NGOModel.findById(req.user.id).select("city"); // Get the city of the NGO
+      if (!ngo) {
+          return res.status(404).json({ message: "NGO not found" });
+      }
+
+      const ngoCity = ngo.city.toLowerCase(); 
+
+      // Fetch all pickup requests that match the NGO's city
+      const requests = await Donation.find({ city: ngoCity }) // Filter by city
+      .populate("donor", "name email") 
+      .select("-_id -phone -city -state -status -createdAt -__v -donor") // Exclude specified fields
+      .sort({ createdAt: -1 });
+
+      res.status(200).json(requests);
+  } catch (error) {
+      console.error("Error fetching pickup requests:", error);
+      res.status(500).json({ message: "Error fetching pickup requests" });
+  }
+});
+
 
 // Example route to update the status of a donation
 router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {

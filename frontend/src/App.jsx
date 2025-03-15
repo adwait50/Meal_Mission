@@ -134,15 +134,12 @@ function App() {
             path="/pending-ngos"
             element={
               <AdminProtectedWrapper>
-                <PendingNgos />{" "}
+                <PendingNgos />
               </AdminProtectedWrapper>
             }
           >
             <Route index element={<PendingNgosContent />} />
-            <Route
-              path="/pending-ngos/:ngoId"
-              element={<PendingNgosDetail />}
-            />
+            <Route path=":ngoId" element={<PendingNgosDetail />} />
           </Route>
         </Routes>
       </DonorProvider>

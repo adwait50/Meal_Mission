@@ -16,7 +16,7 @@ function PendingNgosContent() {
         }
       );
       if (response.status === 200) {
-        // console.log(response.data);
+        console.log(response.data);
         setPendingNgos(response.data);
       }
     } catch (error) {
@@ -30,11 +30,13 @@ function PendingNgosContent() {
   }, []);
 
   return (
-    <div>
-      <div className="flex-1 ml-[300px] p-9">
-        <h1 className="text-3xl text-zinc-200 font-semibold ">Pending NGOs</h1>
-        <div className="min-h-screen px-6 flex flex-col gap-2 mt-10 ">
-          {pendingNgos.map((ngo) => (
+    <div className="flex-1 ml-[300px] p-9">
+      <h1 className="text-3xl text-zinc-200 font-semibold">Pending NGOs</h1>
+      <div className="min-h-screen px-6 flex flex-col gap-2 mt-10">
+        {pendingNgos.length === 0 ? (
+          <p className="text-lg text-red-500">No NGOs to approve.</p>
+        ) : (
+          pendingNgos.map((ngo) => (
             <div
               key={ngo._id}
               className="w-full p-4 flex rounded-lg bg-[#364153] py-5 mb-2"
@@ -57,8 +59,8 @@ function PendingNgosContent() {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          ))
+        )}
       </div>
     </div>
   );
