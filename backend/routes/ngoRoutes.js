@@ -8,7 +8,6 @@ const authNgoMiddleware = require("../middlewares/authNgoMiddleware.js");
 const upload = require("../utils/multerConfig.js");
 const Donation = require("../models/Donation.js");
 
-
 const generateOTP = () =>
   randomstring.generate({ length: 4, charset: "numeric" });
 const router = express.Router();
@@ -19,7 +18,9 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
     const { name, email, password, address } = req.body;
 
     if (!req.file) {
-      return res.status(400).json({ message: "Please upload ID proof document" });
+      return res
+        .status(400)
+        .json({ message: "Please upload ID proof document" });
     }
 
     // Check if NGO already exists
@@ -123,8 +124,12 @@ router.post("/login", async (req, res) => {
 
     console.log("NGO found:", NGO);
 
-    if (!NGO.isVerified) return res.status(400).json({ message: "Email not verified" });
-    if (!NGO.isApproved) return res.status(400).json({ message: "Account pending admin approval" });
+    if (!NGO.isVerified)
+      return res.status(400).json({ message: "Email not verified" });
+    if (!NGO.isApproved)
+      return res
+        .status(400)
+        .json({ message: "Account pending admin approval" });
 
     console.log("Stored hashed password:", NGO.password);
     console.log("Entered password:", password.trim());
@@ -144,13 +149,11 @@ router.post("/login", async (req, res) => {
     );
 
     res.status(200).json({ token });
-
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Error logging in" });
   }
 });
-
 
 router.get("/dashboard", authNgoMiddleware, async (req, res) => {
   try {
@@ -314,32 +317,29 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
   // Validate the status
   const validStatuses = ["Pending", "Accepted", "In Progress", "Completed"];
   if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
+    return res.status(400).json({ message: "Invalid status" });
   }
 
   try {
-      // Find the donation by ID and update the status
-      const updatedDonation = await Donation.findByIdAndUpdate(
-          req.params.id,
-          { status },
-          { new: true } // Return the updated document
-      );
+    // Find the donation by ID and update the status
+    const updatedDonation = await Donation.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true } // Return the updated document
+    );
 
-      if (!updatedDonation) {
-          return res.status(404).json({ message: "Donation not found" });
-      }
+    if (!updatedDonation) {
+      return res.status(404).json({ message: "Donation not found" });
+    }
 
-     
-      res.status(200).json({ 
-        message: "success",
-        status: updatedDonation.status 
-      }); 
-
+    res.status(200).json({
+      message: "success",
+      status: updatedDonation.status,
+    });
   } catch (error) {
-      console.error("Error updating donation status:", error);
-      res.status(500).json({ message: "Error updating donation status" });
+    console.error("Error updating donation status:", error);
+    res.status(500).json({ message: "Error updating donation status" });
   }
 });
-
 
 module.exports = router;

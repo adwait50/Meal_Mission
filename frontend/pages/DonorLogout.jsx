@@ -25,18 +25,6 @@ function DonorLogout() {
     logoutUser();
   }, [navigate]);
 
-  //   const token = localStorage.getItem("token");
-  //   console.log("Token: " + token);
-
-  //   useEffect(() => {
-  //     if (token) {
-  //       localStorage.removeItem("token");
-  //       console.log("User logged out successfully.");
-  //     }
-  //     // Navigate after logging out
-  //     navigate("/donor-login");
-  //   }, [token, navigate]);
-
   return (
     <div className="h-screen w-full bg-zinc-700 text-white flex justify-center items-center text-2xl">
       You are logged out

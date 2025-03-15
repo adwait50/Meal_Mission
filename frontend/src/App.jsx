@@ -21,13 +21,16 @@ import Status from "../components/template/Status";
 import DonationHistory from "../components/template/DonationHistory";
 import PickupConfirm from "../components/template/PickupConfirm";
 import AdminLogin from "../pages/AdminLogin";
-import AdminHome from "../pages/AdminHome";
+import AdminHome from "../pages/AdminDashboard";
 import NgoDashboard from "../pages/NgoDashboard";
 import NgoProtectedWrapper from "../pages/NgoProtectedWrapper";
 import NgoLogout from "../pages/NgoLogout";
 import NgoSetting from "../pages/NgoSetting";
 import NgoProfile from "../pages/NgoProfile";
 import RequestDetail from "../components/template/RequestDetail";
+import NgoDashboardContent from "../pages/NgoDashboardContent";
+import AdminProtectedWrapper from "../pages/AdminProtectedWrapper";
+import AdminDashboard from "../pages/AdminDashboard";
 
 function App() {
   return (
@@ -93,7 +96,9 @@ function App() {
                 <NgoDashboard />{" "}
               </NgoProtectedWrapper>
             }
-          />
+          >
+            <Route index element={<NgoDashboardContent />} />
+          </Route>
           <Route
             path="/ngo-profile"
             element={
@@ -114,7 +119,14 @@ function App() {
 
           <Route path="/ngo-forgot-password" element={<NgoForgotPassword />} />
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin-dashboard" element={<AdminHome />} />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <AdminProtectedWrapper>
+                <AdminDashboard />{" "}
+              </AdminProtectedWrapper>
+            }
+          />
         </Routes>
       </DonorProvider>
     </div>

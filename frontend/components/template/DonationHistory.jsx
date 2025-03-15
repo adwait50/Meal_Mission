@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 const DonationHistory = () => {
   const [donations, setDonations] = useState([]);
@@ -99,7 +99,7 @@ const DonationHistory = () => {
                     Donation ID
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
-                    Items
+                    Address
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
                     Quantity
@@ -109,6 +109,9 @@ const DonationHistory = () => {
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
                     Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                    Action
                   </th>
                 </tr>
               </thead>
@@ -122,7 +125,7 @@ const DonationHistory = () => {
                     `}
                   >
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation._id}
+                      {donation.requestId}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
                       {donation.address}
@@ -142,6 +145,13 @@ const DonationHistory = () => {
                       >
                         {donation.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link
+                        to={`/donor-dashboard/status/${donation.requestId}`}
+                      >
+                        <i className="ri-eye-line cursor-pointer"></i>
+                      </Link>
                     </td>
                   </tr>
                 ))}

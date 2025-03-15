@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, NavLink } from "react-router";
 
-function NgoSideBar() {
+function AdminSideBar() {
   // console.log(donorData);
 
   return (
@@ -54,7 +54,7 @@ function NgoSideBar() {
         <div className=" flex justify-center items-center  w-full">
           <i className="ri-user-fill text-xl border-2 rounded-full px-2 py-1"></i>
           <div className="px-5">
-            <h5 className="text-2xl font-semibold">Some random ngo</h5>
+            <h5 className="text-2xl font-semibold">Admin</h5>
           </div>
         </div>
       </div>
@@ -62,4 +62,4 @@ function NgoSideBar() {
   );
 }
 
-export default NgoSideBar;
+export default AdminSideBar;

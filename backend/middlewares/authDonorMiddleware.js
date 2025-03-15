@@ -13,7 +13,9 @@ const authDonorMiddleware = async (req, res, next) => {
     // Extract token from 'Bearer <token>'
     const token = authHeader.split(" ")[1];
     if (!token) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token format" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid token format" });
     }
 
     try {
@@ -21,12 +23,12 @@ const authDonorMiddleware = async (req, res, next) => {
 
       // Check if the user is an Admin, Donor, or NGO
       let user = await Donor.findById(decoded.id).select("-password -__v");
-     // if (!user) {
-     //   user = await Donor.findById(decoded.id).select("-password -resetPasswordOTP -resetPasswordOTPExpires -__v");
-     // }
-     // if (!user) {
-     //   user = await NGO.findById(decoded.id).select("-password -otp -otpExpires -__v"); // Check for NGO
-     // }
+      // if (!user) {
+      //   user = await Donor.findById(decoded.id).select("-password -resetPasswordOTP -resetPasswordOTPExpires -__v");
+      // }
+      // if (!user) {
+      //   user = await NGO.findById(decoded.id).select("-password -otp -otpExpires -__v"); // Check for NGO
+      // }
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });

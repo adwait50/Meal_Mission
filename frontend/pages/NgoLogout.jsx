@@ -11,7 +11,7 @@ function NgoLogout() {
         // await axios.get(`${import.meta.env.VITE_BASE_URL}/api/donors/logout`);
 
         // Clear the token from localStorage
-        localStorage.removeItem("token");
+        localStorage.removeItem("Ngotoken");
 
         console.log("User logged out successfully.");
 

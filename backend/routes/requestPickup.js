@@ -7,20 +7,20 @@ const moment = require("moment");
 
 // Function to format the date
 const formatDate = (date) => {
-  const today = moment().startOf('day'); // Get today's date at midnight
-  const tomorrow = moment().add(1, 'days').startOf('day'); // Get tomorrow's date at midnight
-  const yesterday = moment().subtract(1, 'days').startOf('day'); // Get yesterday's date at midnight
+  const today = moment().startOf("day"); // Get today's date at midnight
+  const tomorrow = moment().add(1, "days").startOf("day"); // Get tomorrow's date at midnight
+  const yesterday = moment().subtract(1, "days").startOf("day"); // Get yesterday's date at midnight
 
   const inputDate = moment(date); // Convert the input date to a moment object
 
   if (inputDate.isSame(today)) {
-      return "Today"; // If the date is today
+    return "Today"; // If the date is today
   } else if (inputDate.isSame(tomorrow)) {
-      return "Tomorrow"; // If the date is tomorrow
+    return "Tomorrow"; // If the date is tomorrow
   } else if (inputDate.isSame(yesterday)) {
-      return "Yesterday"; // If the date is yesterday
+    return "Yesterday"; // If the date is yesterday
   } else {
-      return inputDate.format("DD-MM-YYYY hh:mm A"); // Format the date if it's not today, tomorrow, or yesterday
+    return inputDate.format("DD-MM-YYYY hh:mm A"); // Format the date if it's not today, tomorrow, or yesterday
   }
 };
 // Request Pickup Route
@@ -86,7 +86,7 @@ router.post(
         foodImage: req.file.path,
         additionalNotes: req.body.additionalNotes,
         requestId: requestId,
-        createdAt: moment().format("DD-MM-YYYY hh:mm A")
+        createdAt: moment().format("DD-MM-YYYY hh:mm A"),
       });
 
       await donation.save();
@@ -107,6 +107,5 @@ router.post(
 );
 
 const displayDate = formatDate(Donation.createdAt);
-
 
 module.exports = router;

@@ -15,6 +15,7 @@ const App = () => {
   const [showOTP, setShowOTP] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [timer, setTimer] = useState(300);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (showOTP && timer > 0) {
@@ -36,6 +37,7 @@ const App = () => {
       setShowOTP(true);
     } catch (error) {
       console.log(error);
+      setError(error.response.data.message);
     }
   };
 
@@ -203,6 +205,7 @@ const App = () => {
           )}
 
           <div className="flex flex-col items-center">
+            {error && <p className="text-red-500">{error}</p>}
             <button
               type="submit"
               className="!rounded-button rounded group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"

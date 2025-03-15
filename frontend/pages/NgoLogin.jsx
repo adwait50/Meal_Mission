@@ -21,8 +21,9 @@ const App = () => {
       );
       if (response.status === 200) {
         localStorage.removeItem("token");
+        localStorage.removeItem("Ngotoken");
 
-        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("Ngotoken", response.data.token);
 
         navigate("/ngo-dashboard");
       }

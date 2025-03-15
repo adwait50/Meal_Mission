@@ -104,7 +104,7 @@ const App = () => {
       console.log(response.data);
       if (response.status === 200) {
         const data = response.data;
-        console.log(data);
+        // console.log(data);
         navigate("/ngo-dashboard");
         setisVerified(true);
       }
