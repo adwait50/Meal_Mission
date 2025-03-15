@@ -356,7 +356,7 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
 
     // Donation History with specific fields
     const donationHistory = await Donation.find({ donor: donorId })
-      .select("foodItem createdAt address status quantity")
+      .select("foodItem createdAt address status quantity requestId")
       .sort({ createdAt: -1 }); // sort by date
 
     // Prepare response data
