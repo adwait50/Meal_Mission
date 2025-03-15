@@ -9,10 +9,10 @@ const Modal = ({ isOpen, onClose, children }) => {
         className="absolute inset-0 bg-opacity-50 backdrop-blur-sm"
         onClick={onClose}
       ></div>
-      <div className="bg-white rounded-lg p-6 shadow-lg relative z-10">
+      <div className="bg-[#141c25] rounded-lg p-6 shadow-lg relative z-10">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-4xl cursor-pointer text-black"
+          className="absolute top-2 right-2 text-4xl cursor-pointer text-white"
         >
           &times;
         </button>

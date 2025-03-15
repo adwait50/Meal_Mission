@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
 const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
-const authDonorMiddleware = require("../middlewares/authMiddleware.js");
+const authDonorMiddleware = require("../middlewares/authDonorMiddleware.js");
 const Donation = require("../models/Donation.js");
 
 const router = express.Router();

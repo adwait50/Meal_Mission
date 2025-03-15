@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Donation = require("../models/Donation.js");
 const foodUploads = require("../utils/foodUploads.js");
-const authDonorMiddleware = require("../middlewares/authMiddleware.js"); // Import authMiddleware
+const authDonorMiddleware = require("../middlewares/authDonorMiddleware.js"); // Import authMiddleware
 const moment = require("moment");
 
 // Function to format the date

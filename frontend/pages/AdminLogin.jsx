@@ -53,7 +53,7 @@ const App = () => {
       console.log("Logged in");
 
       localStorage.removeItem("token");
-      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("Admintoken", response.data.token);
 
       navigate("/admin-dashboard");
     } catch (error) {

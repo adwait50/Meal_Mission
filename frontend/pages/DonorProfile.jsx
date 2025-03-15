@@ -1,13 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 import { useDonor } from "../context/DonorContext";
 import { Link } from "react-router";
+import ConfirmLogout from "../components/template/ConfirmLogout";
+import Modal from "../components/Modal";
 
 function DonorProfile() {
   const { donorData, loading, error, fetchDonorData } = useDonor();
   useEffect(() => {
     fetchDonorData();
   }, [fetchDonorData]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen  bg-[#141C25] flex  text-white">
@@ -119,7 +122,7 @@ function DonorProfile() {
             <button className="w-full text-left px-4 py-2 hover:bg-[#2a3444] rounded-lg transition-colors">
               <i className="fas fa-key mr-2"></i> Change Password
             </button>
-            <Link to={"/donor-logout"}>
+            <Link onClick={() => setIsModalOpen(true)}>
               <button className="w-full text-left px-4 py-2 hover:bg-[#2a3444] rounded-lg transition-colors text-red-500">
                 <i className="fas fa-sign-out-alt mr-2"></i> Logout
               </button>
@@ -127,6 +130,9 @@ function DonorProfile() {
           </div>
         </div>
       </div>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ConfirmLogout />
+      </Modal>
     </div>
   );
 }

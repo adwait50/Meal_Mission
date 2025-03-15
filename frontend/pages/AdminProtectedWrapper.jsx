@@ -1,14 +1,14 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router";
 
-function NgoProtectedWrapper({ children }) {
-  const token = localStorage.getItem("Ngotoken");
+function AdminProtectedWrapper({ children }) {
+  const token = localStorage.getItem("Admintoken");
   // console.log(token);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) {
-      navigate("/ngo-login");
+      navigate("/admin-login");
     }
   }, [token, navigate]);
 
@@ -17,5 +17,4 @@ function NgoProtectedWrapper({ children }) {
   }
   return <div>{children}</div>;
 }
-
-export default NgoProtectedWrapper;
+export default AdminProtectedWrapper;
