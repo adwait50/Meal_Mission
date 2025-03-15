@@ -30,7 +30,6 @@ router.post(
   foodUploads.single("foodImage"),
   async (req, res) => {
     try {
-      console.log("Authenticated User:", req.user); // ✅ Debugging step
 
       // Check if user is authenticated
       if (!req.user) {
@@ -84,8 +83,8 @@ router.post(
         address: req.body.address,
         foodItems: req.body.foodItems,
         quantity: req.body.quantity,
-        city: req.body.city,
-        state: req.body.state,
+        city: req.body.city.toLowerCase(),
+        state: req.body.state.toLowerCase(),
         pickupDate: new Date(req.body.pickupDate),
         foodImage: req.file.path,
         additionalNotes: req.body.additionalNotes,

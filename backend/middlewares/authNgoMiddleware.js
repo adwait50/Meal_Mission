@@ -38,7 +38,6 @@ const authNgoMiddleware = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized: Invalid token" });
     }
   } catch (error) {
-    console.error(error);
     if (!res.headersSent) {
       return res.status(500).json({ message: "Internal server error" });
     }

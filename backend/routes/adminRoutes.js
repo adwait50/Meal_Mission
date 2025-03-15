@@ -54,6 +54,22 @@ router.get("/pending", authAdminMiddleware, async (req, res) => {
     }
 });
 
+// Route to get NGO information by ID
+router.get("/:id", async (req, res) => { 
+    console.log("Fetching NGO with ID:", req.params.id); // Debug log
+    try {
+        const ngo = await NGOModel.findById(req.params.id).select("-password -otp -otpExpires -registrationDate -__v");
+        if (!ngo) {
+            return res.status(404).json({ message: "NGO not found" });
+        }
+        res.status(200).json(ngo);
+    } catch (error) {
+        console.error("Error fetching NGO:", error);
+        res.status(500).json({ message: "Error fetching NGO" });
+    }
+});
+
+
 // Admin Login Route
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
