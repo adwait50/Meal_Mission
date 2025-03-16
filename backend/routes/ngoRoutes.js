@@ -56,6 +56,7 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
     const newNGO = new NGOModel({
       name,
       email,
+      phone,
       password: hashedPassword,
       address,
       documentProof: documentProofPath,

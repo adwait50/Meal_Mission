@@ -38,6 +38,11 @@ const ngoSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    phone: {
+        type: String,
+        required: true,
+        unique: true,
+      },
     otp: {
         type: String,
         default: null

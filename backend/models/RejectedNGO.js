@@ -7,6 +7,7 @@ const rejectedNGOSchema = new mongoose.Schema({
     city: { type: String, required: true },
     state: { type: String, required: true },
     reasonForRejection: { type: String },
+    phone: { type: String, required: true, unique: true},
     createdAt: { type: Date, default: Date.now },
     documentProof: { type: String, required: true }
 });

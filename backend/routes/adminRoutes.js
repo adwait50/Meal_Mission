@@ -43,10 +43,11 @@ router.put("/approve-ngo/:id", authAdminMiddleware, async (req, res) => {
             email: ngo.email,
             address: ngo.address,
             city: ngo.city,
+            phone: ngo.phone,
             state: ngo.state,
             documentProof: ngo.documentProof,
             isApproved: false, // Mark the NGO as rejected
-            reasonForRejection, // Store the reason for rejection if provided
+            reasonForRejection, 
         });
 
         // Save the rejected NGO to the RejectedNGO collection
