@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
+import { Country, State, City } from "country-state-city";
 
 const App = () => {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ const App = () => {
     address: "",
     documentProof: null,
     acceptTerms: false,
+    state: "",
+    city: "",
     otp: "",
   });
   const [showOtpScreen, setShowOtpScreen] = useState(false);
@@ -24,6 +27,21 @@ const App = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [states, setStates] = useState(State.getStatesOfCountry("IN"));
+  const [cities, setCities] = useState([]);
+
+  const [selectedCountry, setselectedCountry] = useState("IN");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const handleStateChange = (state) => {
+    setSelectedState(state);
+    setCities(City.getCitiesOfState(selectedCountry, state.isoCode));
+    // console.log(state.name);
+  };
+  const handleCityChange = (e) => {
+    setSelectedCity(e.target.value); // Update selected city state
+    // console.log(selectedCity);
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -63,6 +81,8 @@ const App = () => {
       formDataToSend.append("password", formData.password);
       formDataToSend.append("name", formData.name);
       formDataToSend.append("address", formData.address);
+      formDataToSend.append("state", formData.state);
+      formDataToSend.append("city", formData.city);
 
       if (formData.documentProof) {
         formDataToSend.append("documentProof", formData.documentProof);
@@ -250,6 +270,54 @@ const App = () => {
                       }`}
                     ></i>
                   </button>
+                </div>
+              </div>
+              <div className="flex justify-between gap-1  w-full ">
+                <div className="w-1/2 ">
+                  <label htmlFor="State" className="text-zinc-300 text-sm">
+                    State
+                  </label>
+                  <div className="relative mt-1">
+                    <select
+                      name="state"
+                      id="state"
+                      className="w-full rounded-lg relative block  pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                      onChange={(e) =>
+                        handleStateChange(
+                          states.find((s) => s.isoCode === e.target.value)
+                        )
+                      }
+                    >
+                      <option className="w-full" value="">
+                        Select State
+                      </option>
+                      {states.map((state) => (
+                        <option key={state.isoCode} value={state.isoCode}>
+                          {state.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="w-1/2 ">
+                  <label htmlFor="city" className="text-zinc-300 text-sm">
+                    City
+                  </label>
+                  <div className="relative mt-1">
+                    <select
+                      disabled={!selectedState}
+                      name="city"
+                      onChange={handleCityChange}
+                      className="w-full rounded-lg relative block  pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                    >
+                      <option value="">Select City</option>
+                      {cities.map((city) => (
+                        <option key={city.name} value={city.name}>
+                          {city.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div>
