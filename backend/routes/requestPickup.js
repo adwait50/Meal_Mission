@@ -30,7 +30,6 @@ router.post(
   foodUploads.single("foodImage"),
   async (req, res) => {
     try {
-
       // Check if user is authenticated
       if (!req.user) {
         return res.status(401).json({
@@ -56,7 +55,7 @@ router.post(
         "quantity",
         "pickupDate",
         "city",
-        "state"
+        "state",
       ];
       for (const field of requiredFields) {
         if (!req.body[field]) {
@@ -85,9 +84,6 @@ router.post(
         quantity: req.body.quantity,
         city: req.body.city.toLowerCase(),
         state: req.body.state.toLowerCase(),
-        pickupDate: new Date(req.body.pickupDate),
-        foodImage: req.file.path,
-        additionalNotes: req.body.additionalNotes,
         pickupDate: new Date(req.body.pickupDate),
         foodImage: req.file.path,
         additionalNotes: req.body.additionalNotes,

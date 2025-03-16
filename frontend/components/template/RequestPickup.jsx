@@ -4,6 +4,7 @@ import { Outlet, useNavigate } from "react-router";
 import Modal from "../Modal";
 import PickupConfirm from "./PickupConfirm";
 import { useDonor } from "../../context/DonorContext";
+import { Country, State, City } from "country-state-city";
 
 const App = () => {
   const [error, setError] = useState("");
@@ -16,6 +17,8 @@ const App = () => {
     pickupDate: "",
     additionalNotes: "",
     foodImage: null,
+    state: "",
+    city: "",
   });
 
   const [success, setSuccess] = useState(false);
@@ -23,6 +26,24 @@ const App = () => {
   const { donorData } = useDonor();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [requestId, setrequestId] = useState(null);
+  const [states, setStates] = useState(State.getStatesOfCountry("IN"));
+  const [cities, setCities] = useState([]);
+
+  const [selectedCountry, setselectedCountry] = useState("IN");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const handleStateChange = (state) => {
+    setSelectedState(state);
+    setCities(City.getCitiesOfState(selectedCountry, state.isoCode));
+    setFormData((prev) => ({ ...prev, state: state.name }));
+    console.log(state.name);
+  };
+  const handleCityChange = (e) => {
+    const city = e.target.value;
+    setSelectedCity(e.target.value); // Update selected city state
+    setFormData((prev) => ({ ...prev, city }));
+    // console.log(selectedCity);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -47,6 +68,8 @@ const App = () => {
       formDataToSend.append("quantity", formData.quantity);
       formDataToSend.append("pickupDate", formData.pickupDate);
       formDataToSend.append("additionalNotes", formData.additionalNotes);
+      formDataToSend.append("state", formData.state);
+      formDataToSend.append("city", formData.city);
 
       if (formData.foodImage) {
         formDataToSend.append("foodImage", formData.foodImage);
@@ -68,6 +91,18 @@ const App = () => {
         setrequestId(requestId);
         setSuccess(true);
         setIsModalOpen(true);
+        setFormData({
+          donorName: "",
+          phone: "",
+          address: "",
+          foodItems: "",
+          quantity: "",
+          pickupDate: "",
+          additionalNotes: "",
+          foodImage: null,
+          state: "",
+          city: "",
+        });
       }
     } catch (error) {
       console.error("Error submitting pickup request:", error);
@@ -125,7 +160,54 @@ const App = () => {
                 />
               </div>
             </div>
-
+            <div className="flex justify-between gap-1  w-full ">
+              <div className="w-1/2 ">
+                <label htmlFor="State" className="text-zinc-300 text-sm">
+                  State
+                </label>
+                <div className="relative mt-1">
+                  <select
+                    name="state"
+                    id="state"
+                    className="w-full rounded-lg relative block  pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                    onChange={(e) =>
+                      handleStateChange(
+                        states.find((s) => s.isoCode === e.target.value)
+                      )
+                    }
+                  >
+                    <option className="w-full" value="">
+                      Select State
+                    </option>
+                    {states.map((state) => (
+                      <option key={state.isoCode} value={state.isoCode}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="w-1/2 ">
+                <label htmlFor="city" className="text-zinc-300 text-sm">
+                  City
+                </label>
+                <div className="relative mt-1">
+                  <select
+                    disabled={!selectedState}
+                    name="city"
+                    onChange={handleCityChange}
+                    className="w-full rounded-lg relative block  pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                  >
+                    <option value="">Select City</option>
+                    {cities.map((city) => (
+                      <option key={city.name} value={city.name}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Address

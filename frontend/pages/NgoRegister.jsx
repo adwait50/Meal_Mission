@@ -21,6 +21,7 @@ const App = () => {
     state: "",
     city: "",
     otp: "",
+    phone: "",
   });
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [otpError, setOtpError] = useState("");
@@ -36,10 +37,13 @@ const App = () => {
   const handleStateChange = (state) => {
     setSelectedState(state);
     setCities(City.getCitiesOfState(selectedCountry, state.isoCode));
-    // console.log(state.name);
+    setFormData((prev) => ({ ...prev, state: state.name }));
+    console.log(state.name);
   };
   const handleCityChange = (e) => {
+    const city = e.target.value;
     setSelectedCity(e.target.value); // Update selected city state
+    setFormData((prev) => ({ ...prev, city }));
     // console.log(selectedCity);
   };
 
@@ -83,6 +87,7 @@ const App = () => {
       formDataToSend.append("address", formData.address);
       formDataToSend.append("state", formData.state);
       formDataToSend.append("city", formData.city);
+      formDataToSend.append("phone", formData.phone);
 
       if (formData.documentProof) {
         formDataToSend.append("documentProof", formData.documentProof);
@@ -237,6 +242,23 @@ const App = () => {
                   id="email"
                   name="email"
                   value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-gray-700 text-white placeholder-gray-400"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Phone
+                </label>
+                <input
+                  type="text"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-gray-700 text-white placeholder-gray-400"
                   required
