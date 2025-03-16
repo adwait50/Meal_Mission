@@ -320,8 +320,6 @@ router.get("/active-requests", authDonorMiddleware, async (req, res) => {
       }
     );
 
-    console.log("Active Requests:", activeRequests);
-
     if (!activeRequests.length) {
       return res.status(404).json({ message: "No active requests found." });
     }

@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const AdminModel = require("../models/Admin.js"); // Import the Admin model
 const router = express.Router();
+const RejectedNGO = require("../models/RejectedNGO.js");
 
 
 //Admin approves NGO
@@ -26,18 +27,38 @@ router.put("/approve-ngo/:id", authAdminMiddleware, async (req, res) => {
 
    // Admin rejects an NGO
    router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res) => {
-    if (!req.user.isAdmin) {
-        return res.status(403).json({ message: "Access denied" });
-    }
+    const { id } = req.params; // Get the NGO ID from the URL
+    const { reasonForRejection } = req.body; // Optional reason for rejection
 
     try {
-        const updatedNgo = await NGOModel.findByIdAndUpdate(req.params.id, { isApproved: false }, { new: true });
-        if (!updatedNgo) {
+        // Find the NGO by ID
+        const ngo = await NGOModel.findById(id);
+        if (!ngo) {
             return res.status(404).json({ message: "NGO not found" });
         }
-        res.status(200).json(updatedNgo);
+
+        // Create a new Rejected NGO document
+        const rejectedNGO = new RejectedNGO({
+            name: ngo.name,
+            email: ngo.email,
+            address: ngo.address,
+            city: ngo.city,
+            state: ngo.state,
+            documentProof: ngo.documentProof,
+            isApproved: false, // Mark the NGO as rejected
+            reasonForRejection, // Store the reason for rejection if provided
+        });
+
+        // Save the rejected NGO to the RejectedNGO collection
+        await rejectedNGO.save();
+
+        // Remove the NGO from the pending list
+        await NGOModel.findByIdAndDelete(id);
+
+        res.status(200).json({ message: "NGO rejected successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Error rejecting NGO", error });
+        console.error("Error rejecting NGO:", error);
+        res.status(500).json({ message: "Error rejecting NGO" });
     }
 });
 
