@@ -16,9 +16,6 @@ const App = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [timer, setTimer] = useState(300);
   const [error, setError] = useState("");
-  const [states, setStates] = useState(State.getStatesOfCountry("IN"));
-  const [cities, setCities] = useState([]);
-  console.log(states, cities);
 
   useEffect(() => {
     if (showOTP && timer > 0) {

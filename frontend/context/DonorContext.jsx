@@ -42,10 +42,6 @@ export const DonorProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // console.log(
-      //   "Donor data API response:",
-      //   JSON.stringify(response.data, null, 2)
-      // );
 
       setDonorData(response.data);
       setError(null);
@@ -60,7 +56,6 @@ export const DonorProvider = ({ children }) => {
     }
   }, []); // Dependency array left empty since localStorage updates won't trigger re-fetch
 
-  // Auto-fetch donor data on component mount
   useEffect(() => {
     fetchDonorData();
   }, [fetchDonorData]);

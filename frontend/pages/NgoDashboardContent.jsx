@@ -9,7 +9,7 @@ function DonorDashboardContent() {
           View and accept available food donation requests in your area
         </h5>
         <Link
-          to="request-pickup"
+          to="browse-pickup"
           className="bg-[#F4C752] inline-block px-3 text-center w-36 py-2 text-black rounded-lg 
           transform transition-transform duration-200 hover:scale-105"
         >

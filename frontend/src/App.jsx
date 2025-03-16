@@ -33,6 +33,7 @@ import AdminDashboardContent from "../pages/AdminDashboardContent";
 import PendingNgos from "../pages/PendingNgos";
 import PendingNgosDetail from "../pages/PendingNgosDetail";
 import PendingNgosContent from "../pages/PendingNgosContent";
+import BrowsePickup from "../pages/NGOs/BrowsePickup";
 function App() {
   return (
     <div>
@@ -99,6 +100,7 @@ function App() {
             }
           >
             <Route index element={<NgoDashboardContent />} />
+            <Route path="browse-pickup" element={<BrowsePickup />} />
           </Route>
           <Route
             path="/ngo-profile"
