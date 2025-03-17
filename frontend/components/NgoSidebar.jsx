@@ -4,7 +4,7 @@ import { useNgo } from "../context/NgoContext";
 
 function NgoSideBar() {
   const { ngoData, loading, error } = useNgo();
-  // console.log(donorData);
+  // console.log(ngoData);
 
   return (
     <div className="h-screen bg-[#141C25] fixed left-0 top-0 w-[300px] flex flex-col justify-start py-8 border-r border-gray-600">

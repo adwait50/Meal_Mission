@@ -123,4 +123,16 @@ router.post("/login", async (req, res) => {
     }
 });
 
+router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
+    try {
+        // Fetch all rejected NGOs
+        const rejectedNGOs = await RejectedNGO.find().sort({ createdAt: -1 }); // Sort by creation date, most recent first
+
+        res.status(200).json(rejectedNGOs); // Return the list of rejected NGOs
+    } catch (error) {
+        console.error("Error fetching rejected NGOs:", error);
+        res.status(500).json({ message: "Error fetching rejected NGOs" });
+    }
+});
+
 module.exports = router;

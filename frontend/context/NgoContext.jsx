@@ -41,6 +41,7 @@ export const NgoProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      console.log(response);
       setNgoData(response.data);
       setError(null);
     } catch (error) {

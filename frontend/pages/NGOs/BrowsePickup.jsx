@@ -36,7 +36,7 @@ function BrowsePickup() {
       </h1>
       <div className="min-h-screen px-6 flex flex-col gap-2 mt-10">
         {requests.length === 0 ? (
-          <p className="text-lg text-red-500">No NGOs to approve.</p>
+          <p className="text-lg text-red-500">No request found.</p>
         ) : (
           requests.map((request) => (
             <div

@@ -34,6 +34,7 @@ import PendingNgos from "../pages/PendingNgos";
 import PendingNgosDetail from "../pages/PendingNgosDetail";
 import PendingNgosContent from "../pages/PendingNgosContent";
 import BrowsePickup from "../pages/NGOs/BrowsePickup";
+import NgoHistory from "../pages/NgoHistory";
 function App() {
   return (
     <div>
@@ -102,6 +103,7 @@ function App() {
             >
               <Route index element={<NgoDashboardContent />} />
               <Route path="browse-pickup" element={<BrowsePickup />} />
+              <Route path="donation-history" element={<NgoHistory />} />
             </Route>
             <Route
               path="/ngo-profile"

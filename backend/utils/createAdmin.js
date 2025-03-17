@@ -13,7 +13,7 @@ const createAdminUser = async () => {
 
     // Check if the admin already exists
     const existingAdmin = await AdminModel.findOne({
-      email: "admin@example.com",
+      email: "adwait@admin.com",
     });
     if (existingAdmin) {
       console.log("Admin user already exists.");
@@ -22,8 +22,8 @@ const createAdminUser = async () => {
 
     // Create a new admin user
     const adminUser = new AdminModel({
-      username: "shreyansh",
-      email: "admin@example.com",
+      username: "Adwait",
+      email: "adwait@admin.com",
       password: await bcrypt.hash("adminpassword", 10), // Hash the password
     });
 

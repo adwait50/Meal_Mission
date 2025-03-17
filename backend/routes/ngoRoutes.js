@@ -369,4 +369,38 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
   }
 });
 
+router.get("/donation-history", authNgoMiddleware, async (req, res) => {
+  try {
+      const ngoId = req.user._id;
+
+      const [totalWeightData] = await Donation.aggregate([
+          { $match: { ngo: ngoId } }, 
+          { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
+      ]);
+
+      const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
+
+      // Total Donations 
+      const totalDonations = await Donation.countDocuments({ ngo: ngoId }); 
+
+      // Times Donated 
+      const timesDonated = totalDonations;
+
+      // Donation History 
+      const donationHistory = await Donation.find({ ngo: ngoId }) 
+          .select("foodItem createdAt address status quantity requestId") 
+          .sort({ createdAt: -1 }); // Sort by date
+
+      return res.status(200).json({
+          totalWeight,
+          totalDonations,
+          timesDonated,
+          donationHistory,
+      });
+  } catch (error) {
+      console.error("Error fetching donation history:", error);
+      return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 module.exports = router;
