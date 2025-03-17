@@ -9,7 +9,7 @@ const createAdminUser = async () => {
         await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
         // Check if the admin already exists
-        const existingAdmin = await AdminModel.findOne({ email: "admin@example.com" });
+        const existingAdmin = await AdminModel.findOne({ email: "adwait@admin.com" });
         if (existingAdmin) {
             console.log("Admin user already exists.");
             return;
@@ -17,8 +17,8 @@ const createAdminUser = async () => {
 
         // Create a new admin user
         const adminUser = new AdminModel({
-            username: "admin",
-            email: "admin@example.com",
+            username: "Adwait",
+            email: "adwait@admin.com",
             password: await bcrypt.hash("adminpassword", 10), // Hash the password
         });
 
