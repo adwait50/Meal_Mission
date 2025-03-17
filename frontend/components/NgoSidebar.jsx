@@ -1,7 +1,9 @@
 import React from "react";
 import { Link, NavLink } from "react-router";
+import { useNgo } from "../context/NgoContext";
 
 function NgoSideBar() {
+  const { ngoData, loading, error } = useNgo();
   // console.log(donorData);
 
   return (
@@ -54,7 +56,7 @@ function NgoSideBar() {
         <div className=" flex justify-center items-center  w-full">
           <i className="ri-user-fill text-xl border-2 rounded-full px-2 py-1"></i>
           <div className="px-5">
-            <h5 className="text-2xl font-semibold">Some random ngo</h5>
+            <h5 className="text-2xl font-semibold">{ngoData.name}</h5>
           </div>
         </div>
       </div>

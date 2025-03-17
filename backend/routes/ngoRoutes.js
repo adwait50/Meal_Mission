@@ -114,6 +114,7 @@ router.post("/verify-otp", async (req, res) => {
 });
 
 // NGO Login
+// NGO Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -316,27 +317,25 @@ router.post("/resend-reset-otp", async (req, res) => {
 // Route to browse food pickup requests based on NGO's city
 router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
   try {
-     
-      const ngo = await NGOModel.findById(req.user.id).select("city"); // Get the city of the NGO
-      if (!ngo) {
-          return res.status(404).json({ message: "NGO not found" });
-      }
+    const ngo = await NGOModel.findById(req.user.id).select("city"); // Get the city of the NGO
+    if (!ngo) {
+      return res.status(404).json({ message: "NGO not found" });
+    }
 
-      const ngoCity = ngo.city.toLowerCase(); 
+    const ngoCity = ngo.city.toLowerCase();
 
-      // Fetch all pickup requests that match the NGO's city
-      const requests = await Donation.find({ city: ngoCity }) // Filter by city
-      .populate("donor", "name email") 
+    // Fetch all pickup requests that match the NGO's city
+    const requests = await Donation.find({ city: ngoCity }) // Filter by city
+      .populate("donor", "name email")
       .select("-_id -phone -city -state -status -createdAt -__v -donor") // Exclude specified fields
       .sort({ createdAt: -1 });
 
-      res.status(200).json(requests);
+    res.status(200).json(requests);
   } catch (error) {
-      console.error("Error fetching pickup requests:", error);
-      res.status(500).json({ message: "Error fetching pickup requests" });
+    console.error("Error fetching pickup requests:", error);
+    res.status(500).json({ message: "Error fetching pickup requests" });
   }
 });
-
 
 // Example route to update the status of a donation
 router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {

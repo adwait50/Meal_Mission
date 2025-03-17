@@ -2,17 +2,16 @@
 
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const DonationHistory = () => {
   const [donations, setDonations] = useState([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [timesDonated, setTimesDonated] = useState("");
-  const [totalDonations, setTotalDonations] = useState("");
-  const [totalWeight, setTotalWeight] = useState("");
+  const [timesDonated, setTimesDonated] = useState(0);
+  const [totalDonations, setTotalDonations] = useState(0);
+  const [totalWeight, setTotalWeight] = useState(0);
 
-  // Simulate backend data fetching
   useEffect(() => {
     const fetchActiveRequests = async () => {
       try {
@@ -27,13 +26,26 @@ const DonationHistory = () => {
         );
         if (response.status === 200) {
           console.log(response.data);
-          setTimesDonated(response.data.timesDonated);
-          setTotalDonations(response.data.totalDonations);
-          setTotalWeight(response.data.totalWeight);
-          setDonations(response.data.donationHistory);
+          const completedDonations = response.data.donationHistory.filter(
+            (donation) => donation.status === "Completed"
+          );
+          setDonations(completedDonations);
+
+          setTimesDonated(completedDonations.length);
+          setTotalDonations(
+            completedDonations.reduce((acc, donation) => acc + 1, 0)
+          );
+          setTotalWeight(
+            completedDonations.reduce(
+              (acc, donation) => acc + donation.quantity,
+              0
+            )
+          );
         }
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchActiveRequests();
@@ -49,12 +61,15 @@ const DonationHistory = () => {
         return "bg-orange-400 ";
       case "Accepted":
         return "bg-blue-600";
+      case "Completed":
+        return "bg-purple-600"; // Color for completed
       default:
         return "bg-gray-600";
     }
   };
+
   if (loading) {
-    <p>Loading....</p>;
+    return <p>Loading....</p>;
   }
 
   return (
@@ -69,22 +84,22 @@ const DonationHistory = () => {
         <h2 className="text-3xl font-semibold mb-5 text-zinc-100 ">
           Donation History
         </h2>
-        <div className=" flex gap-5 mt-8 justify-between h-24">
-          <div className="flex  h-full w-[30%] gap-8 rounded-xl bg-gray-800 px-12  items-center">
-            <i className="fas  fa-wallet text-yellow-500 text-xl"></i>
+        <div className="flex gap-5 mt-8 justify-between h-24">
+          <div className="flex h-full w-[30%] gap-8 rounded-xl bg-gray-800 px-12 items-center">
+            <i className="fas fa-wallet text-yellow-500 text-xl"></i>
             <div>
               <div className="text-zinc-400">Total Donations</div>
               <span className="text-2xl font-semibold">{totalDonations}</span>
             </div>
           </div>
-          <div className="flex  h-full w-[30%] gap-8 rounded-xl bg-gray-800 px-12  items-center">
+          <div className="flex h-full w-[30%] gap-8 rounded-xl bg-gray-800 px-12 items-center">
             <i className="fas fa-weight text-green-500 text-xl"></i>
             <div>
-              <div className="text-zinc-400">Total Quantity </div>
+              <div className="text-zinc-400">Total Quantity</div>
               <span className="text-2xl font-semibold">{totalWeight} </span>kg
             </div>
           </div>
-          <div className="flex  h-full w-[30%] gap-8 rounded-xl bg-gray-800 px-12  items-center">
+          <div className="flex h-full w-[30%] gap-8 rounded-xl bg-gray-800 px-12 items-center">
             <i className="fas fa-hand-holding-heart text-purple-500 text-xl"></i>
             <div>
               <div className="text-zinc-400">Number of times donated</div>
@@ -121,10 +136,9 @@ const DonationHistory = () => {
                 {donations.map((donation, index) => (
                   <tr
                     key={donation.id}
-                    className={`
-                      border-b border-gray-700 hover:bg-gray-700/50 transition-colors
-                      ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-800/50"}
-                    `}
+                    className={`border-b border-gray-700 hover:bg-gray-700/50 transition-colors ${
+                      index % 2 === 0 ? "bg-gray-800" : "bg-gray-800/50"
+                    }`}
                   >
                     <td className="px-6 py-4 text-sm text-white">
                       {donation.requestId}
@@ -140,10 +154,9 @@ const DonationHistory = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`
-                        px-3 py-1 text-xs font-medium rounded-full text-white
-                        ${getStatusClass(donation.status)}
-                      `}
+                        className={`px-3 py-1 text-xs font-medium rounded-full text-white ${getStatusClass(
+                          donation.status
+                        )}`}
                       >
                         {donation.status}
                       </span>

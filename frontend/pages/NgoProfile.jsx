@@ -1,9 +1,16 @@
 import React, { useState } from "react";
 import NgoSideBar from "../components/NgoSidebar";
 import { Link } from "react-router";
+import { useNgo } from "../context/NgoContext";
 
 const App = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const { ngoData, loading, error } = useNgo();
+
+  console.log(ngoData);
+  if (loading) {
+    <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#141C25] flex text-white">
@@ -11,17 +18,25 @@ const App = () => {
 
       <div className="min-h-screen flex-1 ml-[300px] bg-[#141C25] text-white p-8">
         <div className="bg-slate-800 rounded-lg p-6 mb-6">
-          <h1 className="text-2xl font-bold mb-2">Hope Foundation</h1>
-          <p className="text-gray-400 mb-4">hopefoundation@ngo.org</p>
+          <h1 className="text-2xl font-bold mb-2">{ngoData?.name}</h1>
+          <p className="text-gray-400 mb-4">{ngoData?.email}</p>
 
           <div className="grid grid-cols-2 gap-8">
             <div>
               <p className="text-gray-400 mb-1">Phone Number</p>
-              <p>+1 (555) 123-4567</p>
+              <p>{ngoData?.phone}</p>
             </div>
             <div>
               <p className="text-gray-400 mb-1">Address</p>
-              <p>123 Charity Lane, Compassion City</p>
+              <p>{ngoData?.address}</p>
+            </div>
+            <div>
+              <p className="text-gray-400 mb-1">State</p>
+              <p>{ngoData?.state}</p>
+            </div>
+            <div>
+              <p className="text-gray-400 mb-1">City</p>
+              <p>{ngoData?.city}</p>
             </div>
           </div>
         </div>
@@ -42,50 +57,6 @@ const App = () => {
           </div>
         </div>
 
-        {/* Recent Donations */}
-        <div className="bg-slate-800 rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-bold mb-6">Recent Donations</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-gray-400">
-                  <th className="pb-4">DATE</th>
-                  <th className="pb-4">DONOR</th>
-                  <th className="pb-4">AMOUNT</th>
-                  <th className="pb-4">STATUS</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t border-slate-700">
-                  <td className="py-4">Mar 15, 2025</td>
-                  <td>Emily Thompson</td>
-                  <td>$2,500</td>
-                  <td>
-                    <span className="text-emerald-400">Completed</span>
-                  </td>
-                </tr>
-                <tr className="border-t border-slate-700">
-                  <td className="py-4">Mar 14, 2025</td>
-                  <td>Michael Chen</td>
-                  <td>$1,000</td>
-                  <td>
-                    <span className="text-emerald-400">Completed</span>
-                  </td>
-                </tr>
-                <tr className="border-t border-slate-700">
-                  <td className="py-4">Mar 13, 2025</td>
-                  <td>Sarah Williams</td>
-                  <td>$3,000</td>
-                  <td>
-                    <span className="text-emerald-400">Completed</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg whitespace-nowrap cursor-pointer">
             Start New Campaign
