@@ -6,6 +6,7 @@ const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
 const authDonorMiddleware = require("../middlewares/authDonorMiddleware.js");
 const Donation = require("../models/Donation.js");
+const SupportRequest = require("../models/SupportRequest");
 
 const router = express.Router();
 
@@ -369,6 +370,27 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error fetching donation history:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.post("/support", authDonorMiddleware, async (req, res) => {
+  const { requestId, issue, phone, email, description } = req.body;
+
+  try {
+      const supportRequest = new SupportRequest({
+          requestId,
+          issue,
+          phone,
+          email,
+          description,
+      });
+
+      await supportRequest.save();
+
+      res.status(201).json({ message: "Support request submitted successfully" });
+  } catch (error) {
+      console.error("Error submitting support request:", error);
+      res.status(500).json({ message: "Error submitting support request" });
   }
 });
 
