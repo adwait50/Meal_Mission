@@ -375,7 +375,7 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
 
 router.post("/support", authDonorMiddleware, async (req, res) => {
   const { requestId, issue, phone, email, description } = req.body;
-
+  console.log(req.body);
   try {
     const supportRequestDonor = new SupportRequestDonor({
       requestId,

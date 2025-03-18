@@ -29,12 +29,13 @@ const NgoSupportPage = () => {
     try {
       const token = localStorage.getItem("Ngotoken");
 
-      const formDataToSend = new FormData();
-      formDataToSend.append("requestId", formData.requestId);
-      formDataToSend.append("issue", formData.issue);
-      formDataToSend.append("phone", formData.phone);
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("description", formData.description);
+      const formDataToSend = {
+        requestId: formData.requestId,
+        issue: formData.issue,
+        phone: formData.phone,
+        email: formData.email,
+        description: formData.description,
+      };
 
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/support`,

@@ -27,13 +27,15 @@ const App = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
+      console.log(token);
 
-      const formDataToSend = new FormData();
-      formDataToSend.append("requestId", formData.requestId);
-      formDataToSend.append("issue", formData.issue);
-      formDataToSend.append("phone", formData.phone);
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("description", formData.description);
+      const formDataToSend = {
+        requestId: formData.requestId,
+        issue: formData.issue,
+        phone: formData.phone,
+        email: formData.email,
+        description: formData.description,
+      };
       console.log("Submitting support request with data:", formData);
 
       const response = await axios.post(
@@ -49,6 +51,7 @@ const App = () => {
       if (response.status === 201) {
         console.log(response);
         setShowSuccessModal(true);
+        setError("");
       }
     } catch (error) {
       console.error("Error submitting support request:", error);
