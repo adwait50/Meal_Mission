@@ -137,7 +137,7 @@ router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
 });
 router.get("/ngo-support", authAdminMiddleware, async (req, res) => {
     try {
-        const supportRequests = await SupportRequest.find().sort({ createdAt: -1 }); 
+        const supportRequests = await SupportRequestNgo.find().sort({ createdAt: -1 }); 
 
         res.status(200).json(supportRequests); 
     } catch (error) {
@@ -148,7 +148,7 @@ router.get("/ngo-support", authAdminMiddleware, async (req, res) => {
 
 router.get("/donor-support", authAdminMiddleware, async (req, res) => {
     try {
-        const supportRequests = await SupportRequest.find().sort({ createdAt: -1 }); 
+        const supportRequests = await SupportRequestDonor.find().sort({ createdAt: -1 }); 
 
         res.status(200).json(supportRequests); 
     } catch (error) {
