@@ -6,7 +6,7 @@ const randomstring = require("randomstring");
 const sendEmail = require("../utils/sendEmail.js");
 const authNgoMiddleware = require("../middlewares/authNgoMiddleware.js");
 const upload = require("../utils/multerConfig.js");
-const SupportRequest = require("../models/SupportRequest"); 
+const SupportRequestNgo = require("../models/SupportRequestNgo.js"); 
 const Donation = require("../models/Donation.js");
 
 const generateOTP = () =>
@@ -409,7 +409,7 @@ router.post("/support", authNgoMiddleware, async (req, res) => {
   const { requestId, issue, phone, email, description } = req.body;
 
   try {
-      const supportRequest = new SupportRequest({
+      const supportRequestNgo = new SupportRequestNgo({
           requestId,
           issue,
           phone,
@@ -417,7 +417,7 @@ router.post("/support", authNgoMiddleware, async (req, res) => {
           description,
       });
 
-      await supportRequest.save();
+      await supportRequestNgo.save();
 
       res.status(201).json({ message: "Support request submitted successfully" });
   } catch (error) {

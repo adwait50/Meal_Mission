@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const AdminModel = require("../models/Admin.js"); // Import the Admin model
 const router = express.Router();
 const RejectedNGO = require("../models/RejectedNGO.js");
-const SupportRequest = require("../models/SupportRequest");
+const SupportRequest = require("../models/SupportRequestDonor.js");
 
 
 //Admin approves NGO
@@ -78,7 +78,7 @@ router.get("/pending", authAdminMiddleware, async (req, res) => {
 });
 
 // Route to get NGO information by ID
-router.get("/:id", async (req, res) => { 
+router.get("/ngo-info/:id", async (req, res) => { 
     console.log("Fetching NGO with ID:", req.params.id); // Debug log
     try {
         const ngo = await NGOModel.findById(req.params.id).select("-password -otp -otpExpires -registrationDate -__v");
@@ -135,7 +135,18 @@ router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
         res.status(500).json({ message: "Error fetching rejected NGOs" });
     }
 });
-router.get("/support-requests", authAdminMiddleware, async (req, res) => {
+router.get("/ngo-support", authAdminMiddleware, async (req, res) => {
+    try {
+        const supportRequests = await SupportRequest.find().sort({ createdAt: -1 }); 
+
+        res.status(200).json(supportRequests); 
+    } catch (error) {
+        console.error("Error fetching support requests:", error);
+        res.status(500).json({ message: "Error fetching support requests" });
+    }
+});
+
+router.get("/donor-support", authAdminMiddleware, async (req, res) => {
     try {
         const supportRequests = await SupportRequest.find().sort({ createdAt: -1 }); 
 

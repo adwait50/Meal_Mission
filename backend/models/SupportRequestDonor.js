@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const supportRequestSchema = new mongoose.Schema({
-    requestId: { type: mongoose.Schema.Types.ObjectId, required: true }, 
+    requestId: { type: String, required: true }, 
     issue: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true },
@@ -9,5 +9,5 @@ const supportRequestSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
 });
 
-const SupportRequest = mongoose.model("SupportRequest", supportRequestSchema);
-module.exports = SupportRequest;
+const SupportRequestDonor = mongoose.model("SupportRequestDonor", supportRequestSchema);
+module.exports = SupportRequestDonor;

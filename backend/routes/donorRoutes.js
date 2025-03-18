@@ -6,7 +6,7 @@ const sendEmail = require("../utils/sendEmail.js");
 const randomstring = require("randomstring");
 const authDonorMiddleware = require("../middlewares/authDonorMiddleware.js");
 const Donation = require("../models/Donation.js");
-const SupportRequest = require("../models/SupportRequest");
+const SupportRequestDonor = require("../models/SupportRequestDonor.js");
 
 const router = express.Router();
 
@@ -377,7 +377,7 @@ router.post("/support", authDonorMiddleware, async (req, res) => {
   const { requestId, issue, phone, email, description } = req.body;
 
   try {
-      const supportRequest = new SupportRequest({
+      const supportRequestDonor = new SupportRequestDonor({
           requestId,
           issue,
           phone,
@@ -385,7 +385,7 @@ router.post("/support", authDonorMiddleware, async (req, res) => {
           description,
       });
 
-      await supportRequest.save();
+      await supportRequestDonor.save();
 
       res.status(201).json({ message: "Support request submitted successfully" });
   } catch (error) {
