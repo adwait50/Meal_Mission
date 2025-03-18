@@ -138,7 +138,7 @@ router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
 });
 router.get("/ngo-support", authAdminMiddleware, async (req, res) => {
     try {
-        const supportRequests = await SupportRequestNgo.find().sort({ createdAt: -1 }); 
+        const supportRequests = await SupportRequestNgo.find({isCompleted:false}).sort({ createdAt: -1 }); 
 
         res.status(200).json(supportRequests); 
     } catch (error) {
@@ -149,12 +149,32 @@ router.get("/ngo-support", authAdminMiddleware, async (req, res) => {
 
 router.get("/donor-support", authAdminMiddleware, async (req, res) => {
     try {
-        const supportRequests = await SupportRequestDonor.find().sort({ createdAt: -1 }); 
+        const supportRequests = await SupportRequestDonor.find({isCompleted:false}).sort({ createdAt: -1 }); 
 
         res.status(200).json(supportRequests); 
     } catch (error) {
         console.error("Error fetching support requests:", error);
         res.status(500).json({ message: "Error fetching support requests" });
+    }
+});
+
+router.get("/all-support", authAdminMiddleware, async (req, res) => {
+    try {
+        const supportRequestsdonor = await SupportRequestDonor.find().sort({ createdAt: -1 });
+
+        const supportRequestsngo = await SupportRequestNgo.find().sort({ createdAt: -1 });
+
+        const allSupportRequests = [
+            ...supportRequestsdonor.map(request => ({ ...request.toObject() })),
+            ...supportRequestsngo.map(request => ({ ...request.toObject() })) 
+        ];
+        
+        return res.status(200).json({
+            allSupportRequests
+        });
+    } catch (error) {
+        console.error("Error fetching support requests:", error);
+        return res.status(500).json({ message: "Error fetching support requests" });
     }
 });
 

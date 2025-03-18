@@ -414,6 +414,7 @@ router.post("/support", authNgoMiddleware, async (req, res) => {
       phone,
       email,
       description,
+      isCompleted:false
     });
 
     await supportRequestNgo.save();

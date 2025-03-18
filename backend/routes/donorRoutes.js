@@ -383,6 +383,7 @@ router.post("/support", authDonorMiddleware, async (req, res) => {
       phone,
       email,
       description,
+      isCompleted:false
     });
 
     await supportRequestDonor.save();

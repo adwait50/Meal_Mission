@@ -7,6 +7,10 @@ const supportRequestSchema = new mongoose.Schema({
     email: { type: String, required: true },
     description: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
+    isCompleted: { type: Boolean, default: false },
+    type: { type: String,
+        enum: ["NGO"], // Define allowed statuses
+        default: "NGO", }
 });
 
 const SupportRequestNgo = mongoose.model("SupportRequestNgo", supportRequestSchema);
