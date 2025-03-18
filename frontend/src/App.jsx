@@ -37,6 +37,7 @@ import BrowsePickup from "../pages/NGOs/BrowsePickup";
 import NgoHistory from "../pages/NgoHistory";
 import DonorSupportPage from "../pages/DonorSupportPage";
 import NgoSupportPage from "../pages/NgoSupportPage";
+import AdminSupport from "../pages/AdminSupport";
 function App() {
   return (
     <div>
@@ -164,6 +165,14 @@ function App() {
               <Route index element={<PendingNgosContent />} />
               <Route path=":ngoId" element={<PendingNgosDetail />} />
             </Route>
+            <Route
+              path="/admin-support"
+              element={
+                <AdminProtectedWrapper>
+                  <AdminSupport />{" "}
+                </AdminProtectedWrapper>
+              }
+            ></Route>
           </Routes>
         </DonorProvider>
       </NgoProvider>

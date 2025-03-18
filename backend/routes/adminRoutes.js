@@ -6,7 +6,8 @@ const jwt = require("jsonwebtoken");
 const AdminModel = require("../models/Admin.js"); // Import the Admin model
 const router = express.Router();
 const RejectedNGO = require("../models/RejectedNGO.js");
-const SupportRequest = require("../models/SupportRequestDonor.js");
+const SupportRequestNgo = require("../models/SupportRequestNgo.js");
+const SupportRequestDonor = require("../models/SupportRequestDonor.js");
 
 
 //Admin approves NGO
