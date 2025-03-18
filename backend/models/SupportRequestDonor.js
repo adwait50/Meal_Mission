@@ -7,6 +7,8 @@ const supportRequestSchema = new mongoose.Schema({
   email: { type: String, required: true },
   description: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
+  isCompleted: { type: Boolean, default: false },
+  type: { type: String, enum : ["Donor"], default: "Donor" },
 });
 
 const SupportRequestDonor = mongoose.model(

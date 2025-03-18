@@ -1,13 +1,18 @@
 const mongoose = require("mongoose");
 
 const supportRequestSchema = new mongoose.Schema({
-    requestId: { type: String, required: true }, 
-    issue: { type: String, required: true },
-    phone: { type: String, required: true },
-    email: { type: String, required: true },
-    description: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
+  requestId: { type: String, required: true },
+  issue: { type: String, required: true },
+  phone: { type: String, required: true },
+  email: { type: String, required: true },
+  description: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  isCompleted: { type: Boolean, default: false },
+  type: { type: String, enum: ["NGO"], default: "NGO" },
 });
 
-const SupportRequestNgo = mongoose.model("SupportRequestNgo", supportRequestSchema);
+const SupportRequestNgo = mongoose.model(
+  "SupportRequestNgo",
+  supportRequestSchema
+);
 module.exports = SupportRequestNgo;

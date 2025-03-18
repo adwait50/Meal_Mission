@@ -6,6 +6,7 @@ import NgoApproved from "../components/template/NgoApproved";
 
 function PendingNgosDetail() {
   const { ngoId } = useParams();
+  // console.log(ngoId);
   const [pendingNgo, setPendingNgo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,6 +25,7 @@ function PendingNgosDetail() {
         }
       );
       if (response.status === 200) {
+        console.log(response.data);
         setPendingNgo(response.data);
       }
     } catch (error) {

@@ -16,7 +16,7 @@ function PendingNgosContent() {
         }
       );
       if (response.status === 200) {
-        console.log(response.data);
+        // console.log(response.data);
         setPendingNgos(response.data);
       }
     } catch (error) {
