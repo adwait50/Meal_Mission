@@ -26,7 +26,7 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("Ngotoken");
+      const token = localStorage.getItem("token");
 
       const formDataToSend = new FormData();
       formDataToSend.append("requestId", formData.requestId);
@@ -34,6 +34,7 @@ const App = () => {
       formDataToSend.append("phone", formData.phone);
       formDataToSend.append("email", formData.email);
       formDataToSend.append("description", formData.description);
+      console.log("Submitting support request with data:", formData);
 
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/donors/support`,
@@ -45,7 +46,10 @@ const App = () => {
         }
       );
       console.log(response);
-      setShowSuccessModal(true);
+      if (response.status === 201) {
+        console.log(response);
+        setShowSuccessModal(true);
+      }
     } catch (error) {
       console.error("Error submitting support request:", error);
       setError(

@@ -9,5 +9,8 @@ const supportRequestSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const SupportRequest = mongoose.model("SupportRequest", supportRequestSchema);
-module.exports = SupportRequest;
+const SupportRequestDonor = mongoose.model(
+  "SupportRequestDonor",
+  supportRequestSchema
+);
+module.exports = SupportRequestDonor;
