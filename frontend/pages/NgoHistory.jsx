@@ -79,7 +79,7 @@ const DonationHistory = () => {
       <div className="flex-1 ">
         <div className="min-h-screen bg-[#141C25] p-8">
           <button
-            onClick={() => navigate("/donor-dashboard")}
+            onClick={() => navigate("/ngo-dashboard")}
             className="mb-4 text-gray-400 hover:text-white flex items-center gap-2"
           >
             ← Back to Dashboard

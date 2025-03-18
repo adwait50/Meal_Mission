@@ -4,7 +4,7 @@ import { useNgo } from "../context/NgoContext";
 
 function NgoSideBar() {
   const { ngoData, loading, error } = useNgo();
-  // console.log(ngoData);
+  // console.log(ngoData.name);
 
   return (
     <div className="h-screen bg-[#141C25] fixed left-0 top-0 w-[300px] flex flex-col justify-start py-8 border-r border-gray-600">
@@ -51,12 +51,24 @@ function NgoSideBar() {
             >
               Settings
             </NavLink>
+            <NavLink
+              className={({ isActive }) =>
+                `flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-[#F4C752] text-[#141C25] font-semibold"
+                    : "text-white hover:bg-[#364153]"
+                }`
+              }
+              to={"/ngo-support"}
+            >
+              Support & Help
+            </NavLink>
           </div>
         </div>
         <div className=" flex justify-center items-center  w-full">
           <i className="ri-user-fill text-xl border-2 rounded-full px-2 py-1"></i>
           <div className="px-5">
-            <h5 className="text-2xl font-semibold">{ngoData.name}</h5>
+            <h5 className="text-2xl font-semibold">{ngoData?.name}</h5>
           </div>
         </div>
       </div>

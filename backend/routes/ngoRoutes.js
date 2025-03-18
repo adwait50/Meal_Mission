@@ -6,6 +6,7 @@ const randomstring = require("randomstring");
 const sendEmail = require("../utils/sendEmail.js");
 const authNgoMiddleware = require("../middlewares/authNgoMiddleware.js");
 const upload = require("../utils/multerConfig.js");
+const SupportRequest = require("../models/SupportRequest");
 const Donation = require("../models/Donation.js");
 
 const generateOTP = () =>
@@ -371,35 +372,56 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
 
 router.get("/donation-history", authNgoMiddleware, async (req, res) => {
   try {
-      const ngoId = req.user._id;
+    const ngoId = req.user._id;
 
-      const [totalWeightData] = await Donation.aggregate([
-          { $match: { ngo: ngoId } }, 
-          { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
-      ]);
+    const [totalWeightData] = await Donation.aggregate([
+      { $match: { ngo: ngoId } },
+      { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
+    ]);
 
-      const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
+    const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
 
-      // Total Donations 
-      const totalDonations = await Donation.countDocuments({ ngo: ngoId }); 
+    // Total Donations
+    const totalDonations = await Donation.countDocuments({ ngo: ngoId });
 
-      // Times Donated 
-      const timesDonated = totalDonations;
+    // Times Donated
+    const timesDonated = totalDonations;
 
-      // Donation History 
-      const donationHistory = await Donation.find({ ngo: ngoId }) 
-          .select("foodItem createdAt address status quantity requestId") 
-          .sort({ createdAt: -1 }); // Sort by date
+    // Donation History
+    const donationHistory = await Donation.find({ ngo: ngoId })
+      .select("foodItem createdAt address status quantity requestId")
+      .sort({ createdAt: -1 }); // Sort by date
 
-      return res.status(200).json({
-          totalWeight,
-          totalDonations,
-          timesDonated,
-          donationHistory,
-      });
+    return res.status(200).json({
+      totalWeight,
+      totalDonations,
+      timesDonated,
+      donationHistory,
+    });
   } catch (error) {
-      console.error("Error fetching donation history:", error);
-      return res.status(500).json({ message: "Internal server error" });
+    console.error("Error fetching donation history:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.post("/support", authNgoMiddleware, async (req, res) => {
+  const { requestId, issue, phone, email, description } = req.body;
+
+  try {
+    const supportRequest = new SupportRequest({
+      requestId,
+      issue,
+      phone,
+      email,
+      description,
+    });
+
+    await supportRequest.save();
+
+    res.status(201).json({ message: "Support request submitted successfully" });
+  } catch (error) {
+    console.error("Error submitting support request:", error);
+    res.status(500).json({ message: "Error submitting support request" });
   }
 });
 

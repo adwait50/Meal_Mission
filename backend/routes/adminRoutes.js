@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const AdminModel = require("../models/Admin.js"); // Import the Admin model
 const router = express.Router();
 const RejectedNGO = require("../models/RejectedNGO.js");
+const SupportRequest = require("../models/SupportRequest");
 
 
 //Admin approves NGO
@@ -126,12 +127,22 @@ router.post("/login", async (req, res) => {
 router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
     try {
         // Fetch all rejected NGOs
-        const rejectedNGOs = await RejectedNGO.find().sort({ createdAt: -1 }); // Sort by creation date, most recent first
+        const rejectedNGOs = await RejectedNGO.find().sort({ createdAt: -1 }); 
 
-        res.status(200).json(rejectedNGOs); // Return the list of rejected NGOs
+        res.status(200).json(rejectedNGOs); // 
     } catch (error) {
         console.error("Error fetching rejected NGOs:", error);
         res.status(500).json({ message: "Error fetching rejected NGOs" });
+    }
+});
+router.get("/support-requests", authAdminMiddleware, async (req, res) => {
+    try {
+        const supportRequests = await SupportRequest.find().sort({ createdAt: -1 }); 
+
+        res.status(200).json(supportRequests); 
+    } catch (error) {
+        console.error("Error fetching support requests:", error);
+        res.status(500).json({ message: "Error fetching support requests" });
     }
 });
 

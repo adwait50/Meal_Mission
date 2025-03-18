@@ -6,8 +6,8 @@ import { useNgo } from "../context/NgoContext";
 const App = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const { ngoData, loading, error } = useNgo();
+  // console.log(ngoData);
 
-  console.log(ngoData);
   if (loading) {
     <div>Loading...</div>;
   }

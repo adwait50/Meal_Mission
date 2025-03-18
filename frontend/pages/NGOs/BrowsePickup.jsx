@@ -16,7 +16,7 @@ function BrowsePickup() {
         }
       );
       if (response.status === 200) {
-        console.log(response.data);
+        // console.log(response.data);
         setRequests(response.data);
       }
     } catch (error) {

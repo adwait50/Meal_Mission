@@ -35,6 +35,8 @@ import PendingNgosDetail from "../pages/PendingNgosDetail";
 import PendingNgosContent from "../pages/PendingNgosContent";
 import BrowsePickup from "../pages/NGOs/BrowsePickup";
 import NgoHistory from "../pages/NgoHistory";
+import DonorSupportPage from "../pages/DonorSupportPage";
+import NgoSupportPage from "../pages/NgoSupportPage";
 function App() {
   return (
     <div>
@@ -44,7 +46,6 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/donor-register" element={<DonorRegister />} />
             <Route path="/donor-login" element={<DonorLogin />} />
-
             <Route
               path="/donor-dashboard"
               element={
@@ -83,15 +84,21 @@ function App() {
                 </DonorProtectedWrapper>
               }
             />
+            <Route
+              path="/donor-support"
+              element={
+                <DonorProtectedWrapper>
+                  <DonorSupportPage />{" "}
+                </DonorProtectedWrapper>
+              }
+            />
             <Route path="/donor-logout" element={<DonorLogout />} />
             <Route
               path="/donor-forgot-password"
               element={<DonorForgotPassword />}
             />
-
             <Route path="/ngo-register" element={<NgoRegister />} />
             <Route path="/ngo-login" element={<NgoLogin />} />
-
             <Route
               path="/ngo-dashboard"
               element={
@@ -121,8 +128,16 @@ function App() {
                 </NgoProtectedWrapper>
               }
             />
-            <Route path="/ngo-logout" element={<NgoLogout />} />
+            <Route
+              path="/ngo-support"
+              element={
+                <NgoProtectedWrapper>
+                  <NgoSupportPage />{" "}
+                </NgoProtectedWrapper>
+              }
+            />
 
+            <Route path="/ngo-logout" element={<NgoLogout />} />
             <Route
               path="/ngo-forgot-password"
               element={<NgoForgotPassword />}

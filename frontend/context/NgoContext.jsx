@@ -33,8 +33,8 @@ export const NgoProvider = ({ children }) => {
       return;
     }
     try {
-      console.log("Fetching donor data...");
-      console.log(token);
+      // console.log("Fetching donor data...");
+      // console.log(token);
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/dashboard`,
         {
