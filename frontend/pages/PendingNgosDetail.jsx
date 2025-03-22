@@ -17,7 +17,7 @@ function PendingNgosDetail() {
     try {
       const token = localStorage.getItem("Admintoken");
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/api/admin/${ngoId}`,
+        `${import.meta.env.VITE_BASE_URL}/api/admin/ngo-info/${ngoId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

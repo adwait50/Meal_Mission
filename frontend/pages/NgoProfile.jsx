@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import NgoSideBar from "../components/NgoSidebar";
 import { Link } from "react-router";
 import { useNgo } from "../context/NgoContext";
+import Modal from "../components/Modal";
+import ConfirmLogout from "../components/template/ConfirmLogout";
 
 const App = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { ngoData, loading, error } = useNgo();
   // console.log(ngoData);
 
@@ -79,7 +82,7 @@ const App = () => {
             >
               Change Password
             </button>
-            <Link to="/ngo-logout">
+            <Link onClick={() => setIsModalOpen(true)}>
               <button className="w-full text-left px-4 py-3 hover:bg-slate-700 rounded-lg cursor-pointer flex items-center text-red-400">
                 Logout
               </button>
@@ -122,6 +125,9 @@ const App = () => {
           </div>
         )}
       </div>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ConfirmLogout type={"ngo"} />
+      </Modal>
     </div>
   );
 };

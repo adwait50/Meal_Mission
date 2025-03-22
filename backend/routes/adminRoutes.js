@@ -141,21 +141,21 @@ router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
   }
 });
 // Route to get NGO information by ID
-router.get("/:id", async (req, res) => {
-  console.log("Fetching NGO with ID:", req.params.id); // Debug log
-  try {
-    const ngo = await NGOModel.findById(req.params.id).select(
-      "-password -otp -otpExpires -registrationDate -__v"
-    );
-    if (!ngo) {
-      return res.status(404).json({ message: "NGO not found" });
-    }
-    res.status(200).json(ngo);
-  } catch (error) {
-    console.error("Error fetching NGO:", error);
-    res.status(500).json({ message: "Error fetching NGO" });
-  }
-});
+// router.get("/:id", async (req, res) => {
+//   console.log("Fetching NGO with ID:", req.params.id); // Debug log
+//   try {
+//     const ngo = await NGOModel.findById(req.params.id).select(
+//       "-password -otp -otpExpires -registrationDate -__v"
+//     );
+//     if (!ngo) {
+//       return res.status(404).json({ message: "NGO not found" });
+//     }
+//     res.status(200).json(ngo);
+//   } catch (error) {
+//     console.error("Error fetching NGO:", error);
+//     res.status(500).json({ message: "Error fetching NGO" });
+//   }
+// });
 
 router.get("/:type-support", authAdminMiddleware, async (req, res) => {
   const { type } = req.params;
@@ -207,5 +207,44 @@ router.get("/:type-support", authAdminMiddleware, async (req, res) => {
     res.status(500).json({ message: "Error fetching support requests" });
   }
 });
+
+router.patch(
+  "/complete-request/:type/:id",
+  authAdminMiddleware,
+  async (req, res) => {
+    const { type, id } = req.params; // Extract type and request ID from the URL
+    try {
+      let updatedRequest;
+
+      // Determine which model to use based on the type parameter
+      if (type === "NGO") {
+        updatedRequest = await SupportRequestNgo.findByIdAndUpdate(
+          id,
+          { isCompleted: true },
+          { new: true } // Return the updated document
+        );
+      } else if (type === "Donor") {
+        updatedRequest = await SupportRequestDonor.findByIdAndUpdate(
+          id,
+          { isCompleted: true },
+          { new: true } // Return the updated document
+        );
+      } else {
+        return res.status(400).json({
+          message: "Invalid type parameter. Use 'ngo' or 'donor'.",
+        });
+      }
+
+      if (!updatedRequest) {
+        return res.status(404).json({ message: "Support request not found." });
+      }
+
+      res.status(200).json(updatedRequest);
+    } catch (error) {
+      console.error("Error completing support request:", error);
+      res.status(500).json({ message: "Error completing support request" });
+    }
+  }
+);
 
 module.exports = router;

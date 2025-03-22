@@ -76,12 +76,15 @@ function SideBar() {
             </NavLink>
           </div>
         </div>
-        <div className=" flex text-white justify-center items-center  w-full">
+        <Link
+          to="/donor-profile"
+          className=" flex text-white justify-center items-center cursor-pointer  w-full"
+        >
           <i className="ri-user-fill text-xl border-2 rounded-full px-2 py-1"></i>
           <div className="px-5">
             <h5 className="text-2xl  font-semibold">{donorData?.name}</h5>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   );

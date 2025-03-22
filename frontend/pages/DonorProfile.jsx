@@ -131,7 +131,7 @@ function DonorProfile() {
         </div>
       </div>
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <ConfirmLogout />
+        <ConfirmLogout type={"donor"} />
       </Modal>
     </div>
   );
