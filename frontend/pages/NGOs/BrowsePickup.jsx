@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
@@ -16,15 +16,16 @@ function BrowsePickup() {
         }
       );
       if (response.status === 200) {
-        // console.log(response.data);
-        setRequests(response.data);
+        // Filter out any requests without _id to prevent undefined errors
+        const validRequests = response.data.filter(request => request && request._id);
+        setRequests(validRequests);
       }
     } catch (error) {
       console.error(error);
     }
   };
 
-  console.log(requests);
+  // console.log(requests);
   useEffect(() => {
     fetchRequests();
   }, []);
@@ -38,7 +39,7 @@ function BrowsePickup() {
         {requests.length === 0 ? (
           <p className="text-lg text-red-500">No request found.</p>
         ) : (
-          requests.map((request) => (
+          requests.filter(request => request && request._id).map((request) => (
             <div
               key={request._id}
               className="w-full p-4 flex rounded-lg bg-[#364153] py-5 mb-2"
@@ -52,12 +53,16 @@ function BrowsePickup() {
                 </div>
                 <div className="flex justify-center items-center w-3/10">
                   {" "}
-                  <Link
-                    to={`/pending-ngos/${request._id}`}
-                    className="bg-[#F4C752] px-3 py-2 font-semibold rounded-lg text-black"
-                  >
-                    More info
-                  </Link>
+                  {request._id ? (
+                    <Link
+                      to={`/ngo-dashboard/donation/${request.requestId}`}
+                      className="bg-[#F4C752] px-3 py-2 font-semibold rounded-lg text-black"
+                    >
+                      View Details
+                    </Link>
+                  ) : (
+                    <span className="text-red-500 text-sm">No ID available</span>
+                  )}
                 </div>
               </div>
             </div>
