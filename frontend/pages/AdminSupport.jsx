@@ -63,8 +63,7 @@ const AdminSupport = () => {
       console.log(response);
       if (response.status === 200) {
         console.log(response.data);
-        const updatedRequest = response.data; // Get the updated request
-        // Update the local state to reflect the change
+        const updatedRequest = response.data;
         setSupportRequests((prevRequests) =>
           prevRequests.map((req) =>
             req._id === updatedRequest._id ? updatedRequest : req
@@ -141,7 +140,7 @@ const AdminSupport = () => {
                     className="hover:bg-gray-700 cursor-pointer"
                   >
                     <td className="px-6 py-4 text-sm text-gray-200">
-                      {request._id}
+                      {request.requestId}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-200">
                       {request.type.toUpperCase()}
@@ -196,7 +195,7 @@ const AdminSupport = () => {
                           Organization Id
                         </p>
                         <p className="mt-1 text-md text-gray-200">
-                          {selectedRequest._id}
+                          {selectedRequest.requestId}
                         </p>
                       </div>
                       <div>

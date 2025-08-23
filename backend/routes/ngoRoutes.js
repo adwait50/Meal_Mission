@@ -370,6 +370,83 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
   }
 });
 
+// Route to get donation details by ID
+router.get("/donation/:id", authNgoMiddleware, async (req, res) => {
+  const { id } = req.params; // Get the donation ID from the URL
+
+  try {
+      // Find the donation by ID and populate donor information
+      const donation = await Donation.findById(id)
+          .populate("donor", "name email phone") // Populate donor details
+          .select("-__v"); // Exclude version key
+
+      if (!donation) {
+          return res.status(404).json({ message: "Donation not found" });
+      }
+
+      // Return the donation details
+      res.status(200).json(donation);
+  } catch (error) {
+      console.error("Error fetching donation details:", error);
+      res.status(500).json({ message: "Error fetching donation details" });
+  }
+});
+
+// Route to accept a donation request
+router.put("/donation/:id/accept", authNgoMiddleware, async (req, res) => {
+  const { id } = req.params; // Get the donation ID from the URL
+
+  try {
+      // Find the donation by ID and update the status to "Accepted"
+      const updatedDonation = await Donation.findByIdAndUpdate(
+          id,
+          { status: "Accepted" },
+          { new: true } // Return the updated document
+      );
+
+      if (!updatedDonation) {
+          return res.status(404).json({ message: "Donation not found" });
+      }
+
+      // Return success response
+      res.status(200).json({
+          message: "Donation accepted successfully",
+          donation: updatedDonation
+      });
+  } catch (error) {
+      console.error("Error accepting donation:", error);
+      res.status(500).json({ message: "Error accepting donation" });
+  }
+});
+
+
+// Route to reject a donation request
+router.put("/donation/:id/reject", authNgoMiddleware, async (req, res) => {
+  const { id } = req.params; // Get the donation ID from the URL
+
+  try {
+      // Find the donation by ID and update the status to "Rejected"
+      const updatedDonation = await Donation.findByIdAndUpdate(
+          id,
+          { status: "Rejected" },
+          { new: true } // Return the updated document
+      );
+
+      if (!updatedDonation) {
+          return res.status(404).json({ message: "Donation not found" });
+      }
+
+      // Return success response
+      res.status(200).json({
+          message: "Donation rejected successfully",
+          donation: updatedDonation
+      });
+  } catch (error) {
+      console.error("Error rejecting donation:", error);
+      res.status(500).json({ message: "Error rejecting donation" });
+  }
+});
+
 router.get("/donation-history", authNgoMiddleware, async (req, res) => {
   try {
     const ngoId = req.user._id;
