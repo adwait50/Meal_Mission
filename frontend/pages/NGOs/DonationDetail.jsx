@@ -30,6 +30,7 @@ function DonationDetail() {
           },
         }
       );
+      console.log(response);
 
 
       if (response.status === 200) {
@@ -55,8 +56,23 @@ function DonationDetail() {
       const token = localStorage.getItem("Ngotoken");
       console.log(token);
       
+      let endpoint;
+      if (newStatus === 'Accepted') {
+        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/accept`;
+      } else if (newStatus === 'Rejected') {
+        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/reject`;
+      } else if (newStatus === 'In Progress') {
+        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/in-progress`;
+      } else if (newStatus === 'Completed') {
+        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/completed`;
+      } else {
+        // Fallback for any other status updates
+        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/status`;
+      }
+      
       const response = await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/status`,
+        endpoint,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -260,6 +276,13 @@ function DonationDetail() {
                     className="w-full bg-[#F4C752] text-black font-semibold py-3 px-4 rounded-lg hover:bg-[#e6b94a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {updating ? 'Accepting...' : '✅ Accept Request'}
+                  </button>
+                  <button
+                    onClick={() => updateDonationStatus('Rejected')}
+                    disabled={updating}
+                    className="w-full bg-red-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {updating ? 'Rejecting...' : '❌ Reject Request'}
                   </button>
                   <p className="text-zinc-400 text-sm text-center">
                     Accepting this request will notify the donor and mark it as in progress
