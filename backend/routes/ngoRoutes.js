@@ -318,15 +318,18 @@ router.post("/resend-reset-otp", async (req, res) => {
 // Route to browse food pickup requests based on NGO's city
 router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
   try {
-    const ngo = await NGOModel.findById(req.user.id).select("city"); // Get the city of the NGO
+    const ngo = await NGOModel.findById(req.user._id).select("city"); // Get the city of the NGO
     if (!ngo) {
       return res.status(404).json({ message: "NGO not found" });
     }
 
     const ngoCity = ngo.city.toLowerCase();
 
-    // Fetch all pickup requests that match the NGO's city
-    const requests = await Donation.find({ city: ngoCity }) // Filter by city
+    // Fetch only pending pickup requests that match the NGO's city
+    const requests = await Donation.find({ 
+      city: ngoCity,
+      status: "Pending" // Filter to show only pending requests
+    })
       .populate("donor", "name email")
       .select("-_id -phone -city -state -status -createdAt -__v -donor") // Exclude specified fields
       .sort({ createdAt: -1 });
