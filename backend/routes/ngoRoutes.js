@@ -318,15 +318,18 @@ router.post("/resend-reset-otp", async (req, res) => {
 // Route to browse food pickup requests based on NGO's city
 router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
   try {
-    const ngo = await NGOModel.findById(req.user.id).select("city"); // Get the city of the NGO
+    const ngo = await NGOModel.findById(req.user._id).select("city"); // Get the city of the NGO
     if (!ngo) {
       return res.status(404).json({ message: "NGO not found" });
     }
 
     const ngoCity = ngo.city.toLowerCase();
 
-    // Fetch all pickup requests that match the NGO's city
-    const requests = await Donation.find({ city: ngoCity }) // Filter by city
+    // Fetch only pending pickup requests that match the NGO's city
+    const requests = await Donation.find({ 
+      city: ngoCity,
+      status: "Pending" // Filter to show only pending requests
+    })
       .populate("donor", "name email")
       .select("-phone -city -state -status -createdAt -__v -donor") // Exclude specified fields
       .sort({ createdAt: -1 });
@@ -394,14 +397,20 @@ router.get("/donation/:id", authNgoMiddleware, async (req, res) => {
 });
 
 // Route to accept a donation request
+
+// Route to accept a donation request
 router.put("/donation/:id/accept", authNgoMiddleware, async (req, res) => {
-  const { id } = req.params; 
+  const { id } = req.params; // Get the donation ID from the URL
+  const ngoId = req.user._id; // Get the NGO's ID from the authenticated user
 
   try {
-      // Find the donation by ID and update the status to "Accepted"
+      // Find the donation by ID and update the status and NGO ID
       const updatedDonation = await Donation.findByIdAndUpdate(
           id,
-          { status: "Accepted" },
+          { 
+              status: "In Progress",
+              ngo: ngoId // Store the NGO's ID in the donation
+          },
           { new: true } // Return the updated document
       );
 
@@ -411,7 +420,7 @@ router.put("/donation/:id/accept", authNgoMiddleware, async (req, res) => {
 
       // Return success response
       res.status(200).json({
-          message: "Donation accepted successfully",
+          message: "Donation accepted and marked as In Progress",
           donation: updatedDonation
       });
   } catch (error) {
@@ -420,7 +429,7 @@ router.put("/donation/:id/accept", authNgoMiddleware, async (req, res) => {
   }
 });
 
-
+/*
 // Route to reject a donation request
 router.put("/donation/:id/reject", authNgoMiddleware, async (req, res) => {
   const { id } = req.params; // Get the donation ID from the URL
@@ -445,6 +454,33 @@ router.put("/donation/:id/reject", authNgoMiddleware, async (req, res) => {
   } catch (error) {
       console.error("Error rejecting donation:", error);
       res.status(500).json({ message: "Error rejecting donation" });
+  }
+});
+*/
+
+router.put("/donation/:id/completed", authNgoMiddleware, async (req, res) => {
+  const { id } = req.params; // Get the donation ID from the URL
+
+  try {
+      // Find the donation by ID and update the status to "Completed"
+      const updatedDonation = await Donation.findByIdAndUpdate(
+          id,
+          { status: "Completed" },
+          { new: true } // Return the updated document
+      );
+
+      if (!updatedDonation) {
+          return res.status(404).json({ message: "Donation not found" });
+      }
+
+      // Return success response
+      res.status(200).json({
+          message: "Donation accepted successfully",
+          donation: updatedDonation
+      });
+  } catch (error) {
+      console.error("Error accepting donation:", error);
+      res.status(500).json({ message: "Error accepting donation" });
   }
 });
 
