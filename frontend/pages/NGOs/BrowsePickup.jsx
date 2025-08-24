@@ -24,7 +24,7 @@ function BrowsePickup() {
     }
   };
 
-  console.log(requests);
+  // console.log(requests);
   useEffect(() => {
     fetchRequests();
   }, []);
@@ -53,7 +53,7 @@ function BrowsePickup() {
                 <div className="flex justify-center items-center w-3/10">
                   {" "}
                   <Link
-                    to={`/pending-ngos/${request._id}`}
+                    to={`/ngo-dashboard/donation/${request._id}`}
                     className="bg-[#F4C752] px-3 py-2 font-semibold rounded-lg text-black"
                   >
                     More info

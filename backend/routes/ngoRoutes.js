@@ -331,7 +331,7 @@ router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
       status: "Pending" // Filter to show only pending requests
     })
       .populate("donor", "name email")
-      .select("-_id -phone -city -state -status -createdAt -__v -donor") // Exclude specified fields
+      .select("-phone -city -state -status -createdAt -__v -donor") // Exclude specified fields
       .sort({ createdAt: -1 });
 
     res.status(200).json(requests);
@@ -375,7 +375,8 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
 
 // Route to get donation details by ID
 router.get("/donation/:id", authNgoMiddleware, async (req, res) => {
-  const { id } = req.params; // Get the donation ID from the URL
+  const { id } = req.params; 
+  console.log("Fetching donation with ID:", id); // Debug log
 
   try {
       // Find the donation by ID and populate donor information
@@ -399,6 +400,7 @@ router.get("/donation/:id", authNgoMiddleware, async (req, res) => {
 
 // Route to accept a donation request
 router.put("/donation/:id/accept", authNgoMiddleware, async (req, res) => {
+
   const { id } = req.params; // Get the donation ID from the URL
   const ngoId = req.user._id; // Get the NGO's ID from the authenticated user
 

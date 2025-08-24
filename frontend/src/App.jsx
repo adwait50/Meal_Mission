@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Route, Routes } from "react-router";
 import Home from "../pages/Home";
 import DonorRegister from "../pages/DonorRegister";
@@ -34,6 +34,7 @@ import PendingNgos from "../pages/PendingNgos";
 import PendingNgosDetail from "../pages/PendingNgosDetail";
 import PendingNgosContent from "../pages/PendingNgosContent";
 import BrowsePickup from "../pages/NGOs/BrowsePickup";
+import DonationDetail from "../pages/NGOs/DonationDetail";
 import NgoHistory from "../pages/NgoHistory";
 import DonorSupportPage from "../pages/DonorSupportPage";
 import NgoSupportPage from "../pages/NgoSupportPage";
@@ -111,6 +112,7 @@ function App() {
             >
               <Route index element={<NgoDashboardContent />} />
               <Route path="browse-pickup" element={<BrowsePickup />} />
+              <Route path="donation/:requestId" element={<DonationDetail />} />
               <Route path="donation-history" element={<NgoHistory />} />
             </Route>
             <Route
