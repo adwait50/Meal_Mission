@@ -430,7 +430,7 @@ router.get("/support-requests", authDonorMiddleware, async (req, res) => {
       const donorId = req.user._id; // Get the donor's ID from the authenticated user
 
       // Fetch all support requests that belong to this donor
-      const supportRequests = await SupportRequest.find({ 
+      const supportRequests = await SupportRequestDonor.find({ 
           donor: donorId // Match the donor ID
       })
       .select("-__v") // Exclude version key

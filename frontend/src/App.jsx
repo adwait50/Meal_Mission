@@ -10,9 +10,7 @@ import NgoLogin from "../pages/NgoLogin";
 import DonorForgotPassword from "../pages/DonorForgotPassword";
 import NgoForgotPassword from "../pages/NgoForgotPassword";
 import DonorDashboard from "../pages/DonorDashboard";
-import DonorDonations from "../pages/DonorDonations";
 import DonorProfile from "../pages/DonorProfile";
-import DonorSettings from "../pages/DonorSettings";
 import { DonorProvider } from "../context/DonorContext";
 import { NgoProvider } from "../context/NgoContext";
 import RequestPickup from "../components/template/RequestPickup";
@@ -66,14 +64,8 @@ function App() {
               <Route path="status/:requestId" element={<RequestDetail />} />
               <Route path="donation-history" element={<DonationHistory />} />
             </Route>
-            <Route
-              path="/donor-donations"
-              element={
-                <DonorProtectedWrapper>
-                  <DonorDonations />{" "}
-                </DonorProtectedWrapper>
-              }
-            />
+            
+            
             <Route
               path="/donor-profile"
               element={
@@ -82,14 +74,7 @@ function App() {
                 </DonorProtectedWrapper>
               }
             />
-            <Route
-              path="/donor-setting"
-              element={
-                <DonorProtectedWrapper>
-                  <DonorSettings />{" "}
-                </DonorProtectedWrapper>
-              }
-            />
+            
             <Route
               path="/donor-support"
               element={
