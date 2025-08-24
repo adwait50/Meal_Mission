@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, NavLink } from "react-router";
 import { useDonor } from "../context/DonorContext";
+import Modal from "./Modal";
+import ConfirmLogout from "./template/ConfirmLogout";
 
 function SideBar() {
   const { donorData, error } = useDonor();
   // console.log(donorData);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="h-screen bg-[#141C25] fixed left-0 top-0 w-[300px] flex flex-col justify-start py-8 border-r border-gray-600">
@@ -74,6 +77,19 @@ function SideBar() {
             >
               Support & Help
             </NavLink>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors text-white hover:bg-[#364153]"
+            >
+              <i className="ri-logout-box-r-line"></i>
+              Logout
+            </button>
+            
+            <div>
+              <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                <ConfirmLogout type={"donor"} onClose={() => setIsModalOpen(false)} />
+              </Modal>
+            </div>
           </div>
         </div>
         <Link

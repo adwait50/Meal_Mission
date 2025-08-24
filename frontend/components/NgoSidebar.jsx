@@ -1,9 +1,13 @@
-import React from "react";
+
 import { Link, NavLink } from "react-router";
 import { useNgo } from "../context/NgoContext";
+import Modal from "./Modal";
+import ConfirmLogout from "./template/ConfirmLogout";
+import { useState } from "react";
 
 function NgoSideBar() {
-  const { ngoData, loading, error } = useNgo();
+  const { ngoData } = useNgo();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // console.log(ngoData.name);
 
   return (
@@ -27,6 +31,11 @@ function NgoSideBar() {
               Dashboard
             </NavLink>
 
+            
+
+            
+
+            
             <NavLink
               className={({ isActive }) =>
                 `flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors ${
@@ -63,6 +72,19 @@ function NgoSideBar() {
             >
               Support & Help
             </NavLink>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors text-white hover:bg-[#364153]"
+            >
+              <i className="ri-logout-box-r-line"></i>
+              Logout
+            </button>
+            
+            <div>
+              <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                <ConfirmLogout type={"ngo"} onClose={() => setIsModalOpen(false)} />
+              </Modal>
+            </div>
           </div>
         </div>
         <div className=" flex justify-center items-center  w-full">

@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
+import  { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import SideBar from "../components/SideBar";
 import { useDonor } from "../context/DonorContext";
 
 const DonorDashboard = () => {
-  const { donorData, loading, error, fetchDonorData } = useDonor();
+  const { error, fetchDonorData } = useDonor();
   useEffect(() => {
     fetchDonorData();
   }, [fetchDonorData]);
