@@ -19,11 +19,11 @@ function RequestDetail() {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem("Ngotoken");
+      const token = localStorage.getItem("token");
       
       // Get the specific donation details using the new route
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}`,
+        `${import.meta.env.VITE_BASE_URL}/api/donors/donation/${requestId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

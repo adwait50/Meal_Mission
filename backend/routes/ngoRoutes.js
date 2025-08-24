@@ -400,6 +400,7 @@ router.get("/donation/:id", authNgoMiddleware, async (req, res) => {
 
 // Route to accept a donation request
 router.put("/donation/:id/accept", authNgoMiddleware, async (req, res) => {
+
   const { id } = req.params; // Get the donation ID from the URL
   const ngoId = req.user._id; // Get the NGO's ID from the authenticated user
 
