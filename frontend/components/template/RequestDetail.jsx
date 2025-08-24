@@ -10,7 +10,7 @@ function RequestDetail() {
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
 
-
+  console.log(requestId);
   useEffect(() => {
     fetchDonationDetails();
   }, [requestId]);
@@ -21,7 +21,14 @@ function RequestDetail() {
       setError(null);
       const token = localStorage.getItem("token");
       
-      // Get the specific donation details using the new route
+      if (!token) {
+        setError("No authentication token found");
+        setLoading(false);
+        return;
+      }
+
+      // console.log("Fetching donation with ID:", requestId);
+      
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/api/donors/donation/${requestId}`,
         {
@@ -30,11 +37,13 @@ function RequestDetail() {
           },
         }
       );
-      console.log(response);
+      
+      // console.log("Donation details response:", response.data);
 
-
-      if (response.status === 200) {
+      if (response.status === 200 && response.data) {
         setDonation(response.data);
+      } else {
+        setError("Invalid response from server");
       }
     } catch (error) {
       console.error("Error fetching donation details:", error);
@@ -42,8 +51,10 @@ function RequestDetail() {
         setError("Donation not found");
       } else if (error.response?.status === 403) {
         setError("Access denied. This donation is not in your area.");
+      } else if (error.response?.data?.message) {
+        setError(error.response.data.message);
       } else {
-        setError("Failed to fetch donation details");
+        setError("Failed to fetch donation details. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -259,110 +270,100 @@ function RequestDetail() {
           <div className="bg-[#364153] p-6 rounded-lg border border-gray-600">
             <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               ⚙️ Status Management
+              
             </h2>
             
             <div className="space-y-4">
               <div className="text-center p-4 bg-[#2d3748] rounded-lg">
                 <p className="text-zinc-300 mb-2">Current Status</p>
                 <div className="text-2xl font-bold text-[#F4C752]">{donation.status}</div>
+                
               </div>
 
               {/* Action Buttons */}
               {donation.status === 'Pending' && (
                 <div className="space-y-3">
-                  <button
-                    onClick={() => updateDonationStatus('Accepted')}
-                    disabled={updating}
-                    className="w-full bg-[#F4C752] text-black font-semibold py-3 px-4 rounded-lg hover:bg-[#e6b94a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {updating ? 'Accepting...' : '✅ Accept Request'}
-                  </button>
-                  <button
-                    onClick={() => updateDonationStatus('Rejected')}
-                    disabled={updating}
-                    className="w-full bg-red-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {updating ? 'Rejecting...' : '❌ Reject Request'}
-                  </button>
-                  <p className="text-zinc-400 text-sm text-center">
-                    Accepting this request will notify the donor and mark it as in progress
-                  </p>
+                  <div className="bg-[#364153] w-full p-6 rounded-lg  flex justify-center items-center border text-center text-zinc-300 text-md mt-1  border-gray-600">
+                    
+                  Please wait for any NGO to accept the request.
+                  </div>
+                    
                 </div>
               )}
 
-              {donation.status === 'Accepted' && (
-                <div className="space-y-3">
-                  <button
-                    onClick={() => updateDonationStatus('In Progress')}
-                    disabled={updating}
-                    className="w-full bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {updating ? 'Updating...' : '🚚 Mark as In Progress'}
-                  </button>
-                  <p className="text-zinc-400 text-sm text-center">
-                    Mark when you&apos;re on your way to pick up the donation
-                  </p>
-                </div>
-              )}
 
               {donation.status === 'In Progress' && (
                 <div className="space-y-3">
-                  <button
-                    onClick={() => updateDonationStatus('Completed')}
-                    disabled={updating}
-                    className="w-full bg-green-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {updating ? 'Updating...' : '✅ Mark as Completed'}
-                  </button>
-                  <p className="text-zinc-400 text-sm text-center">
-                    Mark when you&apos;ve successfully picked up the donation
-                  </p>
+                  <div className="text-zinc-400 text-md mt-1 ">
+                  
+
+              </div>
+              <div className="bg-[#364153] w-full p-6 rounded-lg  flex justify-center items-center border text-center text-zinc-300 text-md mt-1  border-gray-600">
+                    
+              The below NGO has accepted your request. Please check your email for the details.
+                  </div>
+                  
+                  <div className="bg-[#364153] p-6 rounded-lg border mt-5 border-gray-600">
+                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                      🏢 NGO Information
+                    </h2>
+              <div className="space-y-3"> 
+                <div className="flex justify-between">
+                  <span className="text-zinc-300">Name:</span>
+                  <span className="text-white font-medium">{donation.ngo.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-300">Email:</span>
+                  <span className="text-white font-medium">{donation.ngo.email}</span>
+                </div>
+                {donation.ngo.phone && (
+                  <div className="flex justify-between">
+                    <span className="text-zinc-300">Phone:</span>
+                    <span className="text-white font-medium">{donation.ngo.phone}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+                  
                 </div>
               )}
 
               {donation.status === 'Completed' && (
+                <div>
+
                 <div className="text-center p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
                   <p className="text-green-400 text-lg font-semibold">🎉 Donation Completed!</p>
                   <p className="text-zinc-400 text-sm mt-1">
                     This donation has been successfully picked up
                   </p>
+                  
                 </div>
+                <div className="bg-[#364153] p-6 rounded-lg border mt-5 border-gray-600">
+                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                      🏢 NGO Information
+                    </h2>
+              <div className="space-y-3"> 
+                <div className="flex justify-between">
+                  <span className="text-zinc-300">Name:</span>
+                  <span className="text-white font-medium">{donation.ngo.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-300">Email:</span>
+                  <span className="text-white font-medium">{donation.ngo.email}</span>
+                </div>
+                {donation.ngo.phone && (
+                  <div className="flex justify-between">
+                    <span className="text-zinc-300">Phone:</span>
+                    <span className="text-white font-medium">{donation.ngo.phone}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+                  </div>
               )}
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-[#364153] p-6 rounded-lg border border-gray-600">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              🚀 Quick Actions
-            </h2>
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  // TODO: Implement contact donor functionality
-                  alert("Contact donor functionality coming soon!");
-                }}
-                className="w-full bg-[#2d3748] text-white font-semibold py-3 px-4 rounded-lg hover:bg-[#4a5568] transition-colors border border-gray-600"
-              >
-                📞 Contact Donor
-              </button>
-              <button
-                onClick={() => {
-                  // TODO: Implement directions functionality
-                  alert("Directions functionality coming soon!");
-                }}
-                className="w-full bg-[#2d3748] text-white font-semibold py-3 px-4 rounded-lg hover:bg-[#4a5568] transition-colors border border-gray-600"
-              >
-                🗺️ Get Directions
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="w-full bg-[#2d3748] text-white font-semibold py-3 px-4 rounded-lg hover:bg-[#4a5568] transition-colors border border-gray-600"
-              >
-                🖨️ Print Details
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

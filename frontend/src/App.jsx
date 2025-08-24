@@ -63,7 +63,7 @@ function App() {
               <Route index element={<DonorDashboardContent />} />
               <Route path="request-pickup" element={<RequestPickup />} />
               <Route path="status" element={<Status />} />
-              <Route path="status/:donationId" element={<RequestDetail />} />
+              <Route path="status/:requestId" element={<RequestDetail />} />
               <Route path="donation-history" element={<DonationHistory />} />
             </Route>
             <Route

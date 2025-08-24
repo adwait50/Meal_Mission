@@ -16,6 +16,12 @@ const DonationHistory = () => {
     const fetchActiveRequests = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          setLoading(false);
+          return;
+        }
+
         const response = await axios.get(
           `${import.meta.env.VITE_BASE_URL}/api/donors/donation-history`,
           {
@@ -24,30 +30,41 @@ const DonationHistory = () => {
             },
           }
         );
+        
         if (response.status === 200) {
-          console.log(response.data);
-          const completedDonations = response.data.donationHistory.filter(
-            (donation) => donation.status === "Completed"
-          );
-          setDonations(completedDonations);
-
-          setTimesDonated(completedDonations.length);
-          setTotalDonations(
-            completedDonations.reduce((acc, donation) => acc + 1, 0)
-          );
-          setTotalWeight(
-            completedDonations.reduce(
-              (acc, donation) => acc + donation.quantity,
-              0
-            )
-          );
+          // console.log("Donation history response:", response.data);
+          
+          if (response.data.donationHistory && Array.isArray(response.data.donationHistory)) {
+            const completedDonations = response.data.donationHistory.filter(
+              (donation) => donation.status === "Completed"
+            );
+            setDonations(completedDonations);
+            setTimesDonated(completedDonations.length);
+            setTotalDonations(completedDonations.length);
+            setTotalWeight(
+              completedDonations.reduce(
+                (acc, donation) => acc + (donation.quantity || 0),
+                0
+              )
+            );
+          } else {
+            console.error("Invalid donation history data structure:", response.data);
+            setDonations([]);
+            setTimesDonated(0);
+            setTotalDonations(0);
+            setTotalWeight(0);
+          }
         }
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching donation history:", error);
+        if (error.response) {
+          console.error("Error response:", error.response.data);
+        }
       } finally {
         setLoading(false);
       }
     };
+    
     fetchActiveRequests();
   }, []);
 
@@ -135,22 +152,22 @@ const DonationHistory = () => {
               <tbody>
                 {donations.map((donation, index) => (
                   <tr
-                    key={donation.id}
+                    key={donation._id || donation.id || index}
                     className={`border-b border-gray-700 hover:bg-gray-700/50 transition-colors ${
                       index % 2 === 0 ? "bg-gray-800" : "bg-gray-800/50"
                     }`}
                   >
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation.requestId}
+                      {donation.requestId || donation._id || "N/A"}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation.address}
+                      {donation.address || "N/A"}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation.quantity}
+                      {donation.quantity || "N/A"}
                     </td>
                     <td className="px-6 py-4 text-sm text-white">
-                      {donation.createdAt}
+                      {donation.createdAt ? new Date(donation.createdAt).toLocaleDateString() : "N/A"}
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -158,14 +175,14 @@ const DonationHistory = () => {
                           donation.status
                         )}`}
                       >
-                        {donation.status}
+                        {donation.status || "Unknown"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <Link
-                        to={`/donor-dashboard/status/${donation.requestId}`}
+                        to={`/donor-dashboard/status/${donation._id || donation.id}`}
                       >
-                        <i className="ri-eye-line cursor-pointer"></i>
+                        <i className="ri-eye-line cursor-pointer text-blue-400 hover:text-blue-300"></i>
                       </Link>
                     </td>
                   </tr>

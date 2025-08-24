@@ -312,7 +312,6 @@ router.get("/active-requests", authDonorMiddleware, async (req, res) => {
         status: { $ne: "Completed" },
       },
       {
-        _id: 0,
         requestId: 1,
         status: 1,
         foodItems: 1,
@@ -374,9 +373,11 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
 });
 
 // Route to get donation details by ID for a donor
-router.get("/donation/:id", authMiddleware, async (req, res) => {
+router.get("/donation/:id", authDonorMiddleware, async (req, res) => {
   const { id } = req.params; // Get the donation ID from the URL
   const donorId = req.user._id; // Get the donor's ID from the authenticated user
+  console.log("Fetching donation with ID:", id); // Debug log
+  console.log("Donor ID:", donorId); // Debug log
 
   try {
       // Find the donation by ID and ensure it belongs to the authenticated donor
