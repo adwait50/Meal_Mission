@@ -29,18 +29,7 @@ function SideBar() {
             >
               Dashboard
             </NavLink>
-            <NavLink
-              className={({ isActive }) =>
-                `flex items-center justify-center gap-3 text-center px-4 py-2 rounded-lg transition-colors ${
-                  isActive
-                    ? "bg-[#F4C752] text-[#141C25] font-semibold"
-                    : "text-white hover:bg-[#364153]"
-                }`
-              }
-              to={"/donor-donations"}
-            >
-              Donations
-            </NavLink>
+            
             <NavLink
               className={({ isActive }) =>
                 `flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors ${
@@ -53,18 +42,7 @@ function SideBar() {
             >
               Profile
             </NavLink>
-            <NavLink
-              className={({ isActive }) =>
-                `flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors ${
-                  isActive
-                    ? "bg-[#F4C752] text-[#141C25] font-semibold"
-                    : "text-white hover:bg-[#364153]"
-                }`
-              }
-              to={"/donor-setting"}
-            >
-              Settings
-            </NavLink>
+            
             <NavLink
               className={({ isActive }) =>
                 `flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors ${
