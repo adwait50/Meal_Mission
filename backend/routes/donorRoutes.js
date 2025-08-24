@@ -374,7 +374,7 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
 });
 
 // Route to get donation details by ID for a donor
-router.get("/donation/:id", authMiddleware, async (req, res) => {
+router.get("/donation/:id", authDonorMiddleware, async (req, res) => {
   const { id } = req.params; // Get the donation ID from the URL
   const donorId = req.user._id; // Get the donor's ID from the authenticated user
 
