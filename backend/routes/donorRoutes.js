@@ -425,7 +425,7 @@ router.post("/support", authDonorMiddleware, async (req, res) => {
 
 module.exports = router;
 
-router.get("/support-requests", authMiddleware, async (req, res) => {
+router.get("/support-requests", authDonorMiddleware, async (req, res) => {
   try {
       const donorId = req.user._id; // Get the donor's ID from the authenticated user
 
