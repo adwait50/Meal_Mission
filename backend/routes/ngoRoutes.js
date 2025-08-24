@@ -541,6 +541,7 @@ router.get("/accepted-donations", authNgoMiddleware, async (req, res) => {
   }
 });
 
+// Route to post a support request for the authenticated NGO
 router.post("/support", authNgoMiddleware, async (req, res) => {
   const { requestId, issue, phone, email, description } = req.body;
 
@@ -560,6 +561,20 @@ router.post("/support", authNgoMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error submitting support request:", error);
     res.status(500).json({ message: "Error submitting support request" });
+  }
+});
+
+// Route to get all support requests for the authenticated NGO
+router.get("/support-requests", authNgoMiddleware, async (req, res) => {
+  try {
+      const ngoId = req.user._id; 
+      const supportRequests = await SupportRequestNgo.find({ ngo: ngoId });
+
+     
+      res.status(200).json(supportRequests);
+  } catch (error) {
+      console.error("Error fetching support requests:", error);
+      res.status(500).json({ message: "Error fetching support requests" });
   }
 });
 

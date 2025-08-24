@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const supportRequestSchema = new mongoose.Schema({
+  ngo: { type: mongoose.Schema.Types.ObjectId, ref: "NGO", required: true },
   requestId: { type: String, required: true },
   issue: { type: String, required: true },
   phone: { type: String, required: true },

@@ -405,6 +405,7 @@ router.post("/support", authDonorMiddleware, async (req, res) => {
   console.log(req.body);
   try {
     const supportRequestDonor = new SupportRequestDonor({
+      donor: req.user._id,
       requestId,
       issue,
       phone,
@@ -423,3 +424,22 @@ router.post("/support", authDonorMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+router.get("/support-requests", authMiddleware, async (req, res) => {
+  try {
+      const donorId = req.user._id; // Get the donor's ID from the authenticated user
+
+      // Fetch all support requests that belong to this donor
+      const supportRequests = await SupportRequest.find({ 
+          donor: donorId // Match the donor ID
+      })
+      .select("-__v") // Exclude version key
+      .sort({ createdAt: -1 }); // Sort by creation date, most recent first
+
+      // Return the support requests
+      res.status(200).json(supportRequests);
+  } catch (error) {
+      console.error("Error fetching support requests:", error);
+      res.status(500).json({ message: "Error fetching support requests" });
+  }
+});
