@@ -373,6 +373,32 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
   }
 });
 
+// Route to get donation details by ID for a donor
+router.get("/donation/:id", authMiddleware, async (req, res) => {
+  const { id } = req.params; // Get the donation ID from the URL
+  const donorId = req.user._id; // Get the donor's ID from the authenticated user
+
+  try {
+      // Find the donation by ID and ensure it belongs to the authenticated donor
+      const donation = await Donation.findOne({ 
+          _id: id,
+          donor: donorId // Ensure the donation belongs to this donor
+      })
+      .populate("ngo", "name email phone") // Populate NGO details if the donation is accepted
+      .select("-__v"); // Exclude version key
+
+      if (!donation) {
+          return res.status(404).json({ message: "Donation not found or you don't have access to it" });
+      }
+
+      // Return the donation details
+      res.status(200).json(donation);
+  } catch (error) {
+      console.error("Error fetching donation details:", error);
+      res.status(500).json({ message: "Error fetching donation details" });
+  }
+});
+
 router.post("/support", authDonorMiddleware, async (req, res) => {
   const { requestId, issue, phone, email, description } = req.body;
   console.log(req.body);
