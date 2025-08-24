@@ -8,7 +8,7 @@ import ConfirmLogout from "../components/template/ConfirmLogout";
 const App = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { ngoData, loading, error } = useNgo();
+  const { ngoData, loading } = useNgo();
   // console.log(ngoData);
 
   if (loading) {

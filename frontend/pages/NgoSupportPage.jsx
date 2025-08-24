@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import SideBar from "../components/SideBar";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import NgoSideBar from "../components/NgoSidebar";
 import axios from "axios";
 const NgoSupportPage = () => {
@@ -57,17 +57,25 @@ const NgoSupportPage = () => {
   };
 
   return (
-    <div className="min-h-screen  bg-[#141C25] flex  text-white">
+    <div className="min-h-screen  bg-[#141C25] flex z-10  text-white">
       <NgoSideBar />
       <div className="min-h-screen flex-1 ml-[300px]  flex items-center justify-center p-4">
         <div className="flex-1  ">
+          <div className="w-full  flex px-22 py-4 justify-between ">
+
           <button
             onClick={() => navigate("/ngo-dashboard")}
             className="mb-4 text-gray-400 hover:text-white flex items-center gap-2"
           >
             ← Back to Dashboard
           </button>
-          <div className="w-full main mx-auto max-w-2xl bg-slate-800/50 rounded-xl p-8 backdrop-blur-sm">
+          <Link
+            to={"/ngo-previous-supports"}
+           className="mb-4 text-gray-400 hover:text-white flex items-center gap-2" >
+            Prevoius Supports
+          </Link>
+          </div>
+          <div className="w-full main mx-auto max-w-2xl bg-slate-800/50 rounded-xl  p-8 backdrop-blur-sm">
             <h1 className="text-2xl font-semibold text-white mb-8">
               Support Request Form
             </h1>

@@ -154,10 +154,10 @@ function DonationDetail() {
       {/* Header */}
       <div className="mb-8">
         <button
-          onClick={() => navigate('/ngo-dashboard/browse-pickup')}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-[#F4C752] hover:text-[#e6b94a] transition-colors mb-4"
         >
-          <span>←</span> Back to Pickup Requests
+          <span>←</span> Back 
         </button>
         <div className="flex items-center justify-between">
           <div>

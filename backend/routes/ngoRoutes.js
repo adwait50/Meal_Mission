@@ -518,6 +518,28 @@ router.get("/donation-history", authNgoMiddleware, async (req, res) => {
   }
 });
 
+// Route to get all accepted donations by an NGO
+router.get("/accepted-donations", authNgoMiddleware, async (req, res) => {
+  try {
+      const ngoId = req.user._id; 
+
+      
+      const acceptedDonations = await Donation.find({ 
+          ngo: ngoId, 
+          status: "In Progress"
+      })
+      .populate("donor", "name email phone") // Populate donor details
+      .select("-__v") // Exclude version key
+      .sort({ createdAt: -1 }); // Sort by creation date, most recent first
+
+      // Return the accepted donations
+      res.status(200).json(acceptedDonations);
+  } catch (error) {
+      console.error("Error fetching accepted donations:", error);
+      res.status(500).json({ message: "Error fetching accepted donations" });
+  }
+});
+
 router.post("/support", authNgoMiddleware, async (req, res) => {
   const { requestId, issue, phone, email, description } = req.body;
 

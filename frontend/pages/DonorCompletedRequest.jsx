@@ -3,7 +3,7 @@
 import axios from "axios";
 import  { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
-import NgoSideBar from "../components/NgoSidebar";
+import Sidebar from "../components/SideBar";
 
 const DonationHistory = () => {
   const [donations, setDonations] = useState([]);
@@ -75,7 +75,7 @@ const DonationHistory = () => {
 
   return (
     <div className="min-h-screen bg-[#141C25] flex text-white">
-      <NgoSideBar />
+      <Sidebar />
       <div className="flex-1 ">
         <div className="min-h-screen bg-[#141C25] p-8">
           <button

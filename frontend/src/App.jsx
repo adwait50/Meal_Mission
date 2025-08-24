@@ -35,10 +35,14 @@ import PendingNgosDetail from "../pages/PendingNgosDetail";
 import PendingNgosContent from "../pages/PendingNgosContent";
 import BrowsePickup from "../pages/NGOs/BrowsePickup";
 import DonationDetail from "../pages/NGOs/DonationDetail";
+import ActiveRequests from "../pages/NGOs/ActiveRequests";
 import NgoHistory from "../pages/NgoHistory";
 import DonorSupportPage from "../pages/DonorSupportPage";
 import NgoSupportPage from "../pages/NgoSupportPage";
 import AdminSupport from "../pages/AdminSupport";
+import DonorPreviousSupports from "../pages/DonorPreviousSupport";
+import NgoPreviousSupports from "../pages/NGOs/NgoPreviousSupport";
+
 function App() {
   return (
     <div>
@@ -94,6 +98,12 @@ function App() {
                 </DonorProtectedWrapper>
               }
             />
+            <Route path="/donor-previous-supports" element={
+              <DonorProtectedWrapper>
+                <DonorPreviousSupports />
+              </DonorProtectedWrapper>
+            }   
+        />
             <Route path="/donor-logout" element={<DonorLogout />} />
             <Route
               path="/donor-forgot-password"
@@ -112,6 +122,7 @@ function App() {
             >
               <Route index element={<NgoDashboardContent />} />
               <Route path="browse-pickup" element={<BrowsePickup />} />
+              <Route path="active-requests" element={<ActiveRequests />} />
               <Route path="donation/:requestId" element={<DonationDetail />} />
               <Route path="donation-history" element={<NgoHistory />} />
             </Route>
@@ -139,6 +150,11 @@ function App() {
                 </NgoProtectedWrapper>
               }
             />
+            <Route path="/ngo-previous-supports" element={
+              <NgoProtectedWrapper>
+                <NgoPreviousSupports />
+              </NgoProtectedWrapper>
+            }   />
 
             <Route path="/ngo-logout" element={<NgoLogout />} />
             <Route

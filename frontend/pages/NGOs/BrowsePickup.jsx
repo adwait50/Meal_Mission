@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function BrowsePickup() {
+  const navigate=useNavigate()
   const [requests, setRequests] = useState([]);
   const fetchRequests = async () => {
     try {
@@ -31,6 +32,14 @@ function BrowsePickup() {
 
   return (
     <div className="flex-1  p-9">
+      <div>
+      <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-[#F4C752] hover:text-[#e6b94a] transition-colors mb-4"
+        >
+          <span>←</span> Back 
+        </button>
+      </div>
       <h1 className="text-3xl text-zinc-200 font-semibold">
         Pickup requests from your area
       </h1>
