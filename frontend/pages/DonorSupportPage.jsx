@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import SideBar from "../components/SideBar";
 import axios from "axios";
 import { Link, useNavigate } from "react-router";
+
 const App = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -27,16 +28,7 @@ const App = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      console.log(token);
-
-      const formDataToSend = {
-        requestId: formData.requestId,
-        issue: formData.issue,
-        phone: formData.phone,
-        email: formData.email,
-        description: formData.description,
-      };
-      console.log("Submitting support request with data:", formData);
+      const formDataToSend = { ...formData };
 
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/donors/support`,
@@ -47,14 +39,12 @@ const App = () => {
           },
         }
       );
-      console.log(response);
+
       if (response.status === 201) {
-        console.log(response);
         setShowSuccessModal(true);
         setError("");
       }
     } catch (error) {
-      console.error("Error submitting support request:", error);
       setError(
         error.response?.data?.message || "Failed to submit support request"
       );
@@ -62,29 +52,36 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen  bg-[#141C25] flex  text-white">
+    <div className="min-h-screen bg-[#141C25] flex text-white">
       <SideBar />
-      <div className="min-h-screen flex-1 ml-[300px]  flex items-center justify-center p-5">
-        <div className="flex-1  ">
-          <div className="w-full  flex px-22 py-4 justify-between ">
-
-          <button
-            onClick={() => navigate("/donor-dashboard")}
-            className="mb-4 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer "
-          >
-            ← Back to Dashboard
-          </button>
-          <Link
-            to={"/donor-previous-supports"}
-           className="mb-4 text-gray-400 hover:text-white flex items-center gap-2" >
-            Prevoius Supports
-          </Link>
+      
+      <div className="min-h-screen flex-1 lg:ml-[300px] flex items-center justify-center p-4 pt-5 sm:p-6 md:p-8 pb-20 ">
+        <div className="flex-1">
+          
+          {/* ✅ Top buttons stacked properly on mobile */}
+          <div className="w-full flex justify-between sm:flex-row sm:items-center sm:justify-between gap-3 mb-7">
+            <button
+              onClick={() => navigate("/donor-dashboard")}
+              className="text-gray-400 hover:text-white  flex items-center gap-2 cursor-pointer"
+            >
+              ← Back to Dashboard
+            </button>
+            <Link
+              to={"/donor-previous-supports"}
+              className="text-gray-100 hover:text-white flex items-center bg-[#364153] px-2 py-1 rounded-lg gap-2"
+            >
+              Previous Supports<i className="ri-ticket-line"></i>
+            </Link>
           </div>
-          <div className="w-full main mx-auto max-w-2xl bg-slate-800/50 rounded-xl p-8 backdrop-blur-sm">
-            <h1 className="text-2xl font-semibold text-white mb-8">
+
+          {/* ✅ Form wrapper responsive */}
+          <div className="w-full mx-auto max-w-2xl bg-slate-800/50 rounded-xl mb-15 z-0 p-4 sm:p-6 md:p-8 backdrop-blur-sm">
+            <h1 className="text-xl sm:text-2xl font-semibold text-white mb-6">
               Support Request Form
             </h1>
-            <form onSubmit={handleSubmit} className="space-y-6">
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Inputs stay full width automatically */}
               <div>
                 <label className="block text-gray-200 mb-2">Request ID</label>
                 <input
@@ -92,7 +89,7 @@ const App = () => {
                   name="requestId"
                   value={formData.requestId}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                  className="w-full bg-slate-700/50 border-none text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
                   placeholder="Enter request ID"
                 />
               </div>
@@ -104,7 +101,7 @@ const App = () => {
                   name="issue"
                   value={formData.issue}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                  className="w-full bg-slate-700/50 border-none text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
                   placeholder="Enter your issue"
                 />
               </div>
@@ -116,7 +113,7 @@ const App = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                  className="w-full bg-slate-700/50 border-none text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
                   placeholder="Enter your phone number"
                 />
               </div>
@@ -128,7 +125,7 @@ const App = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                  className="w-full bg-slate-700/50 border-none text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
                   placeholder="Enter your email address"
                 />
               </div>
@@ -140,15 +137,18 @@ const App = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none resize-none"
+                  className="w-full bg-slate-700/50 border-none text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none resize-none"
                   placeholder="Please describe your issue in detail"
                 />
               </div>
+
               {error && <p className="text-red-500">{error}</p>}
-              <div className="flex justify-end space-x-4 mt-8">
+
+              {/* ✅ Buttons stacked vertically on mobile, side by side on sm+ */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                 <button
                   type="button"
-                  className="px-6 py-3 text-gray-300 bg-slate-700 hover:bg-slate-600 transition-colors duration-200 rounded-lg cursor-pointer whitespace-nowrap"
+                  className="px-5 py-2 sm:px-6 sm:py-3 text-gray-300 bg-slate-700 hover:bg-slate-600 transition-colors duration-200 rounded-lg cursor-pointer w-full sm:w-auto"
                   onClick={() =>
                     setFormData({
                       requestId: "",
@@ -163,7 +163,7 @@ const App = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-medium transition-colors duration-200 rounded-lg cursor-pointer whitespace-nowrap"
+                  className="px-5 py-2 sm:px-6 sm:py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-medium transition-colors duration-200 rounded-lg cursor-pointer w-full sm:w-auto"
                 >
                   Submit Request
                 </button>
@@ -172,13 +172,14 @@ const App = () => {
           </div>
         </div>
 
+        {/* ✅ Modal already mobile-friendly (centered) */}
         {showSuccessModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-            <div className="bg-slate-800 p-8 rounded-xl max-w-md w-full mx-4">
-              <h3 className="text-xl font-semibold text-white mb-4">
+            <div className="bg-slate-800 p-6 sm:p-8 rounded-xl max-w-md w-full mx-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">
                 Request Submitted
               </h3>
-              <p className="text-gray-300 mb-6">
+              <p className="text-gray-300 mb-6 text-sm sm:text-base">
                 Your support request has been successfully submitted. We will
                 contact you shortly.
               </p>

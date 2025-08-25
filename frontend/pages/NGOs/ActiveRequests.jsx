@@ -26,7 +26,7 @@ function ActiveRequests() {
           },
         }
       );
-
+      console.log(response)
       if (response.status === 200) {
         setActiveRequests(response.data);
       }
@@ -205,7 +205,7 @@ function ActiveRequests() {
                   <div className="grid md:grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="text-zinc-400">Name: </span>
-                      <span className="text-white">{request.donor.name}</span>
+                      <span className="text-white">{request.donorName}</span>
                     </div>
                     <div>
                       <span className="text-zinc-400">Email: </span>
@@ -214,7 +214,7 @@ function ActiveRequests() {
                     {request.donor.phone && (
                       <div>
                         <span className="text-zinc-400">Phone: </span>
-                        <span className="text-white">{request.donor.phone}</span>
+                        <span className="text-white">{request.phone}</span>
                       </div>
                     )}
                   </div>

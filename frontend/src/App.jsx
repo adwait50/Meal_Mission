@@ -21,7 +21,6 @@ import AdminLogin from "../pages/AdminLogin";
 import NgoDashboard from "../pages/NgoDashboard";
 import NgoProtectedWrapper from "../pages/NgoProtectedWrapper";
 import NgoLogout from "../pages/NgoLogout";
-import NgoSetting from "../pages/NgoSetting";
 import NgoProfile from "../pages/NgoProfile";
 import RequestDetail from "../components/template/RequestDetail";
 import NgoDashboardContent from "../pages/NgoDashboardContent";
@@ -119,14 +118,7 @@ function App() {
                 </NgoProtectedWrapper>
               }
             />
-            <Route
-              path="/ngo-setting"
-              element={
-                <NgoProtectedWrapper>
-                  <NgoSetting />{" "}
-                </NgoProtectedWrapper>
-              }
-            />
+            
             <Route
               path="/ngo-support"
               element={

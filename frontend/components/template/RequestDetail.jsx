@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useState, useEffect } from "react";
 import axios from "axios";
+
 function RequestDetail() {
   const { requestId } = useParams();
   const navigate = useNavigate();
@@ -9,8 +9,8 @@ function RequestDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
-  console.log(requestId);
   useEffect(() => {
     fetchDonationDetails();
   }, [requestId]);
@@ -20,25 +20,16 @@ function RequestDetail() {
       setLoading(true);
       setError(null);
       const token = localStorage.getItem("token");
-      
       if (!token) {
         setError("No authentication token found");
         setLoading(false);
         return;
       }
 
-      // console.log("Fetching donation with ID:", requestId);
-      
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/api/donors/donation/${requestId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      // console.log("Donation details response:", response.data);
 
       if (response.status === 200 && response.data) {
         setDonation(response.data);
@@ -46,217 +37,172 @@ function RequestDetail() {
         setError("Invalid response from server");
       }
     } catch (error) {
-      console.error("Error fetching donation details:", error);
-      if (error.response?.status === 404) {
-        setError("Donation not found");
-      } else if (error.response?.status === 403) {
+      console.error(error);
+      if (error.response?.status === 404) setError("Donation not found");
+      else if (error.response?.status === 403)
         setError("Access denied. This donation is not in your area.");
-      } else if (error.response?.data?.message) {
-        setError(error.response.data.message);
-      } else {
-        setError("Failed to fetch donation details. Please try again.");
-      }
+      else setError("Failed to fetch donation details. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const formatDate = (dateString, withTime = true) => {
+    if (!dateString) return "Not specified";
+    const options = withTime
+      ? { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }
+      : { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("en-US", options);
+  };
+
+  const getStatusBadge = (status) => {
+    const colors = {
+      Pending: "bg-yellow-500",
+      Accepted: "bg-blue-500",
+      "In Progress": "bg-orange-500",
+      Completed: "bg-green-500",
+      Rejected: "bg-red-500",
+      Cancelled: "bg-gray-500",
+    };
+    return (
+      <span
+        className={`px-3 py-1 rounded-full text-white text-sm font-medium ${
+          colors[status] || "bg-gray-500"
+        }`}
+      >
+        {status}
+      </span>
+    );
+  };
+
   const updateDonationStatus = async (newStatus) => {
     try {
       setUpdating(true);
-      const token = localStorage.getItem("Ngotoken");
-      console.log(token);
-      
+      const token = localStorage.getItem("token");
       let endpoint;
-      if (newStatus === 'Accepted') {
-        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/accept`;
-      } else if (newStatus === 'Rejected') {
-        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/reject`;
-      } else if (newStatus === 'In Progress') {
-        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/in-progress`;
-      } else if (newStatus === 'Completed') {
-        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/completed`;
-      } else {
-        // Fallback for any other status updates
-        endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/status`;
-      }
-      
-      const response = await axios.put(
-        endpoint,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log(response);
 
+      if (newStatus === "Accepted") endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/accept`;
+      else if (newStatus === "Rejected") endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/reject`;
+      else if (newStatus === "In Progress") endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/in-progress`;
+      else if (newStatus === "Completed") endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/completed`;
+      else endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/status`;
+
+      const response = await axios.put(endpoint, {}, { headers: { Authorization: `Bearer ${token}` } });
       if (response.status === 200) {
-        // Update local state
-        setDonation(prev => ({ ...prev, status: newStatus }));
+        setDonation((prev) => ({ ...prev, status: newStatus }));
         alert(`Donation status updated to ${newStatus}`);
       }
     } catch (error) {
-      console.error("Error updating donation status:", error);
+      console.error(error);
       alert("Failed to update donation status. Please try again.");
     } finally {
       setUpdating(false);
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "Not specified";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-
-
-  const getStatusBadge = (status) => {
-    const colors = {
-      'Pending': 'bg-yellow-500',
-      'Accepted': 'bg-blue-500',
-      'In Progress': 'bg-orange-500',
-      'Completed': 'bg-green-500'
-    };
-    
-    return (
-      <span className={`px-3 py-1 rounded-full text-white text-sm font-medium ${colors[status] || 'bg-gray-500'}`}>
-        {status}
-      </span>
-    );
-  };
+  const cancelRequest = () => setShowPopup(true);
 
   if (loading) {
     return (
-      <div className="flex-1 p-9">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F4C752]"></div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#141C25] text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
       </div>
     );
   }
 
   if (error || !donation) {
     return (
-      <div className="flex-1 p-9">
-        <div className="text-center min-h-[400px] flex flex-col items-center justify-center">
-          <p className="text-red-500 text-lg mb-4">{error || "Donation not found"}</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-[#F4C752] px-4 py-2 font-semibold rounded-lg text-black hover:bg-[#e6b94a] transition-colors"
-          >
-            Back 
-          </button>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#141C25] text-white px-4">
+        <p className="text-red-500 text-lg mb-4">{error || "Donation not found"}</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="bg-yellow-500 px-4 py-2 rounded-lg font-semibold text-black hover:bg-yellow-600 transition-colors"
+        >
+          Back
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 p-9">
+    <div className="min-h-screen bg-[#141C25] text-white px-4 py-6 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="mb-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#F4C752] hover:text-[#e6b94a] transition-colors mb-4"
-        >
-          <span>←</span> Back 
-        </button>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl text-zinc-200 font-semibold mb-2">
-              Donation Details
-            </h1>
-            <p className="text-zinc-400">Request ID: {donation.requestId || donation._id}</p>
-          </div>
-          <div className="text-right">
-            {getStatusBadge(donation.status)}
-            <p className="text-zinc-400 text-sm mt-1">
-              Last updated: {formatDate(donation.createdAt)}
-            </p>
-          </div>
-        </div>
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 text-yellow-400 hover:text-yellow-500 mb-6"
+      >
+        ← Back
+      </button>
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-semibold">{`Donation Details`}</h1>
+        <p className="text-zinc-400 text-sm mt-1">Request ID: {donation.requestId || donation._id}</p>
       </div>
 
       {/* Main Content */}
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Left Column - Donation Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-24 ">
+        {/* Left Column */}
         <div className="space-y-6">
-          {/* Food Information */}
-          <div className="bg-[#364153] p-6 rounded-lg border border-gray-600">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              🍽️ Food Information
-            </h2>
-            <div className="space-y-3">
+          {/* Food Info */}
+          <div className="bg-gray-800 p-5 rounded-lg border border-gray-600">
+            <h2 className="text-xl font-semibold mb-3">🍽️ Food Information</h2>
+            <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-zinc-300">Food Items:</span>
-                <span className="text-white font-medium">{donation.foodItems}</span>
+                <span className="font-medium">{donation.foodItems}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-300">Quantity:</span>
-                <span className="text-white font-medium">{donation.quantity} units</span>
+                <span className="font-medium">{donation.quantity} units</span>
               </div>
               {donation.additionalNotes && (
-                <div className="pt-3 border-t border-gray-600">
-                  <span className="text-zinc-300">Additional Notes:</span>
-                  <p className="text-white mt-1">{donation.additionalNotes}</p>
+                <div className="border-t border-gray-600 pt-2">
+                  <span className="text-zinc-300">Notes:</span>
+                  <p className="font-medium mt-1">{donation.additionalNotes}</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Pickup Information */}
-          <div className="bg-[#364153] p-6 rounded-lg border border-gray-600">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              📍 Pickup Information
-            </h2>
-            <div className="space-y-3">
+          {/* Pickup Info */}
+          <div className="bg-gray-800 p-5 rounded-lg border border-gray-600">
+            <h2 className="text-xl font-semibold mb-3">📍 Pickup Information</h2>
+            <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-zinc-300">Address:</span>
-                <span className="text-white font-medium text-right max-w-[60%]">{donation.address}</span>
+                <span className="font-medium max-w-[60%] text-right">{donation.address}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-300">City:</span>
-                <span className="text-white font-medium">{donation.city}</span>
+                <span className="font-medium">{donation.city}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-300">State:</span>
-                <span className="text-white font-medium">{donation.state}</span>
+                <span className="font-medium">{donation.state}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-300">Pickup Date:</span>
-                <span className="text-white font-medium">{formatDate(donation.pickupDate)}</span>
+                <span className="font-medium">{formatDate(donation.pickupDate)}</span>
               </div>
             </div>
           </div>
 
-          {/* Donor Information */}
+          {/* Donor Info */}
           {donation.donor && (
-            <div className="bg-[#364153] p-6 rounded-lg border border-gray-600">
-              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                👤 Donor Information
-              </h2>
-              <div className="space-y-3">
+            <div className="bg-gray-800 p-5 rounded-lg border border-gray-600">
+              <h2 className="text-xl font-semibold mb-3">👤 Donor Information</h2>
+              <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-zinc-300">Name:</span>
-                  <span className="text-white font-medium">{donation.donor.name}</span>
+                  <span className="font-medium">{donation.donorName}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zinc-300">Email:</span>
-                  <span className="text-white font-medium">{donation.donor.email}</span>
+                  <span className="font-medium">{donation.donor.email}</span>
                 </div>
                 {donation.phone && (
                   <div className="flex justify-between">
                     <span className="text-zinc-300">Phone:</span>
-                    <span className="text-white font-medium">{donation.phone}</span>
+                    <span className="font-medium">{donation.phone}</span>
                   </div>
                 )}
               </div>
@@ -264,108 +210,82 @@ function RequestDetail() {
           )}
         </div>
 
-        {/* Right Column - Actions and Status */}
+        {/* Right Column */}
         <div className="space-y-6">
-          {/* Status Management */}
-          <div className="bg-[#364153] p-6 rounded-lg border border-gray-600">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              ⚙️ Status Management
-              
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="text-center p-4 bg-[#2d3748] rounded-lg">
-                <p className="text-zinc-300 mb-2">Current Status</p>
-                <div className="text-2xl font-bold text-[#F4C752]">{donation.status}</div>
-                
-              </div>
-
-              {/* Action Buttons */}
-              {donation.status === 'Pending' && (
-                <div className="space-y-3">
-                  <div className="bg-[#364153] w-full p-6 rounded-lg  flex justify-center items-center border text-center text-zinc-300 text-md mt-1  border-gray-600">
-                    
-                  Please wait for any NGO to accept the request.
-                  </div>
-                    
-                </div>
-              )}
-
-
-              {donation.status === 'In Progress' && (
-                <div className="space-y-3">
-                  <div className="text-zinc-400 text-md mt-1 ">
-                  
-
-              </div>
-              <div className="bg-[#364153] w-full p-6 rounded-lg  flex justify-center items-center border text-center text-zinc-300 text-md mt-1  border-gray-600">
-                    
-              The below NGO has accepted your request. Please check your email for the details.
-                  </div>
-                  
-                  <div className="bg-[#364153] p-6 rounded-lg border mt-5 border-gray-600">
-                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                      🏢 NGO Information
-                    </h2>
-              <div className="space-y-3"> 
-                <div className="flex justify-between">
-                  <span className="text-zinc-300">Name:</span>
-                  <span className="text-white font-medium">{donation.ngo.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-300">Email:</span>
-                  <span className="text-white font-medium">{donation.ngo.email}</span>
-                </div>
-                {donation.ngo.phone && (
-                  <div className="flex justify-between">
-                    <span className="text-zinc-300">Phone:</span>
-                    <span className="text-white font-medium">{donation.ngo.phone}</span>
-                  </div>
-                )}
-              </div>
+          {/* Status & Actions */}
+          <div className="bg-gray-800 p-5 rounded-lg border border-gray-600 space-y-4">
+            <h2 className="text-xl font-semibold mb-2">⚙️ Status</h2>
+            <div className="text-center p-4 bg-gray-700 rounded-lg">
+              <p className="text-zinc-300">Current Status</p>
+              <div className="text-2xl font-bold text-yellow-400 mt-1">{donation.status}</div>
             </div>
-                  
-                </div>
-              )}
 
-              {donation.status === 'Completed' && (
-                <div>
-
-                <div className="text-center p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
-                  <p className="text-green-400 text-lg font-semibold">🎉 Donation Completed!</p>
-                  <p className="text-zinc-400 text-sm mt-1">
-                    This donation has been successfully picked up
-                  </p>
-                  
-                </div>
-                <div className="bg-[#364153] p-6 rounded-lg border mt-5 border-gray-600">
-                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                      🏢 NGO Information
-                    </h2>
-              <div className="space-y-3"> 
-                <div className="flex justify-between">
-                  <span className="text-zinc-300">Name:</span>
-                  <span className="text-white font-medium">{donation.ngo.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-300">Email:</span>
-                  <span className="text-white font-medium">{donation.ngo.email}</span>
-                </div>
-                {donation.ngo.phone && (
-                  <div className="flex justify-between">
-                    <span className="text-zinc-300">Phone:</span>
-                    <span className="text-white font-medium">{donation.ngo.phone}</span>
-                  </div>
-                )}
+            {donation.status === "Pending" && (
+              <div className="text-center p-4 bg-gray-700 rounded-lg text-zinc-300">
+                Please wait for any NGO to accept the request.
               </div>
-            </div>
+            )}
+
+            {["In Progress", "Accepted"].includes(donation.status) && (
+              <>
+                <div className="bg-gray-700 p-4 rounded-lg text-center text-zinc-300">
+                  The NGO has accepted your request. Check your email for details.
+                </div>
+                <div className="bg-gray-800 p-5 rounded-lg border border-gray-600">
+                  <h3 className="text-lg font-semibold mb-2">🏢 NGO Information</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-zinc-300">Name:</span>
+                      <span className="font-medium">{donation.ngo.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-300">Email:</span>
+                      <span className="font-medium">{donation.ngo.email}</span>
+                    </div>
+                    {donation.ngo.phone && (
+                      <div className="flex justify-between">
+                        <span className="text-zinc-300">Phone:</span>
+                        <span className="font-medium">{donation.ngo.phone}</span>
+                      </div>
+                    )}
                   </div>
-              )}
-            </div>
+                </div>
+                <button
+                  onClick={cancelRequest}
+                  className="w-full p-4 mt-3 rounded-lg bg-gray-700 text-zinc-300 hover:bg-gray-600 hover:text-red-500 transition transform hover:scale-105"
+                >
+                  Cancel Request
+                </button>
+              </>
+            )}
+
+            {donation.status === "Completed" && (
+              <div className="text-center p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <p className="text-green-400 font-semibold">🎉 Donation Completed!</p>
+                <p className="text-zinc-400 text-sm mt-1">
+                  This donation has been successfully picked up.
+                </p>
+              </div>
+            )}
           </div>
-
         </div>
       </div>
+
+      {/* Popup */}
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50 px-4">
+          <div className="bg-gray-800 p-5 rounded-lg w-full max-w-md border border-gray-600 relative">
+            <button
+              onClick={() => setShowPopup(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-semibold mb-3">Cancel Request</h2>
+            <p className="text-zinc-300">Please contact the NGO directly if you want to cancel this request.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

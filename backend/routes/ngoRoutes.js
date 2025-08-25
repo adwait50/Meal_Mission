@@ -162,7 +162,7 @@ router.post("/login", async (req, res) => {
 
 router.get("/dashboard", authNgoMiddleware, async (req, res) => {
   try {
-    const NGO = await NGOModel.findById(req.user.id).select("-password");
+    const NGO = await NGOModel.findById(req.user._id).select("-password");
     if (!NGO) {
       return res.status(404).json({ message: "NGO not found" });
     }
@@ -485,31 +485,75 @@ router.put("/donation/:id/completed", authNgoMiddleware, async (req, res) => {
   }
 });
 
+router.put("/donation/:id/reject", authNgoMiddleware, async (req, res) => {
+  const { id } = req.params; // Get the donation ID from the URL
+
+  try {
+      // Find the donation by ID and update the status to "Completed"
+      const updatedDonation = await Donation.findByIdAndUpdate(
+          id,
+          { status: "Rejected" },
+          { new: true } // Return the updated document
+      );
+
+      if (!updatedDonation) {
+          return res.status(404).json({ message: "Donation not found" });
+      }
+
+      // Return success response
+      res.status(200).json({
+          message: "Donation accepted successfully",
+          donation: updatedDonation
+      });
+  } catch (error) {
+      console.error("Error accepting donation:", error);
+      res.status(500).json({ message: "Error accepting donation" });
+  }
+});
+
 router.get("/donation-history", authNgoMiddleware, async (req, res) => {
   try {
     const ngoId = req.user._id;
 
+    // Total donations (all, regardless of status)
+    const totalDonations = await Donation.countDocuments({ ngo: ngoId });
+
+    // Completed donations
+    const completedDonations = await Donation.countDocuments({
+      ngo: ngoId,
+      status: "Completed",
+    });
+
+    // Rejected donations
+    const rejectedDonations = await Donation.countDocuments({
+      ngo: ngoId,
+      status: "Rejected",
+    });
+
+    // Total weight excluding rejected
     const [totalWeightData] = await Donation.aggregate([
-      { $match: { ngo: ngoId } },
+      { $match: { ngo: ngoId, status: { $ne: "Rejected" } } },
       { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
     ]);
 
     const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
 
-    // Total Donations
-    const totalDonations = await Donation.countDocuments({ ngo: ngoId });
+    // Times donated = all except rejected
+    const timesDonated = totalDonations - rejectedDonations;
 
-    // Times Donated
-    const timesDonated = totalDonations;
-
-    // Donation History
-    const donationHistory = await Donation.find({ ngo: ngoId })
-      .select("foodItem createdAt address status quantity requestId")
-      .sort({ createdAt: -1 }); // Sort by date
+    // Donation history → Completed + Rejected (with pickupDate)
+    const donationHistory = await Donation.find({
+      ngo: ngoId,
+      status: { $in: ["Completed", "Rejected"] },
+    })
+      .select("foodItems pickupDate address status quantity requestId")
+      .sort({ pickupDate: -1 });
 
     return res.status(200).json({
-      totalWeight,
       totalDonations,
+      completedDonations,
+      rejectedDonations,
+      totalWeight,
       timesDonated,
       donationHistory,
     });
@@ -544,15 +588,17 @@ router.get("/accepted-donations", authNgoMiddleware, async (req, res) => {
 // Route to post a support request for the authenticated NGO
 router.post("/support", authNgoMiddleware, async (req, res) => {
   const { requestId, issue, phone, email, description } = req.body;
+  const ngoId = req.user._id; // Get the NGO ID from the authenticated user
 
   try {
     const supportRequestNgo = new SupportRequestNgo({
+      ngo: ngoId, // Add the NGO ID
       requestId,
       issue,
       phone,
       email,
       description,
-      isCompleted:false
+      isCompleted: false
     });
 
     await supportRequestNgo.save();
@@ -568,9 +614,13 @@ router.post("/support", authNgoMiddleware, async (req, res) => {
 router.get("/support-requests", authNgoMiddleware, async (req, res) => {
   try {
       const ngoId = req.user._id; 
+      console.log("NGO ID from token:", ngoId);
+      console.log("NGO user object:", req.user);
+      
       const supportRequests = await SupportRequestNgo.find({ ngo: ngoId });
+      console.log("Found support requests:", supportRequests);
+      console.log("Number of support requests:", supportRequests.length);
 
-     
       res.status(200).json(supportRequests);
   } catch (error) {
       console.error("Error fetching support requests:", error);

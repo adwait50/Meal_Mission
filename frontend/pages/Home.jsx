@@ -1,80 +1,62 @@
-import React from "react";
 import HomeComponents from "../components/HomeComponents";
 import ContactForm from "../components/ContactForm";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import NavBar from "../components/NavBar";
 
 function Home() {
-  // const navComp = ["About", "Donor", "NGOs", "Stories", "Get Started"];
   return (
-    <div className="bg-[#141C25] w-full text-white ">
-      {/* <nav className=" flex justify-between py-6 px-14 text-2xl border-b-[2px] border-[#1A2432] ">
-        <div className="font-bold">Meal Mission</div>
-        <div className="flex text-lg items-center gap-4 ">
-          <div className="flex gap-8 ">
-            {navComp.map((e) => (
-              <h4 className="relative inline-block group transform transition-transform duration-200 hover:scale-115">
-                {e}
-                <span className="absolute left-0 bottom-[-2px] w-full h-0.5 bg-white transform scale-x-0 translate-x-0 transition-transform duration-300 group-hover:scale-x-100 group-hover:translate-x-0 group-focus:scale-x-100 group-focus:translate-x-0 group-active:scale-x-100 group-active:translate-x-0"></span>
-              </h4>
-            ))}
-          </div>
-          <div className="flex mx-4 gap-3 font-semibold ">
-            <Link to={"/donor-login"}>
-              <button className="bg-[#F4C752] text-[#141C25] px-3 py-2 rounded-xl transform transition-transform duration-200 hover:scale-115 ">
-                Donor
-              </button>
-            </Link>
-            <Link to={"/ngo-login"}>
-              <button className="bg-[#1C2B36] px-3 py-2 rounded-xl transform transition-transform duration-200 hover:scale-115 ">
-                NGO
-              </button>
-            </Link>
-          </div>
-        </div>
-      </nav> */}
+    <div className="bg-[#141C25] w-full text-white">
       <NavBar />
-      <div className="mt-8 relative ">
+
+      {/* Hero Section */}
+      <div className="mt-8 relative flex flex-col items-center">
         <img
-          className="w-[70%] h-[65vh] rounded-3xl object-cover block mx-auto"
+          className="w-[90%] md:w-[70%] h-[40vh] md:h-[65vh] rounded-3xl object-cover"
           src="https://media.istockphoto.com/id/1457738274/photo/unrecognizable-woman-hands-out-food-donations-during-charity-drive.jpg?s=612x612&w=0&k=20&c=6GjDAHu02Epgu19Zwlc7-YSxFsMmiPZWFfZTU5S2a5I="
-          alt=""
+          alt="hero"
         />
-        <div className="slogan absolute top-[68%] left-[47%] transform -translate-x-1/2 -translate-y-1/2">
-          <h1 className="text-[3.5rem] font-bold ">End Hunger. Stop Waste.</h1>
-          <h5 className="w-[80%] text-base ">
+        <div className="slogan absolute top-[52%] md:top-[68%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center px-4">
+          <h1 className="text-lg sm:text-3xl md:text-5xl font-bold">
+            End Hunger. Stop Waste.
+          </h1>
+          <h5 className="mt-3 text-xs md:text-base max-w-lg mx-auto">
             We connect donors with excess food to local hunger relief
-            organizations that can use it. It's good for people and the planet
+            organizations that can use it. It's good for people and the planet.
           </h5>
-          <div className="flex mt-4 gap-3 font-semibold ">
-            <Link to="/donor-login">
-              <button className="bg-[#F4C752] text-[#141C25] px-3 py-2 rounded-xl hover:bg-[#141C25] hover:text-[#F4C752] transition duration-300 ">
-                I'm a Donor
+          <div className="flex flex-row justify-center mt-4 gap-3 font-semibold">
+              <Link to="/donor-dashboard">
+                <button className="bg-[#F4C752] text-[#141C25] px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-base rounded-xl hover:bg-[#141C25] hover:text-[#F4C752] transition">
+                  I'm a Donor
+                </button>
+              </Link>
+              <Link to="/ngo-dashboard">
+              <button className="bg-[#1C2B36] px-2 py-1 text-xs sm:px-4 sm:py-2 sm:text-base rounded-xl hover:bg-white hover:text-[#1C2B36] transition">
+                I'm an NGO
               </button>
-            </Link>
-            <button className="bg-[#1C2B36] px-3 py-2 rounded-xl  hover:bg-white hover:text-[#1C2B36] transition duration-300 ">
-              I'm an NGO
-            </button>
+              </Link>
           </div>
+
         </div>
       </div>
-      <div className="w-[70%] h-[40vh] mx-auto mt-15 mb-5 flex justify-center gap-6 items-center ">
-        <div className="w-1/2  flex py-10  gap-5 items-center  ">
-          <i className="ri-lightbulb-flash-line font-base text-[7rem] "></i>
-          <div className="flex flex-col gap-8">
-            <h1 className="text-5xl font-bold">Our Mission</h1>
-            <h4 className="text-base ">
+
+      {/* Mission & Vision */}
+      <div className="w-[90%] p-2 md:w-[70%] mx-auto mt-10 mb-5 flex flex-col md:flex-row gap-8">
+        <div className="flex-1 flex gap-4 items-start">
+          <i className="ri-lightbulb-flash-line text-6xl md:text-[7rem]" />
+          <div className="flex flex-col gap-4">
+            <h1 className="text-2xl md:text-5xl font-bold">Our Mission</h1>
+            <h4 className="text-sm md:text-base leading-relaxed">
               Empowering underprivileged youth through access to quality
               education and mentorship programs, fostering a future filled with
               opportunity and success.
             </h4>
           </div>
         </div>
-        <div className="w-1/2  flex py-10  gap-5 items-center  ">
-          <i className="ri-team-line font-base text-[7rem] "></i>
-          <div className="flex flex-col gap-8">
-            <h1 className="text-5xl font-bold">Our Vision</h1>
-            <h4 className="text-base ">
+        <div className="flex-1 flex gap-4 items-start">
+          <i className="ri-team-line text-6xl md:text-[7rem]" />
+          <div className="flex flex-col gap-4">
+            <h1 className="text-2xl md:text-5xl font-bold">Our Vision</h1>
+            <h4 className="text-sm md:text-base leading-relaxed">
               A world where every young person, regardless of background, has
               the resources and support to reach their full potential and become
               a thriving member of society.
@@ -82,61 +64,61 @@ function Home() {
           </div>
         </div>
       </div>
-      <div className="w-[70%]  mx-auto mt-[10vh]  ">
-        <h1 className="text-center text-[3.7rem] font-bold mb-10 ">
+
+      {/* What We Do */}
+      <div className="w-[90%] md:w-[70%] mx-auto mt-16">
+        <h1 className="text-center text-2xl sm:text-3xl md:text-[3.7rem] font-bold mb-10">
           What We Do
         </h1>
         <HomeComponents />
       </div>
-      <div className="w-[70%] gap-6 mx-auto mt-[15vh] text-center ">
-        <h1 className="text-[3.7rem] font-bold">Ready to make a difference?</h1>
-        <h4 className="mt-5 text-lg">
+
+      {/* Call to Action */}
+      <div className="w-[90%] md:w-[70%] mx-auto mt-16 text-center">
+        <h1 className="text-2xl sm:text-3xl md:text-[3.7rem] font-bold">
+          Ready to make a difference?
+        </h1>
+        <h4 className="mt-5 text-sm md:text-lg">
           We connect donors with excess food to local hunger relief
           organizations.
         </h4>
-
-        <button className="bg-[#F4C752] text-[#141C25] px-3 py-2 rounded-xl mt-5 font-bold text-lg ml-5 hover:bg-[#141C25] hover:text-[#F4C752] transition duration-300">
-          I'm a Donor
-        </button>
-        <button className="bg-[#1C2B36] px-3 py-2 rounded-xl mt-5 font-bold text-lg ml-5 hover:bg-white hover:text-[#1C2B36] transition duration-300 ">
-          I'm an NGO
-        </button>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+          <Link to={"/donor-dashboard"}>
+          <button className="bg-[#F4C752] text-[#141C25] px-4 py-2 rounded-xl font-bold text-base md:text-lg hover:bg-[#141C25] hover:text-[#F4C752] transition">
+            I'm a Donor
+          </button>
+          </Link>
+          <Link to={"/ngo-dashboard"}>
+          <button className="bg-[#1C2B36] px-4 py-2 rounded-xl font-bold text-base md:text-lg hover:bg-white hover:text-[#1C2B36] transition">
+            I'm an NGO
+          </button>
+          </Link>
+        </div>
       </div>
-      <div className="w-[70%] mx-auto h-[82vh] mt-[7rem] ">
+
+      {/* Contact */}
+      <div className="w-[90%] md:w-[70%] mx-auto mt-20">
         <ContactForm />
       </div>
-      <footer className="bg-[#111111] w-full flex flex-col justify-between h-[30vh] mt-[8rem] text-center ">
-        <div className="text-[2.1rem] flex justify-center gap-8 pt-15 ">
-          <i className="ri-facebook-circle-line transform transition-transform duration-200 hover:scale-125"></i>
-          <i className="ri-instagram-line transform transition-transform duration-200 hover:scale-125  "></i>
-          <i className="ri-twitter-x-line transform transition-transform duration-200 hover:scale-125 "></i>
-          <i className="ri-linkedin-box-fill transform transition-transform duration-200 hover:scale-125 "></i>
-          <i className="ri-mail-line transform transition-transform duration-200 hover:scale-125 "></i>
+
+      {/* Footer */}
+      <footer className="bg-[#111111] w-full flex flex-col items-center justify-between py-8 mt-20 text-center">
+        <div className="text-2xl flex justify-center gap-6">
+          <i className="ri-facebook-circle-line hover:scale-125 transition-transform"></i>
+          <i className="ri-instagram-line hover:scale-125 transition-transform"></i>
+          <i className="ri-twitter-x-line hover:scale-125 transition-transform"></i>
+          <i className="ri-linkedin-box-fill hover:scale-125 transition-transform"></i>
+          <i className="ri-mail-line hover:scale-125 transition-transform"></i>
         </div>
-        <div className="flex justify-center gap-8 mt-4 text-base">
-          <h4 className="relative inline-block group">
-            Home
-            <span className="absolute left-0 bottom-[-2px] w-full h-0.5 bg-white transform scale-x-0 translate-x-0 transition-transform duration-300 group-hover:scale-x-100 group-hover:translate-x-0 group-focus:scale-x-100 group-focus:translate-x-0 group-active:scale-x-100 group-active:translate-x-0"></span>
-          </h4>
-          <h4 className="relative inline-block group">
-            News
-            <span className="absolute left-0 bottom-[-2px] w-full h-0.5 bg-white transform scale-x-0 translate-x-0 transition-transform duration-300 group-hover:scale-x-100 group-hover:translate-x-0 group-focus:scale-x-100 group-focus:translate-x-0 group-active:scale-x-100 group-active:translate-x-0"></span>
-          </h4>
-          <h4 className="relative inline-block group">
-            About us
-            <span className="absolute left-0 bottom-[-2px] w-full h-0.5 bg-white transform scale-x-0 translate-x-0 transition-transform duration-300 group-hover:scale-x-100 group-hover:translate-x-0 group-focus:scale-x-100 group-focus:translate-x-0 group-active:scale-x-100 group-active:translate-x-0"></span>
-          </h4>
-          <h4 className="relative inline-block group">
-            Our Team
-            <span className="absolute left-0 bottom-[-2px] w-full h-0.5 bg-white transform scale-x-0 translate-x-0 transition-transform duration-300 group-hover:scale-x-100 group-hover:translate-x-0 group-focus:scale-x-100 group-focus:translate-x-0 group-active:scale-x-100 group-active:translate-x-0"></span>
-          </h4>
-          <h4 className="relative inline-block group">
-            Contact us
-            <span className="absolute left-0 bottom-[-2px] w-full h-0.5 bg-white transform scale-x-0 translate-x-0 transition-transform duration-300 group-hover:scale-x-100 group-hover:translate-x-0 group-focus:scale-x-100 group-focus:translate-x-0 group-active:scale-x-100 group-active:translate-x-0"></span>
-          </h4>
+        <div className="flex flex-wrap justify-center gap-6 mt-4 text-sm md:text-base">
+          <h4 className="relative group">Home</h4>
+          <h4 className="relative group">News</h4>
+          <h4 className="relative group">About us</h4>
+          <h4 className="relative group">Our Team</h4>
+          <h4 className="relative group">Contact us</h4>
         </div>
-        <div className="w-full bg-black py-1 mt-4 ">
-          Copyright @2025; Designed by team Meal mission.
+        <div className="w-full bg-black py-2 mt-4 text-xs md:text-sm">
+          Copyright ©2025; Designed by team Meal mission.
         </div>
       </footer>
     </div>

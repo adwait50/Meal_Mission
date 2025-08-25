@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 function PendingNgosContent() {
   const [pendingNgos, setPendingNgos] = useState([]);
+
   const fetchPendingNgo = async () => {
     try {
       const token = localStorage.getItem("Admintoken");
@@ -16,47 +17,56 @@ function PendingNgosContent() {
         }
       );
       if (response.status === 200) {
-        // console.log(response.data);
         setPendingNgos(response.data);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching pending NGOs:", error);
     }
   };
 
-  console.log(pendingNgos);
   useEffect(() => {
     fetchPendingNgo();
   }, []);
 
   return (
-    <div className="flex-1 ml-[300px] p-9">
-      <h1 className="text-3xl text-zinc-200 font-semibold">Pending NGOs</h1>
-      <div className="min-h-screen px-6 flex flex-col gap-2 mt-10">
+    <div className="flex-1 ml-[300px] p-9 bg-[#141C25] min-h-screen">
+      <h1 className="text-3xl text-zinc-200 font-semibold">
+        Pending NGO Approvals
+      </h1>
+
+      {/* NGO List */}
+      <div className="mt-10 grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {pendingNgos.length === 0 ? (
-          <p className="text-lg text-red-500">No NGOs to approve.</p>
+          <p className="text-lg text-red-500 col-span-full">
+            No NGOs awaiting approval.
+          </p>
         ) : (
           pendingNgos.map((ngo) => (
             <div
               key={ngo._id}
-              className="w-full p-4 flex rounded-lg bg-[#364153] py-5 mb-2"
+              className="bg-gray-800 rounded-xl p-6 shadow-lg flex flex-col justify-between hover:shadow-2xl hover:bg-gray-700/70 transition"
             >
-              <div className="flex gap-3 w-full">
-                <div className="flex flex-col w-7/10">
-                  {" "}
-                  <h3 className="text-lg">{ngo.name}</h3>
-                  <h3 className="text-lg">{ngo.email}</h3>
-                  <h3 className="text-lg">{ngo.address}</h3>
-                </div>
-                <div className="flex justify-center items-center w-3/10">
-                  {" "}
-                  <Link
-                    to={`/pending-ngos/${ngo._id}`}
-                    className="bg-[#F4C752] px-3 py-2 font-semibold rounded-lg text-black"
-                  >
-                    More info
-                  </Link>
-                </div>
+              {/* NGO Info */}
+              <div>
+                <h2 className="text-xl font-semibold text-white">
+                  {ngo.name}
+                </h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  {ngo.email}
+                </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  {ngo.address}, {ngo.city}, {ngo.state}
+                </p>
+              </div>
+
+              {/* Action */}
+              <div className="mt-6 flex justify-end">
+                <Link
+                  to={`/pending-ngos/${ngo._id}`}
+                  className="bg-[#F4C752] hover:bg-[#e6b94a] text-black font-semibold px-4 py-2 rounded-lg transition"
+                >
+                  Review
+                </Link>
               </div>
             </div>
           ))

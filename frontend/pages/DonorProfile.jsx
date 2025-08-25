@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 import { useDonor } from "../context/DonorContext";
-import { Link } from "react-router";
 import ConfirmLogout from "../components/template/ConfirmLogout";
 import Modal from "../components/Modal";
 
@@ -17,7 +16,7 @@ function DonorProfile() {
   return (
     <div className="min-h-screen bg-[#141C25] flex text-white">
       <SideBar />
-      <div className="w-full flex-1 ml-[300px] px-6 py-8">
+      <div className="w-full flex-1 sm:ml-[300px] px-6 py-8 mb-18 ">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">Profile</h1>
@@ -36,12 +35,14 @@ function DonorProfile() {
               <h2 className="text-2xl font-semibold">{donorData?.name}</h2>
               <p className="text-gray-400">{donorData?.email}</p>
               <div className="flex items-center mt-2">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  donorData?.isVerified 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {donorData?.isVerified ? '✓ Verified' : '⏳ Pending'}
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    donorData?.isVerified
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}
+                >
+                  {donorData?.isVerified ? "✓ Verified" : "⏳ Pending"}
                 </span>
               </div>
             </div>
@@ -60,19 +61,41 @@ function DonorProfile() {
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-[#1E2939] p-6 rounded-xl">
-            <div className="text-3xl font-bold text-[#F4C752]">0</div>
+            <div className="text-3xl font-bold text-[#F4C752]">
+              {donorData?.stats?.totalDonations || 0}
+            </div>
             <div className="text-gray-400 text-sm">Total Donations</div>
           </div>
           <div className="bg-[#1E2939] p-6 rounded-xl">
-            <div className="text-3xl font-bold text-[#F4C752]">0</div>
-            <div className="text-gray-400 text-sm">NGOs Helped</div>
+            <div className="text-3xl font-bold text-green-400">
+              {donorData?.stats?.completedDonations || 0}
+            </div>
+            <div className="text-gray-400 text-sm">Completed Donations</div>
           </div>
           <div className="bg-[#1E2939] p-6 rounded-xl">
-            <div className="text-3xl font-bold text-[#F4C752]">0</div>
-            <div className="text-gray-400 text-sm">This Month</div>
+            <div className="text-3xl font-bold text-red-400">
+              {donorData?.stats?.rejectedDonations || 0}
+            </div>
+            <div className="text-gray-400 text-sm">Rejected Donations</div>
+          </div>
+        </div>
+
+        {/* Quantity + Times Donated */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-[#1E2939] p-6 rounded-xl">
+            <div className="text-3xl font-bold text-[#F4C752]">
+              {donorData?.stats?.totalQuantity || 0} kg
+            </div>
+            <div className="text-gray-400 text-sm">Total Quantity Donated</div>
+          </div>
+          <div className="bg-[#1E2939] p-6 rounded-xl">
+            <div className="text-3xl font-bold text-[#F4C752]">
+              {donorData?.stats?.timesDonated || 0}
+            </div>
+            <div className="text-gray-400 text-sm">Number of Times Donated</div>
           </div>
         </div>
 
@@ -86,7 +109,7 @@ function DonorProfile() {
             <button className="bg-[#364153] text-white py-3 px-4 rounded-lg hover:bg-[#2a3444] transition-colors">
               View History
             </button>
-            <button 
+            <button
               onClick={() => setIsModalOpen(true)}
               className="bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors"
             >
@@ -96,6 +119,7 @@ function DonorProfile() {
         </div>
       </div>
 
+      {/* Logout Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ConfirmLogout type={"donor"} onClose={() => setIsModalOpen(false)} />
       </Modal>

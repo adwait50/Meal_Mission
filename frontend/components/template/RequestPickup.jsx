@@ -1,12 +1,12 @@
 import axios from "axios";
 import React, { useState } from "react";
-import { Outlet, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import Modal from "../Modal";
 import PickupConfirm from "./PickupConfirm";
 import { useDonor } from "../../context/DonorContext";
-import { Country, State, City } from "country-state-city";
+import { State, City } from "country-state-city";
 
-const App = () => {
+const PickupForm = () => {
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     donorName: "",
@@ -21,28 +21,26 @@ const App = () => {
     city: "",
   });
 
-  const [success, setSuccess] = useState(false);
-  const navigate = useNavigate();
-  const { donorData } = useDonor();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [requestId, setrequestId] = useState(null);
-  const [states, setStates] = useState(State.getStatesOfCountry("IN"));
+  const [requestId, setRequestId] = useState(null);
+  const [states] = useState(State.getStatesOfCountry("IN"));
   const [cities, setCities] = useState([]);
 
-  const [selectedCountry, setselectedCountry] = useState("IN");
+  const [selectedCountry] = useState("IN");
   const [selectedState, setSelectedState] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+
+  const navigate = useNavigate();
+  useDonor(); // donorData not used here, so only call hook
+
   const handleStateChange = (state) => {
-    setSelectedState(state);
+    setSelectedState(state.isoCode);
     setCities(City.getCitiesOfState(selectedCountry, state.isoCode));
     setFormData((prev) => ({ ...prev, state: state.name }));
-    console.log(state.name);
   };
+
   const handleCityChange = (e) => {
     const city = e.target.value;
-    setSelectedCity(e.target.value); // Update selected city state
     setFormData((prev) => ({ ...prev, city }));
-    // console.log(selectedCity);
   };
 
   const handleInputChange = (e) => {
@@ -51,7 +49,7 @@ const App = () => {
   };
 
   const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setFormData((prev) => ({ ...prev, foodImage: e.target.files[0] }));
     }
   };
@@ -61,19 +59,11 @@ const App = () => {
     try {
       const token = localStorage.getItem("token");
       const formDataToSend = new FormData();
-      formDataToSend.append("donorName", formData.donorName);
-      formDataToSend.append("phone", formData.phone);
-      formDataToSend.append("address", formData.address);
-      formDataToSend.append("foodItems", formData.foodItems);
-      formDataToSend.append("quantity", formData.quantity);
-      formDataToSend.append("pickupDate", formData.pickupDate);
-      formDataToSend.append("additionalNotes", formData.additionalNotes);
-      formDataToSend.append("state", formData.state);
-      formDataToSend.append("city", formData.city);
-
-      if (formData.foodImage) {
-        formDataToSend.append("foodImage", formData.foodImage);
-      }
+      Object.keys(formData).forEach((key) => {
+        if (formData[key]) {
+          formDataToSend.append(key, formData[key]);
+        }
+      });
 
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/pickup/request-pickup`,
@@ -85,11 +75,9 @@ const App = () => {
           },
         }
       );
+
       if (response.status === 201) {
-        // console.log(response.data.requestId);
-        const requestId = response.data.requestId;
-        setrequestId(requestId);
-        setSuccess(true);
+        setRequestId(response.data.requestId);
         setIsModalOpen(true);
         setFormData({
           donorName: "",
@@ -104,34 +92,33 @@ const App = () => {
           city: "",
         });
       }
-    } catch (error) {
-      console.error("Error submitting pickup request:", error);
-      console.log(error.response?.data);
+    } catch (err) {
       setError(
-        error.response?.data?.message || "Failed to submit pickup request"
+        err.response?.data?.message || "Failed to submit pickup request"
       );
-      setSuccess(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#141C25] py-9 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#141C25] py-6 px-4 sm:px-6 lg:px-8">
       <button
         onClick={() => navigate("/donor-dashboard")}
         className="mb-4 text-gray-400 hover:text-white flex items-center gap-2"
       >
         ← Back to Dashboard
       </button>
-      <div className="max-w-4xl mt-6 mx-auto">
-        <div className="bg-gray-800 rounded-lg shadow-xl p-8">
-          <h2 className="text-2xl font-semibold text-white mb-8">
+
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-gray-800 rounded-lg shadow-xl p-6 mb-22 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-6">
             New Food Donation Form
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <form onSubmit={handleSubmit} className="space-y-6  ">
+            {/* Donor Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm text-gray-300 mb-2">
                   Donor Name
                 </label>
                 <input
@@ -139,14 +126,13 @@ const App = () => {
                   name="donorName"
                   value={formData.donorName}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 border-none rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                  className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter donor name"
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm text-gray-300 mb-2">
                   Phone Number
                 </label>
                 <input
@@ -154,62 +140,62 @@ const App = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 border-none rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                  className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter phone number"
                   required
                 />
               </div>
             </div>
-            <div className="flex justify-between gap-1  w-full ">
-              <div className="w-1/2 ">
-                <label htmlFor="State" className="text-zinc-300 text-sm">
+
+            {/* Location */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
                   State
                 </label>
-                <div className="relative mt-1">
-                  <select
-                    name="state"
-                    id="state"
-                    className="w-full rounded-lg relative block  pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
-                    onChange={(e) =>
-                      handleStateChange(
-                        states.find((s) => s.isoCode === e.target.value)
-                      )
-                    }
-                  >
-                    <option className="w-full" value="">
-                      Select State
+                <select
+                  name="state"
+                  value={selectedState}
+                  onChange={(e) =>
+                    handleStateChange(
+                      states.find((s) => s.isoCode === e.target.value)
+                    )
+                  }
+                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-yellow-500"
+                >
+                  <option value="">Select State</option>
+                  {states.map((state) => (
+                    <option key={state.isoCode} value={state.isoCode}>
+                      {state.name}
                     </option>
-                    {states.map((state) => (
-                      <option key={state.isoCode} value={state.isoCode}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  ))}
+                </select>
               </div>
-              <div className="w-1/2 ">
-                <label htmlFor="city" className="text-zinc-300 text-sm">
+
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
                   City
                 </label>
-                <div className="relative mt-1">
-                  <select
-                    disabled={!selectedState}
-                    name="city"
-                    onChange={handleCityChange}
-                    className="w-full rounded-lg relative block  pl-10 pr-3 py-3 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
-                  >
-                    <option value="">Select City</option>
-                    {cities.map((city) => (
-                      <option key={city.name} value={city.name}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  disabled={!selectedState}
+                  name="city"
+                  value={formData.city}
+                  onChange={handleCityChange}
+                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-yellow-500"
+                >
+                  <option value="">Select City</option>
+                  {cities.map((city) => (
+                    <option key={city.name} value={city.name}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
+
+            {/* Address */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm text-gray-300 mb-2">
                 Address
               </label>
               <input
@@ -217,30 +203,32 @@ const App = () => {
                 name="address"
                 value={formData.address}
                 onChange={handleInputChange}
-                className="w-full bg-gray-700 border-none rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
                 placeholder="Enter pickup address"
                 required
               />
             </div>
 
+            {/* Food Items */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm text-gray-300 mb-2">
                 Food Items
               </label>
               <textarea
                 name="foodItems"
                 value={formData.foodItems}
                 onChange={handleInputChange}
-                rows={4}
-                className="w-full bg-gray-700 border-none rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
-                placeholder="List the food items you wish to donate"
+                rows={3}
+                className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                placeholder="List the food items"
                 required
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {/* Quantity and Pickup Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm text-gray-300 mb-2">
                   Quantity (kg)
                 </label>
                 <input
@@ -248,14 +236,13 @@ const App = () => {
                   name="quantity"
                   value={formData.quantity}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 border-none rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                  className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
                   placeholder="Enter quantity in kg"
                   required
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm text-gray-300 mb-2">
                   Pickup Date
                 </label>
                 <input
@@ -263,46 +250,47 @@ const App = () => {
                   name="pickupDate"
                   value={formData.pickupDate}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-700 border-none rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                  className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
                   required
                 />
               </div>
             </div>
 
+            {/* Food Image */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm text-gray-300 mb-2">
                 Food Image
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="w-full bg-gray-700 border-none rounded-lg px-4 py-2.5 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-500 file:text-gray-900 hover:file:bg-yellow-600"
+                className="w-full bg-gray-700 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-500 file:text-gray-900 hover:file:bg-yellow-600"
               />
             </div>
 
+            {/* Additional Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm text-gray-300 mb-2">
                 Additional Notes
               </label>
               <textarea
                 name="additionalNotes"
                 value={formData.additionalNotes}
                 onChange={handleInputChange}
-                rows={4}
-                className="w-full bg-gray-700 border-none rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
-                placeholder="Any special instructions or notes"
+                rows={3}
+                className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                placeholder="Any special instructions"
               />
             </div>
 
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
-            <div className="flex justify-center gap-8 space-x-4">
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-8">
               <button
                 type="button"
-                className="px-6 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 !rounded-button whitespace-nowrap cursor-pointer"
-                onClick={() => {
+                onClick={() =>
                   setFormData({
                     donorName: "",
                     phone: "",
@@ -312,14 +300,17 @@ const App = () => {
                     pickupDate: "",
                     additionalNotes: "",
                     foodImage: null,
-                  });
-                }}
+                    state: "",
+                    city: "",
+                  })
+                }
+                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-yellow-500 text-gray-900 font-medium rounded-lg hover:bg-yellow-600 transition-colors duration-200 !rounded-button whitespace-nowrap cursor-pointer"
+                className="px-6 py-2 bg-yellow-500 text-gray-900 font-medium rounded-lg hover:bg-yellow-600 transition"
               >
                 Submit Donation
               </button>
@@ -327,6 +318,7 @@ const App = () => {
           </form>
         </div>
       </div>
+
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <PickupConfirm requestId={requestId} />
       </Modal>
@@ -334,4 +326,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default PickupForm;

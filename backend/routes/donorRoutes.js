@@ -309,7 +309,7 @@ router.get("/active-requests", authDonorMiddleware, async (req, res) => {
     const activeRequests = await Donation.find(
       {
         donor: donorId,
-        status: { $ne: "Completed" },
+        status: { $in: ["Pending", "In Progress"] }, // only pending + in progress
       },
       {
         requestId: 1,
@@ -317,6 +317,7 @@ router.get("/active-requests", authDonorMiddleware, async (req, res) => {
         foodItems: 1,
         quantity: 1,
         createdAt: 1,
+        donorName: 1,
       }
     );
 
@@ -327,39 +328,38 @@ router.get("/active-requests", authDonorMiddleware, async (req, res) => {
     return res.status(200).json(activeRequests);
   } catch (error) {
     console.error("Error fetching active requests:", error);
-
     if (!res.headersSent) {
-      // Ensure we don't send multiple responses
       return res.status(500).json({ message: "Internal server error" });
     }
   }
 });
 
+
 // Fetch Donation History
+// routes/donor.js
+
 router.get("/donation-history", authDonorMiddleware, async (req, res) => {
   try {
-    const donorId = req.user._id; // Get the donor ID from the authenticated user
+    const donorId = req.user._id;
 
-    // Total Weight
-    const [totalWeightData] = await Donation.aggregate([
-      { $match: { donor: donorId } },
-      { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
-    ]);
+    // Completed + Rejected only
+    const donationHistory = await Donation.find({
+      donor: donorId,
+      status: { $in: ["Completed", "Rejected"] },
+    })
+      .select("foodItem createdAt pickupDate address status quantity requestId")
+      .sort({ createdAt: -1 });
 
-    const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
+    // Calculate stats
+    const totalWeight = donationHistory
+  .filter((d) => d.status === "Completed")
+  .reduce((acc, d) => acc + (d.quantity || 0), 0);
 
-    // Total Donations
-    const totalDonations = await Donation.countDocuments({ donor: donorId });
+    const totalDonations = donationHistory.length;
+    const timesDonated = donationHistory.filter(
+      (d) => d.status === "Completed"
+    ).length;
 
-    // Times Donated
-    const timesDonated = await Donation.countDocuments({ donor: donorId });
-
-    // Donation History with specific fields
-    const donationHistory = await Donation.find({ donor: donorId })
-      .select("foodItem createdAt address status quantity requestId")
-      .sort({ createdAt: -1 }); // sort by date
-
-    // Prepare response data
     return res.status(200).json({
       totalWeight,
       totalDonations,
@@ -371,6 +371,8 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
 
 // Route to get donation details by ID for a donor
 router.get("/donation/:id", authDonorMiddleware, async (req, res) => {

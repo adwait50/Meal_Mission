@@ -25,16 +25,21 @@ function HomeComponents() {
     },
   ];
   return (
-    <div className="w-full flex gap-3 ">
-      {comp.map((e) => (
-        <div className="w-3/4 mt-5">
+    <div className="w-full flex flex-col sm:flex-row sm:gap-6 gap-4 mt-5">
+      {comp.map((e, i) => (
+        <div
+          key={i}
+          className="w-full sm:h-[29vh] flex flex-col items-center text-center"
+        >
           <img
-            className="h-[29vh] rounded-2xl object-cover block "
+            className="w-full h-[32vh] sm:h-[29vh] rounded-2xl object-cover"
             src={e.image}
-            alt=""
+            alt={e.topic}
           />
-          <h2 className="mt-5 text-center text-xl font-semibold ">{e.topic}</h2>
-          <p className=" text-center text-base mt-4 ">{e.content}</p>
+          <h2 className="mt-4 text-lg sm:text-xl font-semibold">
+            {e.topic}
+          </h2>
+          <p className="mt-2 text-sm sm:text-base">{e.content}</p>
         </div>
       ))}
     </div>

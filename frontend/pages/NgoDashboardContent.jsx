@@ -8,7 +8,7 @@ function DonorDashboardContent() {
 
   return (
     <div className="w-full flex-1 h-full flex flex-col justify-center gap-5 px-4 sm:px-6 lg:px-8 py-8 z-10">
-      <div className="h-[30%] flex gap-3 flex-col justify-center px-7 rounded-2xl bg-[#364153]">
+      <div className="h-[30%] flex gap-3 flex-col justify-center px-7 py-20 rounded-2xl bg-[#364153]">
         <h1 className="text-2xl font-semibold">Browse Food Pickup Requests</h1>
         <h5 className="text-zinc-400">
           View and accept available food donation requests in your area

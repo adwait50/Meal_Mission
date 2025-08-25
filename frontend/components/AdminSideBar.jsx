@@ -25,7 +25,7 @@ function AdminSideBar() {
               Dashboard
             </NavLink>
 
-            <NavLink
+            {/* <NavLink
               className={({ isActive }) =>
                 `flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors ${
                   isActive
@@ -36,7 +36,7 @@ function AdminSideBar() {
               to={"/ngo-setting"}
             >
               Settings
-            </NavLink>
+            </NavLink> */}
             <NavLink
               className={({ isActive }) =>
                 `flex items-center gap-3 justify-center text-center px-4 py-2 rounded-lg transition-colors ${

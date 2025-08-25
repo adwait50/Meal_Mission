@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import SideBar from "../components/SideBar";
-import { Link, useNavigate } from "react-router";
 import NgoSideBar from "../components/NgoSidebar";
+import { Link, useNavigate } from "react-router";
 import axios from "axios";
+
 const NgoSupportPage = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
@@ -13,182 +13,127 @@ const NgoSupportPage = () => {
     email: "",
     description: "",
   });
-
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("Ngotoken");
-
-      const formDataToSend = {
-        requestId: formData.requestId,
-        issue: formData.issue,
-        phone: formData.phone,
-        email: formData.email,
-        description: formData.description,
-      };
-
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/support`,
-        formDataToSend,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log(response);
       setShowSuccessModal(true);
     } catch (error) {
-      console.error("Error submitting support request:", error);
-      setError(
-        error.response?.data?.message || "Failed to submit support request"
-      );
+      setError(error.response?.data?.message || "Failed to submit support request");
     }
   };
 
   return (
-    <div className="min-h-screen  bg-[#141C25] flex z-10  text-white">
+    <div className="min-h-screen bg-[#141C25] flex flex-col sm:flex-row text-white">
+      {/* Sidebar */}
       <NgoSideBar />
-      <div className="min-h-screen flex-1 ml-[300px]  flex items-center justify-center p-4">
-        <div className="flex-1  ">
-          <div className="w-full  flex px-22 py-4 justify-between ">
 
+      {/* Main content */}
+      <div className="flex-1 p-4 sm:ml-[300px] pb-20 flex flex-col items-center justify-center">
+        {/* Header Links */}
+        <div className="flex  sm:flex-row w-full pt-3 px-1 justify-between mb-6 gap-2">
           <button
             onClick={() => navigate("/ngo-dashboard")}
-            className="mb-4 text-gray-400 hover:text-white flex items-center gap-2"
+            className="text-gray-400 hover:text-white flex items-center gap-2"
           >
             ← Back to Dashboard
           </button>
+          
           <Link
-            to={"/ngo-previous-supports"}
-           className="mb-4 text-gray-400 hover:text-white flex items-center gap-2" >
-            Prevoius Supports
-          </Link>
-          </div>
-          <div className="w-full main mx-auto max-w-2xl bg-slate-800/50 rounded-xl  p-8 backdrop-blur-sm">
-            <h1 className="text-2xl font-semibold text-white mb-8">
-              Support Request Form
-            </h1>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-gray-200 mb-2">Request ID</label>
-                <input
-                  type="text"
-                  name="requestId"
-                  value={formData.requestId}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-                  placeholder="Enter request ID"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-200 mb-2">Issue</label>
-                <input
-                  type="text"
-                  name="issue"
-                  value={formData.issue}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-                  placeholder="Enter your issue"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-200 mb-2">Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-                  placeholder="Enter your phone number"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-200 mb-2">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-                  placeholder="Enter your email address"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-200 mb-2">Description</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none resize-none"
-                  placeholder="Please describe your issue in detail"
-                />
-              </div>
-              {error && <p className="text-red-500">{error}</p>}
-              <div className="flex justify-end space-x-4 mt-8">
-                <button
-                  type="button"
-                  className="px-6 py-3 text-gray-300 bg-slate-700 hover:bg-slate-600 transition-colors duration-200 rounded-lg cursor-pointer whitespace-nowrap"
-                  onClick={() =>
-                    setFormData({
-                      requestId: "",
-                      issue: "",
-                      phone: "",
-                      email: "",
-                      description: "",
-                    })
-                  }
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-medium transition-colors duration-200 rounded-lg cursor-pointer whitespace-nowrap"
-                >
-                  Submit Request
-                </button>
-              </div>
-            </form>
-          </div>
+              to={"/ngo-previous-supports"}
+              className="text-gray-100 hover:text-white flex items-center bg-[#364153] px-2 py-1 rounded-lg gap-2"
+            >
+              Previous Supports<i className="ri-ticket-line"></i>
+            </Link>
         </div>
 
+        {/* Form Container */}
+        <div className="w-full max-w-2xl bg-slate-800/50 rounded-xl p-8 backdrop-blur-sm">
+          <h1 className="text-2xl font-semibold text-white mb-8">
+            Support Request Form
+          </h1>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {[
+              { label: "Request ID", name: "requestId", type: "text" },
+              { label: "Issue", name: "issue", type: "text" },
+              { label: "Phone", name: "phone", type: "tel" },
+              { label: "Email", name: "email", type: "email" },
+            ].map((field) => (
+              <div key={field.name}>
+                <label className="block text-gray-200 mb-2">{field.label}</label>
+                <input
+                  type={field.type}
+                  name={field.name}
+                  value={formData[field.name]}
+                  onChange={handleInputChange}
+                  placeholder={`Enter your ${field.label.toLowerCase()}`}
+                  className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                />
+              </div>
+            ))}
+
+            {/* Description */}
+            <div>
+              <label className="block text-gray-200 mb-2">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={4}
+                placeholder="Please describe your issue in detail"
+                className="w-full bg-slate-700/50 border-none text-white px-4 py-3 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none resize-none"
+              />
+            </div>
+
+            {error && <p className="text-red-500">{error}</p>}
+
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row justify-end gap-4 mt-8">
+              <button
+                type="submit"
+                className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-medium rounded-lg w-full sm:w-auto"
+              >
+                Submit Request
+              </button>
+              <button
+                type="button"
+                className="px-6 py-3 text-gray-300 bg-slate-700 hover:bg-slate-600 rounded-lg w-full sm:w-auto"
+                onClick={() =>
+                  setFormData({ requestId: "", issue: "", phone: "", email: "", description: "" })
+                }
+              >
+                Clear
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Success Modal */}
         {showSuccessModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-            <div className="bg-slate-800 p-8 rounded-xl max-w-md w-full mx-4">
-              <h3 className="text-xl font-semibold text-white mb-4">
-                Request Submitted
-              </h3>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm p-4 z-50">
+            <div className="bg-slate-800 p-8 rounded-xl max-w-md w-full">
+              <h3 className="text-xl font-semibold text-white mb-4">Request Submitted</h3>
               <p className="text-gray-300 mb-6">
-                Your support request has been successfully submitted. We will
-                contact you shortly.
+                Your support request has been successfully submitted. We will contact you shortly.
               </p>
               <button
                 onClick={() => {
                   setShowSuccessModal(false);
-                  setFormData({
-                    requestId: "",
-                    issue: "",
-                    phone: "",
-                    email: "",
-                    description: "",
-                  });
+                  setFormData({ requestId: "", issue: "", phone: "", email: "", description: "" });
                 }}
-                className="w-full px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-medium transition-colors duration-200 rounded-lg cursor-pointer whitespace-nowrap"
+                className="w-full px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-medium rounded-lg"
               >
                 Close
               </button>
