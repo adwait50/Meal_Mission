@@ -39,6 +39,7 @@ import NgoSupportPage from "../pages/NgoSupportPage";
 import AdminSupport from "../pages/AdminSupport";
 import DonorPreviousSupports from "../pages/DonorPreviousSupport";
 import NgoPreviousSupports from "../pages/NGOs/NgoPreviousSupport";
+import AdminLogout from "../pages/AdminLogout";
 
 function App() {
   return (
@@ -139,6 +140,7 @@ function App() {
               element={<NgoForgotPassword />}
             />
             <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/admin-logout" element={<AdminLogout />} />
             <Route
               path="/admin-dashboard"
               element={

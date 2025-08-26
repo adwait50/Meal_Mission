@@ -67,11 +67,11 @@ function PendingNgosDetail() {
     }
   };
 
-  if (loading) return <p className="ml-[300px] p-6 text-gray-400">Loading...</p>;
-  if (error) return <p className="ml-[300px] p-6 text-red-500">{error}</p>;
+  if (loading) return <p className=" p-6 text-gray-400">Loading...</p>;
+  if (error) return <p className=" p-6 text-red-500">{error}</p>;
 
   return (
-    <div className="flex-1 ml-[300px] min-h-screen p-8 bg-[#141C25] text-white">
+    <div className="flex-1  min-h-screen p-8 bg-[#141C25] text-white">
       <h1 className="text-3xl font-semibold mb-8">Pending NGO Details</h1>
 
       {pendingNgo ? (
@@ -93,13 +93,19 @@ function PendingNgosDetail() {
             {/* Actions */}
             <div className="mt-6 flex gap-4">
               <button
-                onClick={approvePendingNgo}
+                onClick={() => {
+                  approvePendingNgo();
+                  alert("NGO has been approved successfully!");
+                }}
                 className="bg-[#F4C752] hover:bg-[#e6b94a] text-black px-5 py-2 rounded-lg font-semibold transition"
               >
                 Approve
               </button>
               <button
-                onClick={rejectPendingNgo}
+                onClick={() => {
+                  rejectPendingNgo();
+                  alert("NGO has been rejected successfully!");
+                }}
                 className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg font-semibold transition"
               >
                 Reject

@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import AdminSideBar from "../components/AdminSideBar";
-import { Link, Outlet } from "react-router";
-import axios from "axios";
+import { Outlet } from "react-router";
+
 function PendingNgos() {
   return (
-    <div className="min-h-screen bg-[#141C25] flex text-white">
+    <div className="min-h-screen bg-[#141C25] flex flex-col md:flex-row text-white">
+      {/* Sidebar: Desktop left, Mobile bottom */}
       <AdminSideBar />
-      <div className="flex-1 ">
+
+      {/* Main content */}
+      <div className="flex-1 md:ml-[300px] mb-[70px] md:mb-0 p-4">
         <Outlet />
       </div>
     </div>

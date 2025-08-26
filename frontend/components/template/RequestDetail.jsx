@@ -212,6 +212,29 @@ function RequestDetail() {
 
         {/* Right Column */}
         <div className="space-y-6">
+          {/* Image Proof */}
+
+          {donation.foodImage && (
+           <div className="bg-gray-800 p-3 sm:p-5 rounded-lg border border-gray-600 space-y-3 sm:space-y-4">
+             <h2 className="text-lg sm:text-xl font-semibold mb-2">
+               <i className="ri-file-image-line"></i> Image Provided
+             </h2>
+             <div className="text-center p-2 bg-gray-700 rounded-lg">
+               <img 
+                 className="w-full h-auto max-h-[300px] sm:max-h-[400px] object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+                 src={donation.foodImage} 
+                 alt="Food image" 
+                 onClick={() => window.open(donation.foodImage, '_blank')}
+                 title="Click to open image in new tab"
+               />
+             </div>
+             <p className="text-xs sm:text-sm text-zinc-400 text-center">
+               Tap image to view full size
+             </p>
+           </div>
+           )}
+
+
           {/* Status & Actions */}
           <div className="bg-gray-800 p-5 rounded-lg border border-gray-600 space-y-4">
             <h2 className="text-xl font-semibold mb-2">⚙️ Status</h2>

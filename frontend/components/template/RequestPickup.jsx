@@ -291,18 +291,7 @@ const PickupForm = () => {
               <button
                 type="button"
                 onClick={() =>
-                  setFormData({
-                    donorName: "",
-                    phone: "",
-                    address: "",
-                    foodItems: "",
-                    quantity: "",
-                    pickupDate: "",
-                    additionalNotes: "",
-                    foodImage: null,
-                    state: "",
-                    city: "",
-                  })
+                  navigate("/donor-dashboard")
                 }
                 className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
               >

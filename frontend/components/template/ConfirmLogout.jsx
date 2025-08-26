@@ -2,6 +2,21 @@ import { Link } from "react-router";
 
 function ConfirmLogout({ type, onClose }) {
   console.log(type);
+
+  // Decide logout route based on type
+  const getLogoutRoute = () => {
+    switch (type) {
+      case "donor":
+        return "/donor-logout";
+      case "ngo":
+        return "/ngo-logout";
+      case "admin":
+        return "/admin-logout";
+      default:
+        return "/";
+    }
+  };
+
   return (
     <div className="w-full flex flex-col justify-center z-50 items-center">
       <i className="ri-logout-box-r-line text-[#F4C752] text-3xl"></i>
@@ -15,7 +30,7 @@ function ConfirmLogout({ type, onClose }) {
           Cancel
         </button>
         <Link
-          to={type === "donor" ? "/donor-logout" : "/ngo-logout"}
+          to={getLogoutRoute()}
           className="bg-[#ddb44c] hover:bg-[#c4a13a] text-white rounded-md px-6 py-2 transition-colors"
         >
           Sign Out
