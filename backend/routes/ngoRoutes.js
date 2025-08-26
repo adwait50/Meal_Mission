@@ -360,20 +360,26 @@ router.post("/resend-reset-otp", async (req, res) => {
 // Route to browse food pickup requests based on NGO's city
 router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
   try {
-    const ngo = await NGOModel.findById(req.user._id).select("city"); // Get the city of the NGO
-    if (!ngo) {
-      return res.status(404).json({ message: "NGO not found" });
-    }
+    const ngo = await NGOModel.findById(req.user._id).select("city");
+    if (!ngo) return res.status(404).json({ message: "NGO not found" });
 
     const ngoCity = ngo.city.toLowerCase();
 
-    // Fetch only pending pickup requests that match the NGO's city
-    const requests = await Donation.find({ 
+    // Log the current time when NGO requests the data
+    const currentTime = new Date();
+    console.log("NGO requested food pickups at:", currentTime);
+
+    // Calculate 4 hours ago from current time
+    const fourHoursAgo = new Date(currentTime.getTime() - 4 * 60 * 60 * 1000);
+
+    // Fetch only pending requests created in the last 4 hours from now
+    const requests = await Donation.find({
       city: ngoCity,
-      status: "Pending" // Filter to show only pending requests
+      status: "Pending",
+      createdAt: { $gte: fourHoursAgo } // filter by last 4 hours from current click
     })
       .populate("donor", "name email")
-      .select("-phone -city -state -status -createdAt -__v -donor") // Exclude specified fields
+      .select("-phone -city -state -status -createdAt -__v -donor")
       .sort({ createdAt: -1 });
 
     res.status(200).json(requests);
@@ -382,6 +388,8 @@ router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
     res.status(500).json({ message: "Error fetching pickup requests" });
   }
 });
+
+
 
 // Example route to update the status of a donation
 router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {

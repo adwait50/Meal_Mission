@@ -9,7 +9,7 @@ const donationSchema = new mongoose.Schema({
   address: { type: String, required: true },
   foodItems: { type: String, required: true },
   quantity: { type: Number, required: true },
-  pickupDate: { type: Date, required: true },
+  createdAt: { type: Date, default: () => new Date() },
   ngo: { type: mongoose.Schema.Types.ObjectId, ref: "NGO" }, // Reference to the NGO
   foodImage: { type: String, required: true },
   additionalNotes: String,
