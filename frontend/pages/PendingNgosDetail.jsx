@@ -19,6 +19,7 @@ function PendingNgosDetail() {
         `${import.meta.env.VITE_BASE_URL}/api/admin/ngo-info/${ngoId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log(response);
       if (response.status === 200) setPendingNgo(response.data);
     } catch (error) {
       setError("Failed to fetch NGO details.");
@@ -33,24 +34,35 @@ function PendingNgosDetail() {
 
   const approvePendingNgo = async () => {
     try {
+      // Show confirmation dialog
+      const isConfirmed = window.confirm(`Are you sure you want to approve ${pendingNgo?.name}?`);
+      if (!isConfirmed) return;
+
       const token = localStorage.getItem("Admintoken");
       const response = await axios.put(
         `${import.meta.env.VITE_BASE_URL}/api/admin/approve-ngo/${ngoId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
       if (response.status === 200) {
         fetchPendingNgo();
         setStatusMessage(`${pendingNgo?.name} was approved successfully ✅`);
         setIsModalOpen(true);
+        alert("NGO has been approved successfully!");
       }
     } catch (error) {
       console.error(error);
+      alert(`Error approving NGO: ${error.response?.data?.message || 'Something went wrong. Please try again.'}`);
     }
   };
 
   const rejectPendingNgo = async () => {
     try {
+      // Show confirmation dialog
+      const isConfirmed = window.confirm(`Are you sure you want to reject ${pendingNgo?.name}?`);
+      if (!isConfirmed) return;
+
       const token = localStorage.getItem("Admintoken");
       const response = await axios.put(
         `${import.meta.env.VITE_BASE_URL}/api/admin/reject-ngo/${ngoId}`,
@@ -61,9 +73,11 @@ function PendingNgosDetail() {
         fetchPendingNgo();
         setStatusMessage(`${pendingNgo?.name} was rejected ❌`);
         setIsModalOpen(true);
+        alert("NGO has been rejected successfully!");
       }
     } catch (error) {
       console.error(error);
+      alert(`Error rejecting NGO: ${error.response?.data?.message || 'Something went wrong. Please try again.'}`);
     }
   };
 
@@ -90,27 +104,40 @@ function PendingNgosDetail() {
               🏷 Approved: {pendingNgo.isApproved ? "Yes" : "No"}
             </p>
 
-            {/* Actions */}
-            <div className="mt-6 flex gap-4">
-              <button
-                onClick={() => {
-                  approvePendingNgo();
-                  alert("NGO has been approved successfully!");
-                }}
-                className="bg-[#F4C752] hover:bg-[#e6b94a] text-black px-5 py-2 rounded-lg font-semibold transition"
-              >
-                Approve
-              </button>
-              <button
-                onClick={() => {
-                  rejectPendingNgo();
-                  alert("NGO has been rejected successfully!");
-                }}
-                className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg font-semibold transition"
-              >
-                Reject
-              </button>
-            </div>
+                         {/* Actions */}
+             <div className="mt-6 flex gap-4">
+               {pendingNgo.isApproved ? (
+                 <button
+                   disabled
+                   className="bg-green-600 text-white px-5 py-2 rounded-lg font-semibold cursor-not-allowed"
+                 >
+                   ✅ Approved
+                 </button>
+               ) : (
+                 <button
+                   onClick={approvePendingNgo}
+                   className="bg-[#F4C752] hover:bg-[#e6b94a] text-black px-5 py-2 rounded-lg font-semibold transition"
+                 >
+                   Approve
+                 </button>
+               )}
+               
+               {pendingNgo.isRejected ? (
+                 <button
+                   disabled
+                   className="bg-red-600 text-white px-5 py-2 rounded-lg font-semibold cursor-not-allowed"
+                 >
+                   ❌ Rejected
+                 </button>
+               ) : (
+                 <button
+                   onClick={rejectPendingNgo}
+                   className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg font-semibold transition"
+                 >
+                   Reject
+                 </button>
+               )}
+             </div>
           </div>
 
           {/* Document Preview */}
@@ -118,8 +145,10 @@ function PendingNgosDetail() {
             <h3 className="text-lg font-semibold mb-3">Document Proof</h3>
             {pendingNgo.documentProof ? (
               <img
-                src={`${import.meta.env.VITE_BASE_URL}/${pendingNgo.documentProof}`}
+                src={`${pendingNgo.documentProof}`}
                 alt="NGO Document"
+                onClick={() => window.open(pendingNgo.documentProof, '_blank')}
+                title="Click to open image in new tab"
                 className="w-full max-w-md rounded-lg shadow-md border border-gray-700"
               />
             ) : (

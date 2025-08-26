@@ -11,9 +11,9 @@ const donationSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   pickupDate: { type: Date, required: true },
   ngo: { type: mongoose.Schema.Types.ObjectId, ref: "NGO" }, // Reference to the NGO
-  foodImage: { type: String, required: true },
+  foodImage: { type: String, required: false },
   additionalNotes: String,
-  requestId: { type: String, unique: true }, // For tracking
+  requestId: { type: String, unique: true }, 
   status: {
     type: String,
     enum: ["Pending", "Accepted", "In Progress", "Completed","Rejected"], // Define allowed statuses

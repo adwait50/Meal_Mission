@@ -75,6 +75,7 @@ const PickupForm = () => {
           },
         }
       );
+      console.log(response);
 
       if (response.status === 201) {
         setRequestId(response.data.donation.requestId);
@@ -93,6 +94,7 @@ const PickupForm = () => {
         });
       }
     } catch (err) {
+      console.log(err);
       setError(
         err.response?.data?.message || "Failed to submit pickup request"
       );

@@ -8,9 +8,46 @@ const authNgoMiddleware = require("../middlewares/authNgoMiddleware.js");
 const upload = require("../utils/multerConfig.js");
 const SupportRequestNgo = require("../models/SupportRequestNgo.js");
 const Donation = require("../models/Donation.js");
+const supabase = require("../config/supabaseClient.js"); // Import Supabase client
 
 const generateOTP = () =>
   randomstring.generate({ length: 4, charset: "numeric" });
+
+// Function to upload NGO document to Supabase
+const uploadNgoDocumentToSupabase = async (file) => {
+  try {
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const fileExtension = file.originalname.split('.').pop();
+    const fileName = `ngo-docs/${timestamp}-${randomString}.${fileExtension}`;
+
+    const BUCKET = process.env.SUPABASE_BUCKET;
+
+    // Upload to Supabase Storage
+    const { error } = await supabase.storage
+      .from(BUCKET)
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        cacheControl: "3600"
+      });
+
+    if (error) {
+      throw new Error(`Supabase upload error: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(BUCKET)
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('NGO document upload error:', error);
+    throw new Error('Failed to upload NGO document');
+  }
+};
+
 const router = express.Router();
 
 //register NGO
@@ -51,8 +88,13 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
-    // ✅ FIX: Ensure `documentProof` is properly stored
-    const documentProofPath = req.file.path; // Modify this if using a cloud service (e.g., AWS S3)
+    // Upload NGO document to Supabase
+    let documentProofUrl = null;
+    try {
+      documentProofUrl = await uploadNgoDocumentToSupabase(req.file);
+    } catch (uploadError) {
+      return res.status(500).json({ message: "Failed to upload document" });
+    }
 
     const newNGO = new NGOModel({
       name,
@@ -60,7 +102,7 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
       phone,
       password: hashedPassword,
       address,
-      documentProof: documentProofPath,
+      documentProof: documentProofUrl, // Store Supabase URL instead of local path
       otp,
       city: city.toLowerCase(),
       state: state.toLowerCase(),

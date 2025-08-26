@@ -303,7 +303,10 @@ const App = () => {
                       : "Click or drag and drop"}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Supported: PDF, DOC, DOCX, JPG, PNG
+                    Supported: JPG, PNG
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Max size: 5MB
                   </p>
                 </div>
               </div>
