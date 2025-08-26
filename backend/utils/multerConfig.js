@@ -1,15 +1,9 @@
 const multer = require('multer');
 const path = require('path');
+const supabase = require('../config/supabaseClient'); // your supabase client
 
-// Configure storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/ngo-documents/') // Make sure this directory exists
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'NGO-' + Date.now() + path.extname(file.originalname))
-    }
-});
+// Use memory storage for multer (buffer) — we’ll upload this buffer to Supabase
+const storage = multer.memoryStorage();
 
 // File filter
 const fileFilter = (req, file, cb) => {
@@ -21,11 +15,30 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-    storage: storage,
+    storage: storage,  // <-- use memory storage
     fileFilter: fileFilter,
     limits: {
         fileSize: 1024 * 1024 * 5 // 5MB limit
     }
 });
+
+// Helper function to upload file to Supabase
+upload.uploadToSupabase = async (file) => {
+    const fileName = 'NGO-' + Date.now() + path.extname(file.originalname);
+
+    // Upload to Supabase bucket "ngo-documents"
+    const { error } = await supabase.storage
+        .from('ngo-documents')
+        .upload(fileName, file.buffer, { contentType: file.mimetype });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { publicURL } = supabase.storage
+        .from('ngo-documents')
+        .getPublicUrl(fileName);
+
+    return publicURL;
+};
 
 module.exports = upload;
