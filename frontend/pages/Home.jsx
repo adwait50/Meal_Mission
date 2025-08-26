@@ -66,7 +66,7 @@ function Home() {
       </div>
 
       {/* What We Do */}
-      <div className="w-[90%] md:w-[70%] mx-auto mt-16">
+      <div className="w-[90%] md:w-[70%] sm:mb-53 mx-auto mt-16">
         <h1 className="text-center text-2xl sm:text-3xl md:text-[3.7rem] font-bold mb-10">
           What We Do
         </h1>
@@ -74,7 +74,7 @@ function Home() {
       </div>
 
       {/* Call to Action */}
-      <div className="w-[90%] md:w-[70%] mx-auto mt-16 text-center">
+      <div className="w-[90%] md:w-[70%] mx-auto sm:mt-22 text-center">
         <h1 className="text-2xl sm:text-3xl md:text-[3.7rem] font-bold">
           Ready to make a difference?
         </h1>

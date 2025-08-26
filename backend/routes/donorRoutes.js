@@ -318,8 +318,9 @@ router.get("/active-requests", authDonorMiddleware, async (req, res) => {
         quantity: 1,
         createdAt: 1,
         donorName: 1,
+        foodImage:1,
       }
-    );
+    ).sort({ createdAt: -1 }); // Sort by newest first
 
     if (!activeRequests.length) {
       return res.status(404).json({ message: "No active requests found." });

@@ -36,7 +36,7 @@ const BrowsePickup = () => {
       <NgoSideBar />
 
       {/* Main Content */}
-      <div className="flex-1 sm:ml-[300px] p-4">
+      <div className="flex-1  sm:mt-[2rem] px-12  ">
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}

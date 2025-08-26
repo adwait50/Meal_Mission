@@ -182,7 +182,7 @@ function DonationDetail() {
     {/* Left Column */}
     <div className="space-y-4">
       {/* Food Information */}
-      <div className="bg-[#364153] p-4 sm:p-6 rounded-lg border border-gray-600">
+      <div className="bg-[#1E2939] p-4 sm:p-6 rounded-lg border border-gray-600">
         <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 flex items-center gap-2">
           🍽️ Food Information
         </h2>
@@ -205,7 +205,7 @@ function DonationDetail() {
       </div>
 
       {/* Pickup Information */}
-      <div className="bg-[#364153] p-4 sm:p-6 rounded-lg border border-gray-600">
+      <div className="bg-[#1E2939] p-4 sm:p-6 rounded-lg border border-gray-600">
         <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 flex items-center gap-2">
           📍 Pickup Information
         </h2>
@@ -219,7 +219,7 @@ function DonationDetail() {
 
       {/* Donor Information */}
       {donation.donor && (
-        <div className="bg-[#364153] p-4 sm:p-6 rounded-lg border border-gray-600">
+        <div className="bg-[#1E2939] p-4 sm:p-6 rounded-lg border border-gray-600">
           <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 flex items-center gap-2">
             👤 Donor Information
           </h2>
@@ -236,8 +236,29 @@ function DonationDetail() {
 
     {/* Right Column */}
     <div className="space-y-4">
+      {/* Image Proof */}
+
+      {donation.foodImage && (
+           <div className="bg-gray-800 p-3 sm:p-5 rounded-lg border border-gray-600 space-y-3 sm:space-y-4">
+             <h2 className="text-lg sm:text-xl font-semibold mb-2">
+               <i className="ri-file-image-line"></i> Image Provided
+             </h2>
+             <div className="text-center p-2 bg-gray-700 rounded-lg">
+               <img 
+                 className="w-full h-auto max-h-[300px] sm:max-h-[400px] object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+                 src={donation.foodImage} 
+                 alt="Food image" 
+                 onClick={() => window.open(donation.foodImage, '_blank')}
+                 title="Click to open image in new tab"
+               />
+             </div>
+             <p className="text-xs sm:text-sm text-zinc-400 text-center">
+               Tap image to view full size
+             </p>
+           </div>
+           )}
       {/* Status Management */}
-      <div className="bg-[#364153] p-4 sm:p-6 rounded-lg border border-gray-600">
+      <div className="bg-[#1E2939] p-4 sm:p-6 rounded-lg border border-gray-600">
         <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 flex items-center gap-2">
           ⚙️ Status Management
         </h2>
@@ -287,7 +308,7 @@ function DonationDetail() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-[#364153] p-4 sm:p-6 rounded-lg border border-gray-600 space-y-2 sm:space-y-3">
+      <div className="bg-[#1E2939] p-4 sm:p-6 rounded-lg border border-gray-600 space-y-2 sm:space-y-3">
         <h2 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 flex items-center gap-2">🚀 Quick Actions</h2>
         <button className="w-full bg-[#2d3748] text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-[#4a5568] transition-colors border border-gray-600 text-sm sm:text-base">📞 Contact Donor</button>
         <button className="w-full bg-[#2d3748] text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-[#4a5568] transition-colors border border-gray-600 text-sm sm:text-base">🗺️ Get Directions</button>

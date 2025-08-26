@@ -2,6 +2,26 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 
+// Helper function to format date
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString; // Return original if invalid date
+  
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  
+  let hours = date.getHours();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // Convert 0 to 12
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+};
+
 const App = () => {
   const [donations, setDonations] = useState([]);
   const [filteredDonations, setFilteredDonations] = useState([]);
@@ -151,7 +171,7 @@ const App = () => {
                       {donation.quantity}
                     </td>
                     <td className="px-4 py-3 text-xs sm:text-sm text-white">
-                      {donation.createdAt}
+                      {formatDate(donation.createdAt)}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -206,7 +226,7 @@ const App = () => {
                 </div>
                 <div className="text-sm text-white flex justify-between">
                   <span>Quantity: {donation.quantity}</span>
-                  <span>{donation.createdAt}</span>
+                  <span>{formatDate(donation.createdAt)}</span>
                 </div>
                 <Link
                   to={`/donor-dashboard/status/${donation._id}`}

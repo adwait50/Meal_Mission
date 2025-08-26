@@ -11,11 +11,13 @@ const App = () => {
   const { ngoData, loading } = useNgo();
 
   if (loading) return <div>Loading...</div>;
+  
 
   return (
     <div className="min-h-screen bg-[#141C25] flex flex-col sm:flex-row text-white">
       {/* Sidebar */}
       <NgoSideBar />
+
 
       {/* Main content */}
       <div className="flex-1 p-4 sm:p-8 mt-4 sm:mt-0  sm:ml-[300px]">

@@ -29,17 +29,28 @@ function PendingNgosContent() {
   }, []);
 
   return (
-    <div className="flex-1 ml-[300px] p-9 bg-[#141C25] min-h-screen">
-      <h1 className="text-3xl text-zinc-200 font-semibold">
+    <div className="flex-1  p-6 md:p-9 bg-[#141C25] min-h-screen text-white">
+      <h1 className="text-2xl md:text-3xl text-zinc-200 font-semibold">
         Pending NGO Approvals
       </h1>
 
       {/* NGO List */}
-      <div className="mt-10 grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {pendingNgos.length === 0 ? (
-          <p className="text-lg text-red-500 col-span-full">
-            No NGOs awaiting approval.
-          </p>
+          <div className="col-span-full flex flex-col items-center justify-center py-20 px-4 bg-gray-800/50 rounded-xl shadow-md">
+            
+            <h2 className="text-xl font-semibold">All NGOs are reviewed ✅</h2>
+            <p className="text-gray-400 mt-2 text-center max-w-md">
+              Great job! There are currently no NGOs awaiting approval.  
+              Check back later for new requests.
+            </p>
+            <Link
+              to="/admin-dashboard"
+              className="mt-6 bg-[#F4C752] hover:bg-[#e6b94a] text-black font-semibold px-5 py-2 rounded-lg transition"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
         ) : (
           pendingNgos.map((ngo) => (
             <div
@@ -48,12 +59,10 @@ function PendingNgosContent() {
             >
               {/* NGO Info */}
               <div>
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-lg md:text-xl font-semibold text-white">
                   {ngo.name}
                 </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  {ngo.email}
-                </p>
+                <p className="text-sm text-gray-400 mt-1">{ngo.email}</p>
                 <p className="text-sm text-gray-400 mt-1">
                   {ngo.address}, {ngo.city}, {ngo.state}
                 </p>
