@@ -22,6 +22,7 @@ const App = () => {
           setDonations(res.data || []);
           setFilteredDonations(res.data || []);
         }
+        console.log(res.data);
       } catch (e) {
         console.error(e);
       } finally {

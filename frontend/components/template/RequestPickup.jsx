@@ -77,7 +77,7 @@ const PickupForm = () => {
       );
 
       if (response.status === 201) {
-        setRequestId(response.data.requestId);
+        setRequestId(response.data.donation.requestId);
         setIsModalOpen(true);
         setFormData({
           donorName: "",
