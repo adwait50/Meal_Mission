@@ -247,4 +247,55 @@ router.patch(
   }
 );
 
+// Route to get all NGOs (admin dashboard)
+router.get("/dashboard", authAdminMiddleware, async (req, res) => {
+  try {
+    const ngos = await NGOModel.find().select("-password"); // exclude passwords
+    res.status(200).json(ngos);
+  } catch (error) {
+    console.error("Error fetching NGOs:", error);
+    res.status(500).json({ message: "Error fetching NGO list" });
+  }
+});
+
+// Get details of a specific NGO by _id
+router.get("/ngo/:id", authAdminMiddleware, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const ngo = await NGOModel.findById(id).select("-password"); // exclude password
+    if (!ngo) {
+      return res.status(404).json({ message: "NGO not found" });
+    }
+    res.status(200).json(ngo);
+  } catch (error) {
+    console.error("Error fetching NGO details:", error);
+    res.status(500).json({ message: "Error fetching NGO details" });
+  }
+});
+
+// Delete a specific NGO by _id
+router.delete("/ngo/:id", authAdminMiddleware, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedNGO = await NGOModel.findByIdAndDelete(id);
+
+    if (!deletedNGO) {
+      return res.status(404).json({ message: "NGO not found" });
+    }
+
+    res.status(200).json({
+      message: "NGO deleted successfully",
+      deletedNGO, // optional: returns deleted NGO info
+    });
+  } catch (error) {
+    console.error("Error deleting NGO:", error);
+    res.status(500).json({ message: "Error deleting NGO" });
+  }
+});
+
+module.exports = router;
+
+
 module.exports = router;
