@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import axios from "axios";
 
@@ -8,7 +8,7 @@ function RequestDetail() {
   const [donation, setDonation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [updating, setUpdating] = useState(false);
+
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
@@ -30,6 +30,8 @@ function RequestDetail() {
         `${import.meta.env.VITE_BASE_URL}/api/donors/donation/${requestId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      console.log(response)
 
       if (response.status === 200 && response.data) {
         setDonation(response.data);
@@ -55,52 +57,49 @@ function RequestDetail() {
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
 
-  const getStatusBadge = (status) => {
-    const colors = {
-      Pending: "bg-yellow-500",
-      Accepted: "bg-blue-500",
-      "In Progress": "bg-orange-500",
-      Completed: "bg-green-500",
-      Rejected: "bg-red-500",
-      Cancelled: "bg-gray-500",
-    };
-    return (
-      <span
-        className={`px-3 py-1 rounded-full text-white text-sm font-medium ${
-          colors[status] || "bg-gray-500"
-        }`}
-      >
-        {status}
-      </span>
-    );
-  };
+  
+  
 
-  const updateDonationStatus = async (newStatus) => {
+  const cancelRequest = () => setShowPopup(true);
+
+  const cancelPending = async (requestId) => {
     try {
-      setUpdating(true);
       const token = localStorage.getItem("token");
-      let endpoint;
+      if (!token) {
+        setError("No authentication token found");
+        return;
+      }
 
-      if (newStatus === "Accepted") endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/accept`;
-      else if (newStatus === "Rejected") endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/reject`;
-      else if (newStatus === "In Progress") endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/in-progress`;
-      else if (newStatus === "Completed") endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/completed`;
-      else endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/status`;
-
-      const response = await axios.put(endpoint, {}, { headers: { Authorization: `Bearer ${token}` } });
+      // Show confirmation dialog
+      const isConfirmed = window.confirm("Are you sure you want to cancel this donation request? This action cannot be undone.");
+      if (!isConfirmed) return;
+  
+      const response = await axios.put(
+        `${import.meta.env.VITE_BASE_URL}/api/donors/donation/${requestId}/cancel`,
+        {}, // empty body
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
       if (response.status === 200) {
-        setDonation((prev) => ({ ...prev, status: newStatus }));
-        alert(`Donation status updated to ${newStatus}`);
+        alert("Request cancelled successfully");
+        setDonation((prev) => ({ ...prev, status: "Cancelled" }));
+        // Refresh the donation details to show updated status
+        fetchDonationDetails();
       }
     } catch (error) {
       console.error(error);
-      alert("Failed to update donation status. Please try again.");
-    } finally {
-      setUpdating(false);
+      if (error.response?.status === 404) {
+        alert("Donation not found or you don't have access to it.");
+      } else if (error.response?.status === 400) {
+        alert(error.response.data?.message || "Cannot cancel this donation.");
+      } else if (error.response?.status === 403) {
+        alert("You don't have permission to cancel this donation.");
+      } else {
+        alert("Failed to cancel donation. Please try again.");
+      }
     }
   };
-
-  const cancelRequest = () => setShowPopup(true);
+  
 
   if (loading) {
     return (
@@ -244,9 +243,19 @@ function RequestDetail() {
             </div>
 
             {donation.status === "Pending" && (
+                <div>
+
               <div className="text-center p-4 bg-gray-700 rounded-lg text-zinc-300">
                 Please wait for any NGO to accept the request.
               </div>
+                <button
+                  onClick={()=>cancelPending(donation._id)}
+                  className="w-full p-4 mt-3 rounded-lg bg-gray-700 text-zinc-300 hover:bg-gray-600 hover:text-red-500 transition transform hover:scale-105"
+                >
+                  Cancel Request
+                </button>
+                </div>
+              
             )}
 
             {["In Progress", "Accepted"].includes(donation.status) && (

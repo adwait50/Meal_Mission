@@ -346,7 +346,7 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
     // Completed + Rejected only
     const donationHistory = await Donation.find({
       donor: donorId,
-      status: { $in: ["Completed", "Rejected"] },
+      status: { $in: ["Completed", "Rejected","Cancelled"] },
     })
       .select("foodItem createdAt pickupDate address status quantity requestId")
       .sort({ createdAt: -1 });
@@ -400,6 +400,88 @@ router.get("/donation/:id", authDonorMiddleware, async (req, res) => {
   } catch (error) {
       console.error("Error fetching donation details:", error);
       res.status(500).json({ message: "Error fetching donation details" });
+  }
+});
+
+//delete pending request
+
+router.put("/donation/:id/cancel", authDonorMiddleware, async (req, res) => {
+  const { id } = req.params; // Get the donation ID from the URL
+  const donorId = req.user._id; // Get the donor's ID from the authenticated user
+  
+  console.log("=== CANCEL DONATION ROUTE CALLED ===");
+  console.log("Updating donation with ID:", id); // Debug log
+  console.log("Donor ID:", donorId); // Debug log
+  console.log("Request method:", req.method); // Debug log
+  console.log("Request URL:", req.originalUrl); // Debug log
+
+  try {
+      // First, find the donation to check if it exists and belongs to the donor
+      const existingDonation = await Donation.findOne({ 
+          _id: id,
+          donor: donorId
+      });
+
+      if (!existingDonation) {
+          console.log("Donation not found or access denied");
+          return res.status(404).json({ message: "Donation not found or you don't have access to it" });
+      }
+
+      // Check if donation can be cancelled
+      if (existingDonation.status === "Completed" || existingDonation.status === "Cancelled") {
+          return res.status(400).json({ 
+              message: `Cannot cancel donation with status: ${existingDonation.status}` 
+          });
+      }
+
+      console.log("Current donation status:", existingDonation.status);
+      console.log("Current donation donor:", existingDonation.donor);
+
+      // Update the donation status
+      const donation = await Donation.findByIdAndUpdate(
+          id,
+          { 
+              status: "Cancelled" // Update the status
+          },
+          { 
+              new: true, // Return the updated document
+              runValidators: true // Re-enable validation now that schema is fixed
+          }
+      );
+
+      if (!donation) {
+          console.log("Failed to update donation");
+          return res.status(500).json({ message: "Failed to update donation status" });
+      }
+
+      console.log("Donation cancelled successfully:", donation._id);
+      console.log("New status:", donation.status);
+      
+      // Return the updated donation details
+      res.status(200).json({ 
+          message: "Donation status updated successfully",
+          donation: donation 
+      });
+  } catch (error) {
+      console.error("Error updating donation status:", error);
+      console.error("Error details:", error.message);
+      console.error("Error stack:", error.stack);
+      
+      // Provide more specific error messages
+      if (error.name === 'ValidationError') {
+          return res.status(400).json({ 
+              message: "Validation error: " + error.message,
+              details: error.errors 
+          });
+      } else if (error.name === 'CastError') {
+          return res.status(400).json({ 
+              message: "Invalid donation ID format" 
+          });
+      } else {
+          return res.status(500).json({ 
+              message: "Error updating donation status: " + error.message 
+          });
+      }
   }
 });
 

@@ -26,6 +26,7 @@ const App = () => {
   const [showOtpScreen, setShowOtpScreen] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [states] = useState(State.getStatesOfCountry("IN"));
@@ -77,29 +78,39 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsRegistering(true);
+    setError("");
+  
     try {
       const formDataToSend = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (value) formDataToSend.append(key, value);
       });
-
+  
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/register`,
         formDataToSend,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-
-      if (response.status === 200) {
+  
+      if (response.status >= 200 && response.status < 300) {
+        // alert("NGO is successfully registered! Please check your email for OTP.");
         setShowOtpScreen(true);
         startResendTimer();
       }
     } catch (error) {
       setError(error?.response?.data?.message || "Registration failed");
+    } finally {
+      setIsRegistering(false);
     }
   };
+  
 
   const HandleOptSubmit = async (e) => {
     e.preventDefault();
+    setIsVerifying(true);
+    setOtpError("");
+    
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/verify-otp`,
@@ -107,11 +118,15 @@ const App = () => {
       );
 
       if (response.status === 200) {
-        navigate("/ngo-dashboard");
+        alert("OTP verified successfully! Wait for the approval from Meal Mission team");
         setIsVerified(true);
+        navigate("/ngo-dashboard");
       }
+      
     } catch (error) {
       setOtpError(error?.response?.data?.message || "Invalid OTP");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -333,9 +348,17 @@ const App = () => {
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition font-medium"
+                disabled={isRegistering}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Register NGO
+                {isRegistering ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Registering...
+                  </>
+                ) : (
+                  "Register NGO"
+                )}
               </button>
               <div className="flex justify-center text-sm text-gray-400">
                 <span>Already have an account?</span>
@@ -371,9 +394,16 @@ const App = () => {
               <button
                 type="submit"
                 disabled={isVerifying}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isVerifying ? "Verifying..." : "Verify OTP"}
+                {isVerifying ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Verifying...
+                  </>
+                ) : (
+                  "Verify OTP"
+                )}
               </button>
             </form>
             <div className="text-center mt-4">

@@ -23,22 +23,25 @@ const upload = multer({
 });
 
 // Helper function to upload file to Supabase
-upload.uploadToSupabase = async (file) => {
-    const fileName = 'NGO-' + Date.now() + path.extname(file.originalname);
+// Helper function to upload NGO proof file to Supabase
+upload.uploadNgoProofToSupabase = async (file) => {
+    // put files inside "ngo-docs" folder
+    const fileName = `ngo-docs/NGO-${Date.now()}${path.extname(file.originalname)}`;
 
-    // Upload to Supabase bucket "ngo-documents"
+    // Upload to the SAME bucket where donor proofs are stored
     const { error } = await supabase.storage
-        .from('ngo-documents')
+        .from('meal-mission-bucket')   // <-- replace with your actual bucket name
         .upload(fileName, file.buffer, { contentType: file.mimetype });
 
     if (error) throw error;
 
     // Get public URL
-    const { publicURL } = supabase.storage
-        .from('ngo-documents')
+    const { data } = supabase.storage
+        .from('meal-mission-bucket')
         .getPublicUrl(fileName);
 
-    return publicURL;
+    return data.publicUrl; // corrected to use "data.publicUrl"
 };
+
 
 module.exports = upload;

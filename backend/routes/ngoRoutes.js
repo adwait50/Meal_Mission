@@ -176,7 +176,7 @@ router.post("/login", async (req, res) => {
     if (!NGO.isApproved)
       return res
         .status(400)
-        .json({ message: "Account pending admin approval" });
+        .json({ message: "Your account is under review. " });
 
     console.log("Stored hashed password:", NGO.password);
     console.log("Entered password:", password.trim());
