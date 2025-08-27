@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Modal from "../components/Modal";
-import NgoApproved from "../components/template/NgoApproved";
 
 function PendingNgosDetail() {
   const { ngoId } = useParams();
@@ -11,6 +10,7 @@ function PendingNgosDetail() {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
+  const navigate=useNavigate()
 
   const fetchPendingNgo = async () => {
     try {
@@ -50,6 +50,7 @@ function PendingNgosDetail() {
         setStatusMessage(`${pendingNgo?.name} was approved successfully ✅`);
         setIsModalOpen(true);
         alert("NGO has been approved successfully!");
+        navigate("/pending-ngos");
       }
     } catch (error) {
       console.error(error);

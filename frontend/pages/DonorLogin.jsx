@@ -151,7 +151,7 @@ const App = () => {
               Don&apos;t have an account?{" "}
               <Link
                 to={"/donor-register"}
-                className="font-medium text-indigo-500 hover:text-indigo-400"
+                className="font-medium text-blue-500 hover:text-blue-400"
               >
                 Sign up
               </Link>

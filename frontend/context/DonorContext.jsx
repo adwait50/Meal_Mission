@@ -35,13 +35,14 @@ export const DonorProvider = ({ children }) => {
     }
 
     try {
-      // console.log("Fetching donor data...");
+      console.log("Fetching donor data...");
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/api/donors/dashboard`, // Ensure this is the correct API
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      console.log(response.data);
 
       setDonorData(response.data);
       setError(null);

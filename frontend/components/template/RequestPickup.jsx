@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import  { useState } from "react";
 import { useNavigate } from "react-router";
 import Modal from "../Modal";
 import PickupConfirm from "./PickupConfirm";
@@ -42,6 +42,7 @@ const PickupForm = () => {
     const city = e.target.value;
     setFormData((prev) => ({ ...prev, city }));
   };
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -277,16 +278,20 @@ const PickupForm = () => {
 
             {/* Food Image */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Food Image
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="w-full bg-gray-700 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-yellow-500 file:text-gray-900 hover:file:bg-yellow-600"
-              />
-            </div>
+  <label className="block text-sm text-gray-300 mb-2">
+    Food Image
+  </label>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={handleImageChange}
+    className="w-full bg-gray-700 text-white file:mr-4 file:py-2 file:px-4 
+               file:rounded-lg file:border-0 file:text-sm file:font-medium 
+               file:bg-yellow-500 file:text-gray-900 hover:file:bg-yellow-600"
+  />
+  <p className="text-xs text-gray-400 mt-1">Max size: 5MB</p>
+</div>
+
 
             {/* Additional Notes */}
             <div>

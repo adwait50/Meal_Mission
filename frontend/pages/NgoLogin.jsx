@@ -105,7 +105,7 @@ const App = () => {
             </div>
 
             {/* Remember + Forgot */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <div className="flex flex-row justify-between sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="checkbox"

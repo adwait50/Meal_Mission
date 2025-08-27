@@ -10,6 +10,7 @@ function DonorProfile() {
   useEffect(() => {
     fetchDonorData();
   }, [fetchDonorData]);
+  console.log(donorData);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 

@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 
 function ConfirmLogout({ type, onClose }) {
-  console.log(type);
 
   // Decide logout route based on type
   const getLogoutRoute = () => {

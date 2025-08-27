@@ -94,6 +94,7 @@ const App = () => {
           setConfirmPassword("");
           setShowNewPassword(false);
           setOtp("");
+          navigate("/donor-login");
         }, 2000);
       }
     } catch (error) {

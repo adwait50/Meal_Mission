@@ -101,6 +101,7 @@ const App = () => {
           setConfirmPassword("");
           setShowNewPassword(false);
           setOtp(["", "", "", "", "", ""]);
+          navigate("/ngo-login");
         }, 2000);
       }
     } catch (error) {
