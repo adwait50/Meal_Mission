@@ -26,7 +26,6 @@ const DonationHistory = () => {
           }
         );
         if (response.status === 200) {
-          console.log(response.data);
           const completedDonations = response.data.donationHistory.filter(
             (donation) => donation.status === "Completed"
           );

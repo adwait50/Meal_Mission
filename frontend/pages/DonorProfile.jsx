@@ -17,7 +17,6 @@ function DonorProfile() {
     fetchDonorData();
     fetchDonorStats();
   }, [fetchDonorData, fetchDonorStats]);
-  console.log(donorData,donorStats)
 
   return (
     <div className="min-h-screen bg-[#141C25] flex text-white">

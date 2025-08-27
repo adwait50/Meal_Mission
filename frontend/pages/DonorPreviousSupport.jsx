@@ -31,7 +31,6 @@ function DonorPreviousSupports() {
         `${import.meta.env.VITE_BASE_URL}/api/donors/support-requests`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log(response)
       if (response.status === 200) setSupports(response.data);
     } catch (error) {
       console.log("Error fetching support requests:", error);

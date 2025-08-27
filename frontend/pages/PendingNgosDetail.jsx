@@ -19,9 +19,9 @@ function PendingNgosDetail() {
         `${import.meta.env.VITE_BASE_URL}/api/admin/ngo-info/${ngoId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log(response);
       if (response.status === 200) setPendingNgo(response.data);
     } catch (error) {
+      console.error(error)
       setError("Failed to fetch NGO details.");
     } finally {
       setLoading(false);

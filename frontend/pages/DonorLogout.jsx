@@ -10,7 +10,6 @@ function DonorLogout() {
       try {
         await axios.get(`${import.meta.env.VITE_BASE_URL}/api/donors/logout`);
 
-        // Clear the token from localStorage
         localStorage.removeItem("token");
 
         console.log("User logged out successfully.");

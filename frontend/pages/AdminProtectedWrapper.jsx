@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 
 function AdminProtectedWrapper({ children }) {
   const token = localStorage.getItem("Admintoken");
-  // console.log(token);
   const navigate = useNavigate();
 
   useEffect(() => {

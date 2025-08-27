@@ -44,7 +44,6 @@ const App = () => {
         { email }
       );
       if (response.status === 200) {
-        console.log(response);
         setShowOTP(true);
         startTimer();
       }
@@ -63,9 +62,7 @@ const App = () => {
         `${import.meta.env.VITE_BASE_URL}/api/ngo/verify-reset-otp`,
         { email, otp }
       );
-      console.log(response);
       if (response.status === 200) {
-        console.log(response);
         setShowOTP(false);
         setShowNewPassword(true);
       }
@@ -91,7 +88,6 @@ const App = () => {
         `${import.meta.env.VITE_BASE_URL}/api/ngo/reset-password`,
         { email, otp, newPassword }
       );
-      console.log(response);
       if (response.status === 200) {
         setShowSuccess(true);
         setTimeout(() => {

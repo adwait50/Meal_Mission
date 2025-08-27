@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 
 function NgoProtectedWrapper({ children }) {
   const token = localStorage.getItem("Ngotoken");
-  // console.log(token);
   const navigate = useNavigate();
 
   useEffect(() => {

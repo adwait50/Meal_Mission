@@ -42,35 +42,38 @@ function NavBar() {
 
       {/* Mobile hamburger */}
       <button
-        onClick={() => setOpen(!open)}
-        className="md:hidden text-3xl focus:outline-none"
-      >
-        ☰
-      </button>
+  onClick={() => setOpen(!open)}
+  className="md:hidden text-3xl focus:outline-none"
+>
+  ☰
+</button>
 
-      {/* Mobile menu */}
-      {open && (
-        <div className="absolute top-16 left-0 w-full bg-[#141C25] flex flex-col items-center gap-6 py-6 md:hidden z-50">
-          <Link to={"/"} className="text-lg sm:hidden ">
-            Home
-            </Link>
-          {navComp.map((e, i) => (
-            <h4 key={i} className="text-lg">
-              {e}
-            </h4>
-          ))}
-          <Link to={"/donor-dashboard"}>
-            <button className="bg-[#F4C752] text-[#141C25] px-4 py-2 rounded-xl w-32">
-              Donor
-            </button>
-          </Link>
-          <Link to={"/ngo-dashboard"}>
-            <button className="bg-[#1C2B36] px-4 py-2 rounded-xl w-32">
-              NGO
-            </button>
-          </Link>
-        </div>
-      )}
+{/* Mobile menu */}
+<div
+  className={`absolute top-16 left-0 w-full bg-[#1A2430] rounded-b-2xl shadow-lg flex flex-col items-center gap-6 py-6 md:hidden z-50 transform transition-all duration-300 ease-in-out ${
+    open ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-5 pointer-events-none"
+  }`}
+>
+  <Link to={"/"} className="text-lg sm:hidden">
+    Home
+  </Link>
+  {navComp.map((e, i) => (
+    <h4 key={i} className="text-lg">
+      {e}
+    </h4>
+  ))}
+  <Link to={"/donor-dashboard"}>
+    <button className="bg-[#F4C752] text-[#141C25] px-4 py-2 rounded-xl w-32 shadow-md hover:brightness-110 transition">
+      Donor
+    </button>
+  </Link>
+  <Link to={"/ngo-dashboard"}>
+    <button className="bg-[#243447] text-white px-4 py-2 rounded-xl w-32 shadow-md hover:bg-[#2e3f52] transition">
+      NGO
+    </button>
+  </Link>
+</div>
+
     </nav>
   );
 }

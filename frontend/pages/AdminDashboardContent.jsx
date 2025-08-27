@@ -17,7 +17,6 @@ function AdminDashboardContent() {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(response)
       setNgos(response.data);
       setFilteredNgos(response.data);
     } catch (error) {
