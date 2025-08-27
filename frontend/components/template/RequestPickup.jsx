@@ -54,6 +54,15 @@ const PickupForm = () => {
     }
   };
 
+  function formatDate(daysToAdd = 0) {
+    const date = new Date();
+    date.setDate(date.getDate() + daysToAdd);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -228,35 +237,43 @@ const PickupForm = () => {
             </div>
 
             {/* Quantity and Pickup Date */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Quantity (kg)
-                </label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
-                  placeholder="Enter quantity in kg"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Pickup Date
-                </label>
-                <input
-                  type="date"
-                  name="pickupDate"
-                  value={formData.pickupDate}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
-                  required
-                />
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-6">
+            {/* Quantity */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Quantity (kg)
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleInputChange}
+                className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                placeholder="Enter quantity in kg"
+                required
+              />
             </div>
+
+            {/* Pickup Date */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Pickup Date
+              </label>
+              <input
+                type="date"
+                name="pickupDate"
+                value={formData.pickupDate}
+                onChange={handleInputChange}
+                className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
+                required
+                min={formatDate(0)}   // today
+                max={formatDate(7)}   // next 7 days
+              />
+            </div>
+
+            
+          </div>
+
 
             {/* Food Image */}
             <div>
@@ -282,7 +299,7 @@ const PickupForm = () => {
                 onChange={handleInputChange}
                 rows={3}
                 className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
-                placeholder="Any special instructions"
+                placeholder="Add pickup time and any other details. "
               />
             </div>
 
