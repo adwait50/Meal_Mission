@@ -21,8 +21,9 @@ export const DonorProvider = ({ children }) => {
   const [donorData, setDonorData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [donorStats, setDonorStats] = useState(null);
 
-  // Function to fetch donor data
+  // Existing function (unchanged)
   const fetchDonorData = useCallback(async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -37,7 +38,7 @@ export const DonorProvider = ({ children }) => {
     try {
       console.log("Fetching donor data...");
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/api/donors/dashboard`, // Ensure this is the correct API
+        `${import.meta.env.VITE_BASE_URL}/api/donors/dashboard`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -55,17 +56,45 @@ export const DonorProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []); // Dependency array left empty since localStorage updates won't trigger re-fetch
+  }, []);
+
+  // ⭐ New function for stats
+  const fetchDonorStats = useCallback(async () => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("No authentication token available. Please log in.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/api/donors/donation-history`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setDonorStats(response.data); // keep stats separate
+      setError(null);
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to fetch donor stats");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchDonorData();
-  }, [fetchDonorData]);
+    fetchDonorStats();
+  }, [fetchDonorData, fetchDonorStats]);
 
   const value = {
     donorData,
+    donorStats,
     loading,
     error,
     fetchDonorData,
+    fetchDonorStats, // <-- make sure this is included
   };
 
   return (

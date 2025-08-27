@@ -22,6 +22,7 @@ const DonationHistory = () => {
           `${import.meta.env.VITE_BASE_URL}/api/donors/donation-history`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        console.log(response)
         if (response.status === 200) {
           const data = response.data;
           setDonations(data.donationHistory || []);
@@ -120,7 +121,11 @@ const DonationHistory = () => {
                     <td className="px-4 py-2 text-white">{donation.requestId || donation._id}</td>
                     <td className="px-4 py-2 text-white">{donation.address}</td>
                     <td className="px-4 py-2 text-white">{donation.quantity}</td>
-                    <td className="px-4 py-2 text-white">{donation.pickupDate ? new Date(donation.pickupDate).toLocaleDateString() : "N/A"}</td>
+                    <td className="px-4 py-2 text-white">
+                      {donation.pickupDate
+                        ? new Date(donation.pickupDate).toLocaleDateString("en-GB")
+                        : "N/A"}
+                    </td>
                     <td className="px-4 py-2">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full text-white ${getStatusClass(donation.status)}`}>
                         {donation.status}

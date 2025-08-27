@@ -34,6 +34,8 @@ const DonationHistory = () => {
         return "bg-green-600";
       case "Rejected":
         return "bg-red-600";
+      case "Cancelled":
+        return "bg-gray-500";
       case "Accepted":
         return "bg-blue-600";
       case "In Progress":
@@ -43,9 +45,22 @@ const DonationHistory = () => {
     }
   };
 
+  // Date formatting function (only date, no time)
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   // Stats calculations
   const totalDonations = donations.length;
-  const totalQuantity = donations.reduce((sum, donation) => sum + (donation.quantity || 0), 0);
+  const totalQuantity = donations.reduce(
+    (sum, donation) => sum + (donation.quantity || 0),
+    0
+  );
   const timesDonated = donations.length;
 
   if (loading) {
@@ -88,20 +103,103 @@ const DonationHistory = () => {
           </div>
         </div>
 
+        {/* Table for wide screens */}
+        <div className="hidden sm:block bg-gray-800 mt-6 rounded-lg shadow-xl overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr className="border-b border-gray-700">
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Donation ID</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Address</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Quantity</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Date</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {donations.length > 0 ? (
+                donations.map((donation, idx) => (
+                  <tr
+                    key={donation._id || idx}
+                    className={`border-b border-gray-700 hover:bg-gray-700/50 transition-colors ${
+                      idx % 2 === 0 ? "bg-gray-800" : "bg-gray-800/50"
+                    }`}
+                  >
+                    <td className="px-4 py-2 text-white">{donation.requestId || donation._id}</td>
+                    <td className="px-4 py-2 text-white">{donation.address}</td>
+                    <td className="px-4 py-2 text-white">{donation.quantity}</td>
+                    <td className="px-4 py-2 text-white">
+                      {donation.pickupDate
+                        ? new Date(donation.pickupDate).toLocaleDateString("en-GB")
+                        : "N/A"}
+                    </td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full text-white ${getStatusClass(donation.status)}`}>
+                        {donation.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <Link to={`/ngo-dashboard/donation/${donation._id}`}>
+                        <i className="ri-eye-line cursor-pointer text-blue-400 hover:text-blue-300"></i>
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="px-4 py-4 text-center text-gray-400">
+                    No completed or rejected donations yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
         {/* Donation List */}
-        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:hidden md:grid-cols-2 lg:grid-cols-3">
           {donations.length > 0 ? (
             donations.map((donation) => (
-              <div key={donation._id} className="bg-[#1E2939] rounded-xl p-6 shadow-lg flex flex-col justify-between hover:shadow-2xl hover:bg-[#3e4b61] transition">
+              <div
+                key={donation._id}
+                className="bg-[#1E2939] rounded-xl p-6 shadow-lg flex flex-col justify-between hover:shadow-2xl hover:bg-[#3e4b61] transition"
+              >
                 <div className="mb-4">
-                  <h3 className="text-xl font-semibold text-white truncate">{donation.address || "No Address"}</h3>
-                  <p className="text-sm text-gray-400 mt-1">ID: {donation.requestId || donation._id}</p>
+                  <h3 className="text-xl font-semibold text-white truncate">
+                    {donation.address || "No Address"}
+                  </h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    ID: {donation.requestId || donation._id}
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-2 text-gray-300">
-                  <p><span className="font-medium text-gray-200">Food:</span> {donation.foodItems || "N/A"}</p>
-                  <p><span className="font-medium text-gray-200">Quantity:</span> {donation.quantity || "N/A"} kg</p>
-                  <p><span className="font-medium text-gray-200">Status:</span> <span className={`px-2 py-1 rounded-full text-white text-xs ${getStatusClass(donation.status)}`}>{donation.status}</span></p>
+                  <p>
+                    <span className="font-medium text-gray-200">Food:</span>{" "}
+                    {donation.foodItem || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-200">Quantity:</span>{" "}
+                    {donation.quantity || "N/A"} kg
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-200">Pickup Date:</span>{" "}
+                    {formatDate(donation.pickupDate)}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-200">Requested On:</span>{" "}
+                    {formatDate(donation.createdAt)}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-200">Status:</span>{" "}
+                    <span
+                      className={`px-2 py-1 rounded-full text-white text-xs ${getStatusClass(
+                        donation.status
+                      )}`}
+                    >
+                      {donation.status}
+                    </span>
+                  </p>
                 </div>
 
                 <Link

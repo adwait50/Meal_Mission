@@ -19,7 +19,7 @@ const donationSchema = new mongoose.Schema({
     enum: ["Pending", "Accepted", "In Progress", "Completed","Rejected","Cancelled"], // Define allowed statuses
     default: "Pending", // Set default status to "Pending"
   },
-  createdAt: { type: String, default: () => new Date().toISOString() },
+  pickupDate: { type: Date, required: true },
 });
 
 module.exports = mongoose.model("Donation", donationSchema);

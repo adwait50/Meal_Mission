@@ -19,9 +19,11 @@ export const useNgo = () => {
 
 export const NgoProvider = ({ children }) => {
   const [ngoData, setNgoData] = useState(null);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // fetch NGO Dashboard Data
   const fetchNgoData = useCallback(async () => {
     setLoading(true);
 
@@ -33,37 +35,54 @@ export const NgoProvider = ({ children }) => {
       return;
     }
     try {
-      // console.log("Fetching donor data...");
-      // console.log(token);
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/dashboard`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // console.log(response);
       setNgoData(response.data);
       setError(null);
     } catch (error) {
-      console.error(
-        "Error fetching donor data:",
-        error.response?.data || error.message
-      );
-      setError(error.response?.data?.message || "Failed to fetch donor data");
+      console.error("Error fetching ngo data:", error.response?.data || error.message);
+      setError(error.response?.data?.message || "Failed to fetch NGO data");
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // fetch NGO Stats
+  const fetchNgoStats = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("Ngotoken");
+      if (!token) {
+        console.error("No token found for stats");
+        return;
+      }
+      const res = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/api/ngo/donation-history`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setStats(res.data);
+    } catch (err) {
+      console.error("Failed to fetch NGO stats", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchNgoData();
-  }, [fetchNgoData]);
+    fetchNgoStats();
+  }, [fetchNgoData, fetchNgoStats]);
 
   const value = {
     ngoData,
+    stats,
     loading,
     error,
     fetchNgoData,
+    fetchNgoStats,
   };
   return <NgoContext.Provider value={value}>{children}</NgoContext.Provider>;
 };

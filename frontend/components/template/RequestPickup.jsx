@@ -267,8 +267,8 @@ const PickupForm = () => {
                 onChange={handleInputChange}
                 className="w-full bg-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500"
                 required
-                min={formatDate(0)}   // today
-                max={formatDate(7)}   // next 7 days
+                min={formatDate(0)}   
+                max={formatDate(7)}   
               />
             </div>
 
