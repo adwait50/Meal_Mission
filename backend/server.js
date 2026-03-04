@@ -1,4 +1,5 @@
-require("dotenv").config();
+// load environment variables from the utils folder where the .env actually lives
+require("dotenv").config({ path: require('path').join(__dirname, 'utils', '.env') });
 const express = require("express");
 const connectDB = require("./config/db.js");
 const donorRoutes = require("./routes/donorRoutes.js");
