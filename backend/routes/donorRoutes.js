@@ -1,5 +1,5 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Donor = require("../models/donor.js");
 const sendEmail = require("../utils/sendEmail.js");
@@ -66,6 +66,7 @@ router.post("/register", async (req, res) => {
       message: "OTP sent to email. Verify to complete registration.",
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error registering donor" });
   }
 });
