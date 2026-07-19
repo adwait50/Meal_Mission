@@ -191,8 +191,9 @@ router.post("/login", async (req, res) => {
     console.log("Password matched successfully");
 
     const token = jwt.sign(
-      { id: NGO._id.toString(), role: "NGO" }, // Add "role"
-      process.env.JWT_SECRET
+      { id: NGO._id.toString(), role: "NGO" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
     res.status(200).json({ token });
@@ -402,20 +403,22 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
   }
 
   try {
-    // Find the donation by ID and update the status
-    const updatedDonation = await Donation.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true } // Return the updated document
-    );
+    const donation = await Donation.findById(req.params.id);
 
-    if (!updatedDonation) {
+    if (!donation) {
       return res.status(404).json({ message: "Donation not found" });
     }
 
+    if (donation.ngo && donation.ngo.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    donation.status = status;
+    await donation.save();
+
     res.status(200).json({
       message: "success",
-      status: updatedDonation.status,
+      status: donation.status,
     });
   } catch (error) {
     console.error("Error updating donation status:", error);

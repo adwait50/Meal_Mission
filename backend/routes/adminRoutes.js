@@ -82,7 +82,7 @@ router.get("/pending", authAdminMiddleware, async (req, res) => {
 });
 
 // Route to get NGO information by ID
-router.get("/ngo-info/:id", async (req, res) => {
+router.get("/ngo-info/:id", authAdminMiddleware, async (req, res) => {
   console.log("Fetching NGO with ID:", req.params.id); // Debug log
   try {
     const ngo = await NGOModel.findById(req.params.id).select(
@@ -118,7 +118,8 @@ router.post("/login", async (req, res) => {
     // Generate a JWT token
     const token = jwt.sign(
       { id: admin._id.toString(), role: "Admin" },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
     // Send the token back to the client
