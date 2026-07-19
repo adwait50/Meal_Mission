@@ -5,6 +5,13 @@ const foodUploads = require("../utils/multerConfig.js");
 const supabase = require("../config/supabaseClient.js"); // Import Supabase client
 const authDonorMiddleware = require("../middlewares/authDonorMiddleware.js"); 
 const moment = require("moment");
+const rateLimit = require("express-rate-limit");
+
+const pickupLimiter = rateLimit({
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  max: 5,
+  message: { message: "Too many pickup requests, please try again after 30 minutes" }
+});
 
 // Function to format the date
 const formatDate = (date) => {
@@ -70,7 +77,7 @@ const uploadImageToSupabase = async (file) => {
 };
 
 // Request Pickup Route
-router.post("/request-pickup", authDonorMiddleware, foodUploads.single('foodImage'), async (req, res) => {
+router.post("/request-pickup", authDonorMiddleware,pickupLimiter, foodUploads.single('foodImage'), async (req, res) => {
   try {
       const { donorName, phone, address, city, state, foodItems, quantity, pickupDate, additionalNotes } = req.body;
       // Debug: surface what arrived

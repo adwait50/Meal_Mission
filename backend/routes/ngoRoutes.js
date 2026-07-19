@@ -9,9 +9,16 @@ const upload = require("../utils/multerConfig.js");
 const SupportRequestNgo = require("../models/SupportRequestNgo.js");
 const Donation = require("../models/Donation.js");
 const supabase = require("../config/supabaseClient.js"); // Import Supabase client
+const rateLimit = require("express-rate-limit");
 
 const generateOTP = () =>
   randomstring.generate({ length: 4, charset: "numeric" });
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: { message: "Too many attempts, please try again after 15 minutes" }
+});
 
 // Function to upload NGO document to Supabase
 const uploadNgoDocumentToSupabase = async (file) => {
@@ -128,7 +135,7 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
 });
 
 // Verify OTP
-router.post("/verify-otp", async (req, res) => {
+router.post("/verify-otp", authLimiter,  async (req, res) => {
   console.log("Request body:", req.body); // Log the request body
   const { email, otp } = req.body;
 
@@ -158,7 +165,7 @@ router.post("/verify-otp", async (req, res) => {
 
 // NGO Login
 // NGO Login
-router.post("/login", async (req, res) => {
+router.post("/login", authLimiter,   async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -220,7 +227,7 @@ router.post("/logout", authNgoMiddleware, async (req, res) => {
 });
 
 // Initiate password reset
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", authLimiter, async (req, res) => {
   const { email } = req.body;
 
   try {
@@ -301,7 +308,7 @@ router.post("/reset-password", async (req, res) => {
 });
 
 // Resend registration OTP
-router.post("/resend-otp", async (req, res) => {
+router.post("/resend-otp", authLimiter, async (req, res) => {
   const { email } = req.body;
 
   try {

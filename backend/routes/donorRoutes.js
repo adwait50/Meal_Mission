@@ -7,11 +7,18 @@ const randomstring = require("randomstring");
 const authDonorMiddleware = require("../middlewares/authDonorMiddleware.js");
 const Donation = require("../models/Donation.js");
 const SupportRequestDonor = require("../models/SupportRequestDonor.js");
+const rateLimit = require("express-rate-limit");
 
 const router = express.Router();
 
 const generateOTP = () =>
-  randomstring.generate({ length: 4, charset: "numeric" });
+  randomstring.generate({ length: 6, charset: "numeric" });
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: { message: "Too many attempts, please try again after 15 minutes" }
+});
 
 router.post("/register", async (req, res) => {
   const { name, email, password, phone, address } = req.body;
@@ -63,7 +70,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/verify-otp", async (req, res) => {
+router.post("/verify-otp",authLimiter, async (req, res) => {
   const { email, otp } = req.body;
 
   try {
@@ -96,7 +103,7 @@ router.post("/verify-otp", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login",authLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -129,7 +136,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password",authLimiter, async (req, res) => {
   const { email } = req.body;
 
   try {
@@ -207,7 +214,7 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
-router.post("/resend-otp", async (req, res) => {
+router.post("/resend-otp",authLimiter, async (req, res) => {
   const { email } = req.body;
 
   try {
