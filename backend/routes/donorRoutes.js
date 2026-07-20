@@ -8,6 +8,9 @@ const authDonorMiddleware = require("../middlewares/authDonorMiddleware.js");
 const Donation = require("../models/Donation.js");
 const SupportRequestDonor = require("../models/SupportRequestDonor.js");
 const rateLimit = require("express-rate-limit");
+const validate = require("../middlewares/validate.js");
+
+const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require("../validators/donorValidator.js");
 
 const router = express.Router();
 
@@ -20,7 +23,7 @@ const authLimiter = rateLimit({
   message: { message: "Too many attempts, please try again after 15 minutes" }
 });
 
-router.post("/register", async (req, res) => {
+router.post("/register",validate(registerSchema), async (req, res) => {
   const { name, email, password, phone, address } = req.body;
 
   try {
@@ -104,7 +107,7 @@ router.post("/verify-otp",authLimiter, async (req, res) => {
   }
 });
 
-router.post("/login",authLimiter, async (req, res) => {
+router.post("/login",authLimiter, validate(loginSchema), async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -137,7 +140,7 @@ router.post("/login",authLimiter, async (req, res) => {
   }
 });
 
-router.post("/forgot-password",authLimiter, async (req, res) => {
+router.post("/forgot-password",authLimiter,validate(forgotPasswordSchema), async (req, res) => {
   const { email } = req.body;
 
   try {
@@ -187,7 +190,7 @@ router.post("/verify-reset-otp", async (req, res) => {
   }
 });
 
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password",validate(resetPasswordSchema), async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   try {
