@@ -10,7 +10,7 @@ const SupportRequestNgo = require("../models/SupportRequestNgo.js");
 const SupportRequestDonor = require("../models/SupportRequestDonor.js");
 
 //Admin approves NGO
-router.put("/approve-ngo/:id", authAdminMiddleware, async (req, res) => {
+router.put("/approve-ngo/:id", authAdminMiddleware, async (req, res, next) => {
   if (!req.user.isAdmin) {
     return res.status(403).json({ message: "Access denied" });
   }
@@ -26,12 +26,12 @@ router.put("/approve-ngo/:id", authAdminMiddleware, async (req, res) => {
     }
     res.status(200).json(updatedNgo);
   } catch (error) {
-    res.status(500).json({ message: "Error approving NGO", error });
-  }
+  next(error);
+}
 });
 
 // Admin rejects an NGO
-router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res) => {
+router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res, next) => {
   const { id } = req.params; // Get the NGO ID from the URL
   const { reasonForRejection } = req.body; // Optional reason for rejection
 
@@ -63,26 +63,25 @@ router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res) => {
 
     res.status(200).json({ message: "NGO rejected successfully" });
   } catch (error) {
-    console.error("Error rejecting NGO:", error);
-    res.status(500).json({ message: "Error rejecting NGO" });
+    next(error);
   }
 });
 
-router.get("/pending", authAdminMiddleware, async (req, res) => {
+router.get("/pending", authAdminMiddleware, async (req, res, next) => {
   if (!req.user.isAdmin) {
     return res.status(403).json({ message: "Access denied" });
   }
 
   try {
-    const pendingNgos = await NGOModel.find({ isApproved: false });
+    const pendingNgos = await NGOModel.find({ isApproved: false });   
     res.status(200).json(pendingNgos);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching pending NGOs", error });
+    next(error);
   }
 });
 
 // Route to get NGO information by ID
-router.get("/ngo-info/:id", authAdminMiddleware, async (req, res) => {
+router.get("/ngo-info/:id", authAdminMiddleware, async (req, res, next) => {
   console.log("Fetching NGO with ID:", req.params.id); // Debug log
   try {
     const ngo = await NGOModel.findById(req.params.id).select(
@@ -92,14 +91,13 @@ router.get("/ngo-info/:id", authAdminMiddleware, async (req, res) => {
       return res.status(404).json({ message: "NGO not found" });
     }
     res.status(200).json(ngo);
-  } catch (error) {
-    console.error("Error fetching NGO:", error);
-    res.status(500).json({ message: "Error fetching NGO" });
+  } catch (error){
+    next(error);
   }
 });
 
 // Admin Login Route
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -125,12 +123,11 @@ router.post("/login", async (req, res) => {
     // Send the token back to the client
     res.status(200).json({ token });
   } catch (error) {
-    console.error("Error logging in admin:", error);
-    res.status(500).json({ message: "Error logging in" });
+    next(error);
   }
 });
 
-router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
+router.get("/rejected-ngos", authAdminMiddleware, async (req, res, next) => {
   try {
     // Fetch all rejected NGOs
     const rejectedNGOs = await RejectedNGO.find().sort({ createdAt: -1 });
@@ -138,11 +135,11 @@ router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
     res.status(200).json(rejectedNGOs); //
   } catch (error) {
     console.error("Error fetching rejected NGOs:", error);
-    res.status(500).json({ message: "Error fetching rejected NGOs" });
+    next(error);
   }
 });
 // Route to get NGO information by ID
-// router.get("/:id", async (req, res) => {
+// router.get("/:id", async (req, res, next) => {
 //   console.log("Fetching NGO with ID:", req.params.id); // Debug log
 //   try {
 //     const ngo = await NGOModel.findById(req.params.id).select(
@@ -158,7 +155,7 @@ router.get("/rejected-ngos", authAdminMiddleware, async (req, res) => {
 //   }
 // });
 
-router.get("/:type-support", authAdminMiddleware, async (req, res) => {
+router.get("/:type-support", authAdminMiddleware, async (req, res, next) => {
   const { type } = req.params;
   const { isCompleted } = req.query;
 
@@ -203,16 +200,15 @@ router.get("/:type-support", authAdminMiddleware, async (req, res) => {
     }
 
     res.status(200).json(supportRequests);
-  } catch (error) {
-    console.error("Error fetching support requests:", error);
-    res.status(500).json({ message: "Error fetching support requests" });
+  } catch (error){
+    next(error);
   }
 });
 
 router.patch(
   "/complete-request/:type/:id",
   authAdminMiddleware,
-  async (req, res) => {
+  async (req, res, next) => {
     const { type, id } = req.params; // Extract type and request ID from the URL
     try {
       let updatedRequest;
@@ -241,26 +237,24 @@ router.patch(
       }
 
       res.status(200).json(updatedRequest);
-    } catch (error) {
-      console.error("Error completing support request:", error);
-      res.status(500).json({ message: "Error completing support request" });
-    }
+    } catch (error){
+    next(error);
+  }
   }
 );
 
 // Route to get all NGOs (admin dashboard)
-router.get("/dashboard", authAdminMiddleware, async (req, res) => {
+router.get("/dashboard", authAdminMiddleware, async (req, res, next) => {
   try {
     const ngos = await NGOModel.find({ isApproved: true }).select("-password"); // only approved NGOs
     res.status(200).json(ngos);
-  } catch (error) {
-    console.error("Error fetching NGOs:", error);
-    res.status(500).json({ message: "Error fetching NGO list" });
+  } catch (error){
+    next(error);
   }
 });
 
 // Get details of a specific NGO by _id
-router.get("/ngo/:id", authAdminMiddleware, async (req, res) => {
+router.get("/ngo/:id", authAdminMiddleware, async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -269,14 +263,13 @@ router.get("/ngo/:id", authAdminMiddleware, async (req, res) => {
       return res.status(404).json({ message: "NGO not found" });
     }
     res.status(200).json(ngo);
-  } catch (error) {
-    console.error("Error fetching NGO details:", error);
-    res.status(500).json({ message: "Error fetching NGO details" });
+  } catch (error){
+    next(error);
   }
 });
 
 // Delete a specific NGO by _id
-router.delete("/ngo/:id", authAdminMiddleware, async (req, res) => {
+router.delete("/ngo/:id", authAdminMiddleware, async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -290,9 +283,8 @@ router.delete("/ngo/:id", authAdminMiddleware, async (req, res) => {
       message: "NGO deleted successfully",
       deletedNGO, // optional: returns deleted NGO info
     });
-  } catch (error) {
-    console.error("Error deleting NGO:", error);
-    res.status(500).json({ message: "Error deleting NGO" });
+  } catch (error){
+    next(error);
   }
 });
 

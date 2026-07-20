@@ -50,15 +50,14 @@ const uploadNgoDocumentToSupabase = async (file) => {
 
     return publicUrl;
   } catch (error) {
-    console.error('NGO document upload error:', error);
-    throw new Error('Failed to upload NGO document');
+    next(error); // Pass the error to the error handling middleware
   }
 };
 
 const router = express.Router();
 
 //register NGO
-router.post("/register", upload.single("documentProof"), async (req, res) => {
+router.post("/register", upload.single("documentProof"), async (req, res, next) => {
   try {
     const { name, email, password, address, city, state, phone } = req.body;
 
@@ -100,7 +99,7 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
     try {
       documentProofUrl = await uploadNgoDocumentToSupabase(req.file);
     } catch (uploadError) {
-      return res.status(500).json({ message: "Failed to upload document" });
+      next(uploadError);
     }
 
     const newNGO = new NGOModel({
@@ -126,16 +125,12 @@ router.post("/register", upload.single("documentProof"), async (req, res) => {
       message: "OTP sent to email. Verify to complete registration.",
     });
   } catch (error) {
-    console.error("NGO Registration Error:", error);
-    res.status(500).json({
-      message: "Error registering NGO",
-      error: error.message, // This helps in debugging
-    });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 // Verify OTP
-router.post("/verify-otp", authLimiter,  async (req, res) => {
+router.post("/verify-otp", authLimiter,  async (req, res, next) => {
   console.log("Request body:", req.body); // Log the request body
   const { email, otp } = req.body;
 
@@ -158,14 +153,13 @@ router.post("/verify-otp", authLimiter,  async (req, res) => {
       message: "Email verified successfully. Please wait for admin approval.",
     });
   } catch (error) {
-    console.error("Error verifying OTP:", error); // Log the error
-    res.status(500).json({ message: "Error verifying OTP" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 // NGO Login
 // NGO Login
-router.post("/login", authLimiter,   async (req, res) => {
+router.post("/login", authLimiter,   async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -205,12 +199,11 @@ router.post("/login", authLimiter,   async (req, res) => {
 
     res.status(200).json({ token });
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Error logging in" });
+    next(error); 
   }
 });
 
-router.get("/dashboard", authNgoMiddleware, async (req, res) => {
+router.get("/dashboard", authNgoMiddleware, async (req, res, next) => {
   try {
     const NGO = await NGOModel.findById(req.user._id).select("-password");
     if (!NGO) {
@@ -218,16 +211,16 @@ router.get("/dashboard", authNgoMiddleware, async (req, res) => {
     }
     res.json(NGO);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching NGO profile" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
-router.post("/logout", authNgoMiddleware, async (req, res) => {
+router.post("/logout", authNgoMiddleware, async (req, res, next) => {
   res.json({ message: "Logged out successfully" });
 });
 
 // Initiate password reset
-router.post("/forgot-password", authLimiter, async (req, res) => {
+router.post("/forgot-password", authLimiter, async (req, res, next) => {
   const { email } = req.body;
 
   try {
@@ -251,12 +244,12 @@ router.post("/forgot-password", authLimiter, async (req, res) => {
 
     res.status(200).json({ message: "Password reset OTP sent to email" });
   } catch (error) {
-    res.status(500).json({ message: "Error initiating password reset" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 // Verify reset password OTP
-router.post("/verify-reset-otp", async (req, res) => {
+router.post("/verify-reset-otp", async (req, res, next) => {
   const { email, otp } = req.body;
 
   try {
@@ -274,12 +267,12 @@ router.post("/verify-reset-otp", async (req, res) => {
 
     res.status(200).json({ message: "OTP verified successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error verifying OTP" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 // Reset password
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", async (req, res, next) => {
   const { email, otp, newPassword } = req.body;
 
   try {
@@ -303,12 +296,12 @@ router.post("/reset-password", async (req, res) => {
 
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error resetting password" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 // Resend registration OTP
-router.post("/resend-otp", authLimiter, async (req, res) => {
+router.post("/resend-otp", authLimiter, async (req, res, next) => {
   const { email } = req.body;
 
   try {
@@ -332,12 +325,12 @@ router.post("/resend-otp", authLimiter, async (req, res) => {
 
     res.status(200).json({ message: "New OTP sent to email" });
   } catch (error) {
-    res.status(500).json({ message: "Error resending OTP" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 // Resend password reset OTP
-router.post("/resend-reset-otp", async (req, res) => {
+router.post("/resend-reset-otp", async (req, res, next) => {
   const { email } = req.body;
 
   try {
@@ -361,12 +354,12 @@ router.post("/resend-reset-otp", async (req, res) => {
 
     res.status(200).json({ message: "New password reset OTP sent to email" });
   } catch (error) {
-    res.status(500).json({ message: "Error resending OTP" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 // Route to browse food pickup requests based on NGO's city
-router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
+router.get("/food-pickup-requests", authNgoMiddleware, async (req, res, next) => {
   try {
     const ngo = await NGOModel.findById(req.user._id).select("city");
     if (!ngo) return res.status(404).json({ message: "NGO not found" });
@@ -393,14 +386,14 @@ router.get("/food-pickup-requests", authNgoMiddleware, async (req, res) => {
     res.status(200).json(requests);
   } catch (error) {
     console.error("Error fetching pickup requests:", error);
-    res.status(500).json({ message: "Error fetching pickup requests" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 
 
 // Example route to update the status of a donation
-router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
+router.put("/donation/:id/status", authNgoMiddleware, async (req, res, next) => {
   const { status } = req.body; // Expecting the new status in the request body
 
   // Validate the status
@@ -429,12 +422,12 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating donation status:", error);
-    res.status(500).json({ message: "Error updating donation status" });
+    next(error); // Pass the error to the error handling middleware
   }
 });
 
 // Route to get donation details by ID
-router.get("/donation/:id", authNgoMiddleware, async (req, res) => {
+router.get("/donation/:id", authNgoMiddleware, async (req, res, next) => {
   const { id } = req.params; 
   console.log("Fetching donation with ID:", id); // Debug log
 
@@ -452,14 +445,14 @@ router.get("/donation/:id", authNgoMiddleware, async (req, res) => {
       res.status(200).json(donation);
   } catch (error) {
       console.error("Error fetching donation details:", error);
-      res.status(500).json({ message: "Error fetching donation details" });
+      next(error); // Pass the error to the error handling middleware
   }
 });
 
 // Route to accept a donation request
 
 // Route to accept a donation request
-router.put("/donation/:id/accept", authNgoMiddleware, async (req, res) => {
+router.put("/donation/:id/accept", authNgoMiddleware, async (req, res, next) => {
 
   const { id } = req.params; // Get the donation ID from the URL
   const ngoId = req.user._id; // Get the NGO's ID from the authenticated user
@@ -486,13 +479,13 @@ router.put("/donation/:id/accept", authNgoMiddleware, async (req, res) => {
       });
   } catch (error) {
       console.error("Error accepting donation:", error);
-      res.status(500).json({ message: "Error accepting donation" });
+      next(error); // Pass the error to the error handling middleware
   }
 });
 
 /*
 // Route to reject a donation request
-router.put("/donation/:id/reject", authNgoMiddleware, async (req, res) => {
+router.put("/donation/:id/reject", authNgoMiddleware, async (req, res, next) => {
   const { id } = req.params; // Get the donation ID from the URL
 
   try {
@@ -514,12 +507,12 @@ router.put("/donation/:id/reject", authNgoMiddleware, async (req, res) => {
       });
   } catch (error) {
       console.error("Error rejecting donation:", error);
-      res.status(500).json({ message: "Error rejecting donation" });
+      next(error); // Pass the error to the error handling middleware
   }
 });
 */
 
-router.put("/donation/:id/completed", authNgoMiddleware, async (req, res) => {
+router.put("/donation/:id/completed", authNgoMiddleware, async (req, res, next) => {
   const { id } = req.params; // Get the donation ID from the URL
 
   try {
@@ -541,11 +534,11 @@ router.put("/donation/:id/completed", authNgoMiddleware, async (req, res) => {
       });
   } catch (error) {
       console.error("Error accepting donation:", error);
-      res.status(500).json({ message: "Error accepting donation" });
+      next(error); // Pass the error to the error handling middleware
   }
 });
 
-router.put("/donation/:id/reject", authNgoMiddleware, async (req, res) => {
+router.put("/donation/:id/reject", authNgoMiddleware, async (req, res, next) => {
   const { id } = req.params; // Get the donation ID from the URL
 
   try {
@@ -567,11 +560,11 @@ router.put("/donation/:id/reject", authNgoMiddleware, async (req, res) => {
       });
   } catch (error) {
       console.error("Error accepting donation:", error);
-      res.status(500).json({ message: "Error accepting donation" });
+      next(error);
   }
 });
 
-router.get("/donation-history", authNgoMiddleware, async (req, res) => {
+router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
   try {
     const ngoId = req.user._id;
 
@@ -618,13 +611,12 @@ router.get("/donation-history", authNgoMiddleware, async (req, res) => {
       donationHistory,
     });
   } catch (error) {
-    console.error("Error fetching donation history:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
 
 // Route to get all accepted donations by an NGO
-router.get("/accepted-donations", authNgoMiddleware, async (req, res) => {
+router.get("/accepted-donations", authNgoMiddleware, async (req, res, next) => {
   try {
       const ngoId = req.user._id; 
 
@@ -640,13 +632,12 @@ router.get("/accepted-donations", authNgoMiddleware, async (req, res) => {
       // Return the accepted donations
       res.status(200).json(acceptedDonations);
   } catch (error) {
-      console.error("Error fetching accepted donations:", error);
-      res.status(500).json({ message: "Error fetching accepted donations" });
+      next(error);
   }
 });
 
 // Route to post a support request for the authenticated NGO
-router.post("/support", authNgoMiddleware, async (req, res) => {
+router.post("/support", authNgoMiddleware, async (req, res, next) => {
   const { requestId, issue, phone, email, description } = req.body;
   const ngoId = req.user._id; // Get the NGO ID from the authenticated user
 
@@ -665,13 +656,12 @@ router.post("/support", authNgoMiddleware, async (req, res) => {
 
     res.status(201).json({ message: "Support request submitted successfully" });
   } catch (error) {
-    console.error("Error submitting support request:", error);
-    res.status(500).json({ message: "Error submitting support request" });
+    next(error);
   }
 });
 
 // Route to get all support requests for the authenticated NGO
-router.get("/support-requests", authNgoMiddleware, async (req, res) => {
+router.get("/support-requests", authNgoMiddleware, async (req, res, next) => {
   try {
       const ngoId = req.user._id; 
       console.log("NGO ID from token:", ngoId);
@@ -683,8 +673,7 @@ router.get("/support-requests", authNgoMiddleware, async (req, res) => {
 
       res.status(200).json(supportRequests);
   } catch (error) {
-      console.error("Error fetching support requests:", error);
-      res.status(500).json({ message: "Error fetching support requests" });
+      next(error);
   }
 });
 

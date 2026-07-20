@@ -11,6 +11,7 @@ const requestPickupRoutes = require("./routes/requestPickup.js");
 const adminRoutes = require("./routes/adminRoutes.js");
 const path = require("path");
 const cors = require("cors");
+const errorHandler = require("./middlewares/errorHandler.js");
 
 const app = express();
 
@@ -56,6 +57,9 @@ app.use("/api/donors", donorRoutes);
 app.use("/api/ngo", ngoRoutes);
 app.use("/api/pickup", requestPickupRoutes);
 app.use("/api/admin", adminRoutes);
+
+// error handler
+app.use(errorHandler);
 
 // test route (optional but useful)
 app.get("/", (req, res) => {
