@@ -8,7 +8,7 @@ function DonorLogout() {
   useEffect(() => {
     const logoutUser = async () => {
       try {
-        await axios.get(`${import.meta.env.VITE_BASE_URL}/api/donors/logout`);
+        await axios.post(`${import.meta.env.VITE_BASE_URL}/api/donors/logout`);
 
         localStorage.removeItem("token");
 
