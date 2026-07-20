@@ -4,12 +4,12 @@ const donationSchema = new mongoose.Schema({
   donor: { type: mongoose.Schema.Types.ObjectId, ref: "Donor", required: true },
   donorName: { type: String, required: true },
   phone: { type: String, required: true },
-  city: { type: String, required: true },
-  state: { type: String, required: true },
+  city: { type: String, required: true, index:true },
+  state: { type: String, required: true, index:true },
   address: { type: String, required: true },
   foodItems: { type: String, required: true },
   quantity: { type: Number, required: true },
-  createdAt: { type: Date, default: () => new Date() },
+  createdAt: { type: Date, default: () => new Date(), index:true },
   ngo: { type: mongoose.Schema.Types.ObjectId, ref: "NGO" }, // Reference to the NGO
   foodImage: { type: String, required: false },
   additionalNotes: String,
@@ -21,5 +21,7 @@ const donationSchema = new mongoose.Schema({
   },
   pickupDate: { type: Date, required: true },
 });
+
+DonationSchema.index({ city: 1, status: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Donation", donationSchema);
