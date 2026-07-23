@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../src/api/axiosInstance.js";pi/axiosInstance.js";;
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 

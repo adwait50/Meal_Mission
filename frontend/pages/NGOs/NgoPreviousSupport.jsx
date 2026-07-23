@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import NgoSidebar from "../../components/NgoSidebar";
 import { useNavigate } from "react-router";
-import axios from "axios";
+import api from "../src/api/axiosInstance.js";;
 
 function NgoPreviousSupport() {
   const [supports, setSupports] = useState([]);

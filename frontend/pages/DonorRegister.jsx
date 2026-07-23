@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../src/api/axiosInstance.js";pi/axiosInstance.js";pi/axiosInstance.js";;
 import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 

@@ -1,6 +1,6 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 
-import axios from "axios";
+import api from "../src/api/axiosInstance.js";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";

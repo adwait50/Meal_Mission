@@ -9,7 +9,7 @@ const Donation = require("../models/Donation.js");
 const SupportRequestDonor = require("../models/SupportRequestDonor.js");
 const rateLimit = require("express-rate-limit");
 const validate = require("../middlewares/validate.js");
-
+const redis = require("../config/redisClient.js");
 const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require("../validators/donorValidator.js");
 
 const router = express.Router();
@@ -18,12 +18,12 @@ const generateOTP = () =>
   randomstring.generate({ length: 6, charset: "numeric" });
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 5,
   message: { message: "Too many attempts, please try again after 15 minutes" }
 });
 
-router.post("/register",validate(registerSchema), async (req, res) => {
+router.post("/register", validate(registerSchema), async (req, res, next) => {
   const { name, email, password, phone, address } = req.body;
 
   try {
@@ -69,26 +69,21 @@ router.post("/register",validate(registerSchema), async (req, res) => {
       message: "OTP sent to email. Verify to complete registration.",
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error registering donor" });
+    next(error);
   }
 });
 
-router.post("/verify-otp",authLimiter, async (req, res) => {
+router.post("/verify-otp", authLimiter, async (req, res, next) => {
   const { email, otp } = req.body;
 
   try {
     const donor = await Donor.findOne({ email });
 
     if (!donor)
-      return res.json(400).json({
-        message: "Invalid Email",
-      });
+      return res.status(400).json({ message: "Invalid Email" });
 
     if (donor.isVerified)
-      return res.status(400).json({
-        message: "Email already verified",
-      });
+      return res.status(400).json({ message: "Email already verified" });
 
     if (donor.otp !== otp || donor.otpExpires < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
@@ -99,15 +94,13 @@ router.post("/verify-otp",authLimiter, async (req, res) => {
     donor.otpExpires = null;
     await donor.save();
 
-    res.json({
-      message: "Email verified successfully. You can now log in.",
-    });
+    res.json({ message: "Email verified successfully. You can now log in." });
   } catch (error) {
-    res.status(500).json({ message: "Error verifying OTP" });
+    next(error);
   }
 });
 
-router.post("/login",authLimiter, validate(loginSchema), async (req, res) => {
+router.post("/login", authLimiter, validate(loginSchema), async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -127,20 +120,74 @@ router.post("/login",authLimiter, validate(loginSchema), async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: donor._id, role: "Donor" },
       process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: donor._id, role: "Donor" },
+      process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.status(200).json({ token });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ token: accessToken });
   } catch (error) {
-    console.error("Donor Login Error:", error);
-    res.status(500).json({ message: "Error logging in" });
+    next(error);
   }
 });
 
-router.post("/forgot-password",authLimiter,validate(forgotPasswordSchema), async (req, res) => {
+router.post("/refresh-token", async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token" });
+    }
+
+    const isBlacklisted = await redis.get(`bl_${refreshToken}`);
+    if (isBlacklisted) {
+      return res.status(401).json({ message: "Refresh token revoked" });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    const accessToken = jwt.sign(
+      { id: decoded.id, role: "Donor" },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.status(200).json({ token: accessToken });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/logout", async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (refreshToken) {
+      await redis.set(`bl_${refreshToken}`, "true", "EX", 7 * 24 * 60 * 60);
+    }
+
+    res.clearCookie("refreshToken");
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/forgot-password", authLimiter, validate(forgotPasswordSchema), async (req, res, next) => {
   const { email } = req.body;
 
   try {
@@ -156,19 +203,15 @@ router.post("/forgot-password",authLimiter,validate(forgotPasswordSchema), async
     donor.resetPasswordOTPExpires = otpExpires;
     await donor.save();
 
-    await sendEmail(
-      email,
-      "Password Reset OTP",
-      `Your password reset OTP is: ${otp}`
-    );
+    await sendEmail(email, "Password Reset OTP", `Your password reset OTP is: ${otp}`);
 
     res.status(200).json({ message: "Password reset OTP sent to email" });
   } catch (error) {
-    res.status(500).json({ message: "Error initiating password reset" });
+    next(error);
   }
 });
 
-router.post("/verify-reset-otp", async (req, res) => {
+router.post("/verify-reset-otp", async (req, res, next) => {
   const { email, otp } = req.body;
 
   try {
@@ -177,20 +220,17 @@ router.post("/verify-reset-otp", async (req, res) => {
       return res.status(400).json({ message: "Email not found" });
     }
 
-    if (
-      donor.resetPasswordOTP !== otp ||
-      donor.resetPasswordOTPExpires < new Date()
-    ) {
+    if (donor.resetPasswordOTP !== otp || donor.resetPasswordOTPExpires < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
     res.status(200).json({ message: "OTP verified successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error verifying OTP" });
+    next(error);
   }
 });
 
-router.post("/reset-password",validate(resetPasswordSchema), async (req, res) => {
+router.post("/reset-password", validate(resetPasswordSchema), async (req, res, next) => {
   const { email, otp, newPassword } = req.body;
 
   try {
@@ -199,10 +239,7 @@ router.post("/reset-password",validate(resetPasswordSchema), async (req, res) =>
       return res.status(400).json({ message: "Email not found" });
     }
 
-    if (
-      donor.resetPasswordOTP !== otp ||
-      donor.resetPasswordOTPExpires < new Date()
-    ) {
+    if (donor.resetPasswordOTP !== otp || donor.resetPasswordOTPExpires < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
@@ -214,11 +251,11 @@ router.post("/reset-password",validate(resetPasswordSchema), async (req, res) =>
 
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error resetting password" });
+    next(error);
   }
 });
 
-router.post("/resend-otp",authLimiter, async (req, res) => {
+router.post("/resend-otp", authLimiter, async (req, res, next) => {
   const { email } = req.body;
 
   try {
@@ -242,11 +279,11 @@ router.post("/resend-otp",authLimiter, async (req, res) => {
 
     res.status(200).json({ message: "New OTP sent to email" });
   } catch (error) {
-    res.status(500).json({ message: "Error resending OTP" });
+    next(error);
   }
 });
 
-router.post("/resend-reset-otp", async (req, res) => {
+router.post("/resend-reset-otp", async (req, res, next) => {
   const { email } = req.body;
 
   try {
@@ -262,55 +299,33 @@ router.post("/resend-reset-otp", async (req, res) => {
     donor.resetPasswordOTPExpires = otpExpires;
     await donor.save();
 
-    await sendEmail(
-      email,
-      "Your New Password Reset OTP",
-      `Your password reset OTP is: ${otp}`
-    );
+    await sendEmail(email, "Your New Password Reset OTP", `Your password reset OTP is: ${otp}`);
 
     res.status(200).json({ message: "New password reset OTP sent to email" });
   } catch (error) {
-    res.status(500).json({ message: "Error resending OTP" });
+    next(error);
   }
 });
 
-router.post("/logout", async (req, res) => {
-  res.clearCookie("token", { sameSite: "None", secure: true });
-  res.status(200).json({ message: "logged out successfully" });
-});
-
-router.get("/dashboard", authDonorMiddleware, async (req, res) => {
+router.get("/dashboard", authDonorMiddleware, async (req, res, next) => {
   try {
     const donor = await Donor.findById(req.user._id).select("-password");
     if (!donor) {
       return res.status(404).json({ message: "Donor not found" });
     }
-
     res.status(200).json(donor);
   } catch (error) {
-    console.error("Error fetching donor dashboard data:", error);
-    res.status(500).json({ message: "Error fetching donor dashboard data" });
+    next(error);
   }
 });
 
-router.get("/active-requests", authDonorMiddleware, async (req, res) => {
+router.get("/active-requests", authDonorMiddleware, async (req, res, next) => {
   try {
     const donorId = req.user._id;
 
     const activeRequests = await Donation.find(
-      {
-        donor: donorId,
-        status: { $in: ["Pending", "In Progress"] },
-      },
-      {
-        requestId: 1,
-        status: 1,
-        foodItems: 1,
-        quantity: 1,
-        createdAt: 1,
-        donorName: 1,
-        foodImage: 1,
-      }
+      { donor: donorId, status: { $in: ["Pending", "In Progress"] } },
+      { requestId: 1, status: 1, foodItems: 1, quantity: 1, createdAt: 1, donorName: 1, foodImage: 1 }
     ).sort({ createdAt: -1 });
 
     if (!activeRequests.length) {
@@ -319,14 +334,11 @@ router.get("/active-requests", authDonorMiddleware, async (req, res) => {
 
     return res.status(200).json(activeRequests);
   } catch (error) {
-    console.error("Error fetching active requests:", error);
-    if (!res.headersSent) {
-      return res.status(500).json({ message: "Internal server error" });
-    }
+    next(error);
   }
 });
 
-router.get("/donation-history", authDonorMiddleware, async (req, res) => {
+router.get("/donation-history", authDonorMiddleware, async (req, res, next) => {
   try {
     const donorId = req.user._id;
 
@@ -342,70 +354,46 @@ router.get("/donation-history", authDonorMiddleware, async (req, res) => {
       .reduce((acc, d) => acc + (d.quantity || 0), 0);
 
     const totalDonations = donationHistory.length;
-    const timesDonated = donationHistory.filter(
-      (d) => d.status === "Completed"
-    ).length;
+    const timesDonated = donationHistory.filter((d) => d.status === "Completed").length;
 
-    return res.status(200).json({
-      totalWeight,
-      totalDonations,
-      timesDonated,
-      donationHistory,
-    });
+    return res.status(200).json({ totalWeight, totalDonations, timesDonated, donationHistory });
   } catch (error) {
-    console.error("Error fetching donation history:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 });
 
-router.get("/donation/:id", authDonorMiddleware, async (req, res) => {
+router.get("/donation/:id", authDonorMiddleware, async (req, res, next) => {
   const { id } = req.params;
   const donorId = req.user._id;
 
   try {
-    const donation = await Donation.findOne({
-      _id: id,
-      donor: donorId,
-    })
+    const donation = await Donation.findOne({ _id: id, donor: donorId })
       .populate("ngo", "name email phone")
       .select("-__v");
 
     if (!donation) {
-      return res
-        .status(404)
-        .json({ message: "Donation not found or you don't have access to it" });
+      return res.status(404).json({ message: "Donation not found or you don't have access to it" });
     }
 
     res.status(200).json(donation);
   } catch (error) {
-    console.error("Error fetching donation details:", error);
-    res.status(500).json({ message: "Error fetching donation details" });
+    next(error);
   }
 });
 
-router.put("/donation/:id/cancel", authDonorMiddleware, async (req, res) => {
+router.put("/donation/:id/cancel", authDonorMiddleware, async (req, res, next) => {
   const { id } = req.params;
   const donorId = req.user._id;
 
   try {
-    const existingDonation = await Donation.findOne({
-      _id: id,
-      donor: donorId,
-    });
+    const existingDonation = await Donation.findOne({ _id: id, donor: donorId });
 
     if (!existingDonation) {
-      return res
-        .status(404)
-        .json({ message: "Donation not found or you don't have access to it" });
+      return res.status(404).json({ message: "Donation not found or you don't have access to it" });
     }
 
-    if (
-      existingDonation.status === "Completed" ||
-      existingDonation.status === "Cancelled"
-    ) {
-      return res.status(400).json({
-        message: `Cannot cancel donation with status: ${existingDonation.status}`,
-      });
+    if (existingDonation.status === "Completed" || existingDonation.status === "Cancelled") {
+      return res.status(400).json({ message: `Cannot cancel donation with status: ${existingDonation.status}` });
     }
 
     const donation = await Donation.findByIdAndUpdate(
@@ -415,33 +403,16 @@ router.put("/donation/:id/cancel", authDonorMiddleware, async (req, res) => {
     );
 
     if (!donation) {
-      return res
-        .status(500)
-        .json({ message: "Failed to update donation status" });
+      return res.status(500).json({ message: "Failed to update donation status" });
     }
 
-    res.status(200).json({
-      message: "Donation status updated successfully",
-      donation: donation,
-    });
+    res.status(200).json({ message: "Donation status updated successfully", donation });
   } catch (error) {
-    console.error("Error updating donation status:", error);
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        message: "Validation error: " + error.message,
-        details: error.errors,
-      });
-    } else if (error.name === "CastError") {
-      return res.status(400).json({ message: "Invalid donation ID format" });
-    } else {
-      return res.status(500).json({
-        message: "Error updating donation status: " + error.message,
-      });
-    }
+    next(error);
   }
 });
 
-router.post("/support", authDonorMiddleware, async (req, res) => {
+router.post("/support", authDonorMiddleware, async (req, res, next) => {
   const { requestId, issue, phone, email, description } = req.body;
   try {
     const supportRequestDonor = new SupportRequestDonor({
@@ -455,28 +426,23 @@ router.post("/support", authDonorMiddleware, async (req, res) => {
     });
 
     await supportRequestDonor.save();
-
     res.status(201).json({ message: "Support request submitted successfully" });
   } catch (error) {
-    console.error("Error submitting support request:", error);
-    res.status(500).json({ message: "Error submitting support request" });
+    next(error);
   }
 });
 
-router.get("/support-requests", authDonorMiddleware, async (req, res) => {
+router.get("/support-requests", authDonorMiddleware, async (req, res, next) => {
   try {
     const donorId = req.user._id;
 
-    const supportRequests = await SupportRequestDonor.find({
-      donor: donorId,
-    })
+    const supportRequests = await SupportRequestDonor.find({ donor: donorId })
       .select("-__v")
       .sort({ createdAt: -1 });
 
     res.status(200).json(supportRequests);
   } catch (error) {
-    console.error("Error fetching support requests:", error);
-    res.status(500).json({ message: "Error fetching support requests" });
+    next(error);
   }
 });
 

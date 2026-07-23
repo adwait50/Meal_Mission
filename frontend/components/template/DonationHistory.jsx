@@ -1,6 +1,6 @@
 // DonationHistory.jsx
 
-import axios from "axios";
+import api from "../src/api/axiosInstance.js";;
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 

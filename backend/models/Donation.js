@@ -22,6 +22,6 @@ const donationSchema = new mongoose.Schema({
   pickupDate: { type: Date, required: true },
 });
 
-DonationSchema.index({ city: 1, status: 1, createdAt: -1 });
+donationSchema.index({ city: 1, status: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Donation", donationSchema);

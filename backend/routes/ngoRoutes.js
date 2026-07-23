@@ -8,98 +8,78 @@ const authNgoMiddleware = require("../middlewares/authNgoMiddleware.js");
 const upload = require("../utils/multerConfig.js");
 const SupportRequestNgo = require("../models/SupportRequestNgo.js");
 const Donation = require("../models/Donation.js");
-const supabase = require("../config/supabaseClient.js"); // Import Supabase client
+const supabase = require("../config/supabaseClient.js");
 const rateLimit = require("express-rate-limit");
+const validate = require("../middlewares/validate.js");
+const redis = require("../config/redisClient.js");
+const { ngoRegisterSchema, ngoLoginSchema, ngoForgotPasswordSchema, ngoResetPasswordSchema } = require("../validators/ngoValidator.js");
 
 const generateOTP = () =>
-  randomstring.generate({ length: 4, charset: "numeric" });
+  randomstring.generate({ length: 6, charset: "numeric" });
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 5,
   message: { message: "Too many attempts, please try again after 15 minutes" }
 });
 
-// Function to upload NGO document to Supabase
 const uploadNgoDocumentToSupabase = async (file) => {
-  try {
-    // Generate unique filename
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const fileExtension = file.originalname.split('.').pop();
-    const fileName = `ngo-docs/${timestamp}-${randomString}.${fileExtension}`;
+  const timestamp = Date.now();
+  const randomString = Math.random().toString(36).substring(2, 15);
+  const fileExtension = file.originalname.split('.').pop();
+  const fileName = `ngo-docs/${timestamp}-${randomString}.${fileExtension}`;
 
-    const BUCKET = process.env.SUPABASE_BUCKET;
+  const BUCKET = process.env.SUPABASE_BUCKET;
 
-    // Upload to Supabase Storage
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .upload(fileName, file.buffer, {
-        contentType: file.mimetype,
-        cacheControl: "3600"
-      });
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype,
+      cacheControl: "3600"
+    });
 
-    if (error) {
-      throw new Error(`Supabase upload error: ${error.message}`);
-    }
+  if (error) throw new Error(`Supabase upload error: ${error.message}`);
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(fileName);
+  const { data: { publicUrl } } = supabase.storage
+    .from(BUCKET)
+    .getPublicUrl(fileName);
 
-    return publicUrl;
-  } catch (error) {
-    next(error); // Pass the error to the error handling middleware
-  }
+  return publicUrl;
 };
 
 const router = express.Router();
 
-//register NGO
-router.post("/register", upload.single("documentProof"), async (req, res, next) => {
+router.post("/register", validate(ngoRegisterSchema), upload.single("documentProof"), async (req, res, next) => {
   try {
     const { name, email, password, address, city, state, phone } = req.body;
 
     if (!req.file) {
-      return res
-        .status(400)
-        .json({ message: "Please upload ID proof document" });
+      return res.status(400).json({ message: "Please upload ID proof document" });
     }
 
-    // Check if NGO already exists
     let existingNGO = await NGOModel.findOne({ email });
 
     if (existingNGO) {
       if (!existingNGO.isVerified) {
-        // ✅ Resend OTP for verification
         const otp = generateOTP();
         existingNGO.otp = otp;
-        existingNGO.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
+        existingNGO.otpExpires = new Date(Date.now() + 5 * 60 * 1000);
         await existingNGO.save();
-
         await sendEmail(email, "Your new OTP code", `Your OTP is: ${otp}`);
-
-        return res.status(200).json({
-          message: "New OTP sent to email. Verify to complete registration.",
-        });
+        return res.status(200).json({ message: "New OTP sent to email. Verify to complete registration." });
       }
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    // ✅ FIX: Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Generate OTP for verification
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
-    // Upload NGO document to Supabase
     let documentProofUrl = null;
     try {
       documentProofUrl = await uploadNgoDocumentToSupabase(req.file);
     } catch (uploadError) {
-      next(uploadError);
+      return next(uploadError);
     }
 
     const newNGO = new NGOModel({
@@ -108,7 +88,7 @@ router.post("/register", upload.single("documentProof"), async (req, res, next) 
       phone,
       password: hashedPassword,
       address,
-      documentProof: documentProofUrl, // Store Supabase URL instead of local path
+      documentProof: documentProofUrl,
       otp,
       city: city.toLowerCase(),
       state: state.toLowerCase(),
@@ -117,29 +97,22 @@ router.post("/register", upload.single("documentProof"), async (req, res, next) 
     });
 
     await newNGO.save();
-
-    // ✅ Send OTP via email
     await sendEmail(email, "Your OTP code", `Your OTP is: ${otp}`);
 
-    res.status(201).json({
-      message: "OTP sent to email. Verify to complete registration.",
-    });
+    res.status(201).json({ message: "OTP sent to email. Verify to complete registration." });
   } catch (error) {
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// Verify OTP
-router.post("/verify-otp", authLimiter,  async (req, res, next) => {
-  console.log("Request body:", req.body); // Log the request body
+router.post("/verify-otp", authLimiter, async (req, res, next) => {
   const { email, otp } = req.body;
 
   try {
     const NGO = await NGOModel.findOne({ email });
 
     if (!NGO) return res.status(400).json({ message: "Invalid Email" });
-    if (NGO.isVerified)
-      return res.status(400).json({ message: "Email already verified" });
+    if (NGO.isVerified) return res.status(400).json({ message: "Email already verified" });
     if (NGO.otp !== otp || NGO.otpExpires < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
@@ -149,142 +122,149 @@ router.post("/verify-otp", authLimiter,  async (req, res, next) => {
     NGO.otpExpires = null;
     await NGO.save();
 
-    res.json({
-      message: "Email verified successfully. Please wait for admin approval.",
-    });
+    res.json({ message: "Email verified successfully. Please wait for admin approval." });
   } catch (error) {
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// NGO Login
-// NGO Login
-router.post("/login", authLimiter,   async (req, res, next) => {
+router.post("/login", validate(ngoLoginSchema), authLimiter, async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
     const NGO = await NGOModel.findOne({ email });
 
-    if (!NGO) {
-      console.log("NGO not found for email:", email);
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    console.log("NGO found:", NGO);
-
-    if (!NGO.isVerified)
-      return res.status(400).json({ message: "Email not verified" });
-    if (!NGO.isApproved)
-      return res
-        .status(400)
-        .json({ message: "Your account is under review. " });
-
-    console.log("Stored hashed password:", NGO.password);
-    console.log("Entered password:", password.trim());
+    if (!NGO) return res.status(400).json({ message: "Invalid email or password" });
+    if (!NGO.isVerified) return res.status(400).json({ message: "Email not verified" });
+    if (!NGO.isApproved) return res.status(400).json({ message: "Your account is under review." });
 
     const isMatch = await bcrypt.compare(password.trim(), NGO.password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
-    if (!isMatch) {
-      console.log("Password mismatch");
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    console.log("Password matched successfully");
-
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: NGO._id.toString(), role: "NGO" },
       process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: NGO._id.toString(), role: "NGO" },
+      process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.status(200).json({ token });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ token: accessToken });
   } catch (error) {
-    next(error); 
+    next(error);
+  }
+});
+
+router.post("/refresh-token", async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token" });
+    }
+
+    const isBlacklisted = await redis.get(`bl_${refreshToken}`);
+    if (isBlacklisted) {
+      return res.status(401).json({ message: "Refresh token revoked" });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    const accessToken = jwt.sign(
+      { id: decoded.id, role: "NGO" },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.status(200).json({ token: accessToken });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/logout", async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (refreshToken) {
+      await redis.set(`bl_${refreshToken}`, "true", "EX", 7 * 24 * 60 * 60);
+    }
+
+    res.clearCookie("refreshToken");
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    next(error);
   }
 });
 
 router.get("/dashboard", authNgoMiddleware, async (req, res, next) => {
   try {
     const NGO = await NGOModel.findById(req.user._id).select("-password");
-    if (!NGO) {
-      return res.status(404).json({ message: "NGO not found" });
-    }
+    if (!NGO) return res.status(404).json({ message: "NGO not found" });
     res.json(NGO);
   } catch (error) {
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-router.post("/logout", authNgoMiddleware, async (req, res, next) => {
-  res.json({ message: "Logged out successfully" });
-});
-
-// Initiate password reset
-router.post("/forgot-password", authLimiter, async (req, res, next) => {
+router.post("/forgot-password", authLimiter, validate(ngoForgotPasswordSchema), async (req, res, next) => {
   const { email } = req.body;
 
   try {
     const NGO = await NGOModel.findOne({ email });
-    if (!NGO) {
-      return res.status(400).json({ message: "Email not found" });
-    }
+    if (!NGO) return res.status(400).json({ message: "Email not found" });
 
     const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min expiry
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
     NGO.resetPasswordOTP = otp;
     NGO.resetPasswordOTPExpires = otpExpires;
     await NGO.save();
 
-    await sendEmail(
-      email,
-      "Password Reset OTP",
-      `Your password reset OTP is: ${otp}`
-    );
+    await sendEmail(email, "Password Reset OTP", `Your password reset OTP is: ${otp}`);
 
     res.status(200).json({ message: "Password reset OTP sent to email" });
   } catch (error) {
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// Verify reset password OTP
 router.post("/verify-reset-otp", async (req, res, next) => {
   const { email, otp } = req.body;
 
   try {
     const NGO = await NGOModel.findOne({ email });
-    if (!NGO) {
-      return res.status(400).json({ message: "Email not found" });
-    }
+    if (!NGO) return res.status(400).json({ message: "Email not found" });
 
-    if (
-      NGO.resetPasswordOTP !== otp ||
-      NGO.resetPasswordOTPExpires < new Date()
-    ) {
+    if (NGO.resetPasswordOTP !== otp || NGO.resetPasswordOTPExpires < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
     res.status(200).json({ message: "OTP verified successfully" });
   } catch (error) {
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// Reset password
-router.post("/reset-password", async (req, res, next) => {
+router.post("/reset-password", validate(ngoResetPasswordSchema), async (req, res, next) => {
   const { email, otp, newPassword } = req.body;
 
   try {
     const NGO = await NGOModel.findOne({ email });
-    if (!NGO) {
-      return res.status(400).json({ message: "Email not found" });
-    }
+    if (!NGO) return res.status(400).json({ message: "Email not found" });
 
-    if (
-      NGO.resetPasswordOTP !== otp ||
-      NGO.resetPasswordOTPExpires < new Date()
-    ) {
+    if (NGO.resetPasswordOTP !== otp || NGO.resetPasswordOTPExpires < new Date()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
@@ -296,23 +276,17 @@ router.post("/reset-password", async (req, res, next) => {
 
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// Resend registration OTP
 router.post("/resend-otp", authLimiter, async (req, res, next) => {
   const { email } = req.body;
 
   try {
     const NGO = await NGOModel.findOne({ email });
-    if (!NGO) {
-      return res.status(400).json({ message: "Email not found" });
-    }
-
-    if (NGO.isVerified) {
-      return res.status(400).json({ message: "Email already verified" });
-    }
+    if (!NGO) return res.status(400).json({ message: "Email not found" });
+    if (NGO.isVerified) return res.status(400).json({ message: "Email already verified" });
 
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
@@ -325,19 +299,16 @@ router.post("/resend-otp", authLimiter, async (req, res, next) => {
 
     res.status(200).json({ message: "New OTP sent to email" });
   } catch (error) {
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// Resend password reset OTP
 router.post("/resend-reset-otp", async (req, res, next) => {
   const { email } = req.body;
 
   try {
     const NGO = await NGOModel.findOne({ email });
-    if (!NGO) {
-      return res.status(400).json({ message: "Email not found" });
-    }
+    if (!NGO) return res.status(400).json({ message: "Email not found" });
 
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
@@ -346,38 +317,27 @@ router.post("/resend-reset-otp", async (req, res, next) => {
     NGO.resetPasswordOTPExpires = otpExpires;
     await NGO.save();
 
-    await sendEmail(
-      email,
-      "Your New Password Reset OTP",
-      `Your password reset OTP is: ${otp}`
-    );
+    await sendEmail(email, "Your New Password Reset OTP", `Your password reset OTP is: ${otp}`);
 
     res.status(200).json({ message: "New password reset OTP sent to email" });
   } catch (error) {
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// Route to browse food pickup requests based on NGO's city
 router.get("/food-pickup-requests", authNgoMiddleware, async (req, res, next) => {
   try {
     const ngo = await NGOModel.findById(req.user._id).select("city");
     if (!ngo) return res.status(404).json({ message: "NGO not found" });
 
     const ngoCity = ngo.city.toLowerCase();
-
-    // Log the current time when NGO requests the data
     const currentTime = new Date();
-    console.log("NGO requested food pickups at:", currentTime);
-
-    // Calculate 4 hours ago from current time
     const fourHoursAgo = new Date(currentTime.getTime() - 4 * 60 * 60 * 1000);
 
-    // Fetch only pending requests created in the last 4 hours from now
     const requests = await Donation.find({
       city: ngoCity,
       status: "Pending",
-      createdAt: { $gte: fourHoursAgo } // filter by last 4 hours from current click
+      createdAt: { $gte: fourHoursAgo }
     })
       .populate("donor", "name email")
       .select("-phone -city -state -status -createdAt -__v -donor")
@@ -385,18 +345,13 @@ router.get("/food-pickup-requests", authNgoMiddleware, async (req, res, next) =>
 
     res.status(200).json(requests);
   } catch (error) {
-    console.error("Error fetching pickup requests:", error);
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-
-
-// Example route to update the status of a donation
 router.put("/donation/:id/status", authNgoMiddleware, async (req, res, next) => {
-  const { status } = req.body; // Expecting the new status in the request body
+  const { status } = req.body;
 
-  // Validate the status
   const validStatuses = ["Pending", "Accepted", "In Progress", "Completed"];
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ message: "Invalid status" });
@@ -405,9 +360,7 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res, next) => 
   try {
     const donation = await Donation.findById(req.params.id);
 
-    if (!donation) {
-      return res.status(404).json({ message: "Donation not found" });
-    }
+    if (!donation) return res.status(404).json({ message: "Donation not found" });
 
     if (donation.ngo && donation.ngo.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Access denied" });
@@ -416,151 +369,80 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res, next) => 
     donation.status = status;
     await donation.save();
 
-    res.status(200).json({
-      message: "success",
-      status: donation.status,
-    });
+    res.status(200).json({ message: "success", status: donation.status });
   } catch (error) {
-    console.error("Error updating donation status:", error);
-    next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// Route to get donation details by ID
 router.get("/donation/:id", authNgoMiddleware, async (req, res, next) => {
-  const { id } = req.params; 
-  console.log("Fetching donation with ID:", id); // Debug log
+  const { id } = req.params;
 
   try {
-      // Find the donation by ID and populate donor information
-      const donation = await Donation.findById(id)
-          .populate("donor", "name email phone") // Populate donor details
-          .select("-__v"); // Exclude version key
+    const donation = await Donation.findById(id)
+      .populate("donor", "name email phone")
+      .select("-__v");
 
-      if (!donation) {
-          return res.status(404).json({ message: "Donation not found" });
-      }
+    if (!donation) return res.status(404).json({ message: "Donation not found" });
 
-      // Return the donation details
-      res.status(200).json(donation);
+    res.status(200).json(donation);
   } catch (error) {
-      console.error("Error fetching donation details:", error);
-      next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
-// Route to accept a donation request
-
-// Route to accept a donation request
 router.put("/donation/:id/accept", authNgoMiddleware, async (req, res, next) => {
-
-  const { id } = req.params; // Get the donation ID from the URL
-  const ngoId = req.user._id; // Get the NGO's ID from the authenticated user
-
-  try {
-      // Find the donation by ID and update the status and NGO ID
-      const updatedDonation = await Donation.findByIdAndUpdate(
-          id,
-          { 
-              status: "In Progress",
-              ngo: ngoId // Store the NGO's ID in the donation
-          },
-          { new: true } // Return the updated document
-      );
-
-      if (!updatedDonation) {
-          return res.status(404).json({ message: "Donation not found" });
-      }
-
-      // Return success response
-      res.status(200).json({
-          message: "Donation accepted and marked as In Progress",
-          donation: updatedDonation
-      });
-  } catch (error) {
-      console.error("Error accepting donation:", error);
-      next(error); // Pass the error to the error handling middleware
-  }
-});
-
-/*
-// Route to reject a donation request
-router.put("/donation/:id/reject", authNgoMiddleware, async (req, res, next) => {
-  const { id } = req.params; // Get the donation ID from the URL
+  const { id } = req.params;
+  const ngoId = req.user._id;
 
   try {
-      // Find the donation by ID and update the status to "Rejected"
-      const updatedDonation = await Donation.findByIdAndUpdate(
-          id,
-          { status: "Rejected" },
-          { new: true } // Return the updated document
-      );
+    const updatedDonation = await Donation.findByIdAndUpdate(
+      id,
+      { status: "In Progress", ngo: ngoId },
+      { new: true }
+    );
 
-      if (!updatedDonation) {
-          return res.status(404).json({ message: "Donation not found" });
-      }
+    if (!updatedDonation) return res.status(404).json({ message: "Donation not found" });
 
-      // Return success response
-      res.status(200).json({
-          message: "Donation rejected successfully",
-          donation: updatedDonation
-      });
+    res.status(200).json({ message: "Donation accepted and marked as In Progress", donation: updatedDonation });
   } catch (error) {
-      console.error("Error rejecting donation:", error);
-      next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
-*/
 
 router.put("/donation/:id/completed", authNgoMiddleware, async (req, res, next) => {
-  const { id } = req.params; // Get the donation ID from the URL
+  const { id } = req.params;
 
   try {
-      // Find the donation by ID and update the status to "Completed"
-      const updatedDonation = await Donation.findByIdAndUpdate(
-          id,
-          { status: "Completed" },
-          { new: true } // Return the updated document
-      );
+    const updatedDonation = await Donation.findByIdAndUpdate(
+      id,
+      { status: "Completed" },
+      { new: true }
+    );
 
-      if (!updatedDonation) {
-          return res.status(404).json({ message: "Donation not found" });
-      }
+    if (!updatedDonation) return res.status(404).json({ message: "Donation not found" });
 
-      // Return success response
-      res.status(200).json({
-          message: "Donation accepted successfully",
-          donation: updatedDonation
-      });
+    res.status(200).json({ message: "Donation completed successfully", donation: updatedDonation });
   } catch (error) {
-      console.error("Error accepting donation:", error);
-      next(error); // Pass the error to the error handling middleware
+    next(error);
   }
 });
 
 router.put("/donation/:id/reject", authNgoMiddleware, async (req, res, next) => {
-  const { id } = req.params; // Get the donation ID from the URL
+  const { id } = req.params;
 
   try {
-      // Find the donation by ID and update the status to "Completed"
-      const updatedDonation = await Donation.findByIdAndUpdate(
-          id,
-          { status: "Rejected" },
-          { new: true } // Return the updated document
-      );
+    const updatedDonation = await Donation.findByIdAndUpdate(
+      id,
+      { status: "Rejected" },
+      { new: true }
+    );
 
-      if (!updatedDonation) {
-          return res.status(404).json({ message: "Donation not found" });
-      }
+    if (!updatedDonation) return res.status(404).json({ message: "Donation not found" });
 
-      // Return success response
-      res.status(200).json({
-          message: "Donation accepted successfully",
-          donation: updatedDonation
-      });
+    res.status(200).json({ message: "Donation rejected successfully", donation: updatedDonation });
   } catch (error) {
-      console.error("Error accepting donation:", error);
-      next(error);
+    next(error);
   }
 });
 
@@ -568,33 +450,18 @@ router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
   try {
     const ngoId = req.user._id;
 
-    // Total donations (all, regardless of status)
     const totalDonations = await Donation.countDocuments({ ngo: ngoId });
+    const completedDonations = await Donation.countDocuments({ ngo: ngoId, status: "Completed" });
+    const rejectedDonations = await Donation.countDocuments({ ngo: ngoId, status: "Rejected" });
 
-    // Completed donations
-    const completedDonations = await Donation.countDocuments({
-      ngo: ngoId,
-      status: "Completed",
-    });
-
-    // Rejected donations
-    const rejectedDonations = await Donation.countDocuments({
-      ngo: ngoId,
-      status: "Rejected",
-    });
-
-    // Total weight excluding rejected
     const [totalWeightData] = await Donation.aggregate([
       { $match: { ngo: ngoId, status: { $ne: "Rejected" } } },
       { $group: { _id: null, totalWeight: { $sum: "$quantity" } } },
     ]);
 
     const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
-
-    // Times donated = all except rejected
     const timesDonated = totalDonations - rejectedDonations;
 
-    // Donation history → Completed + Rejected (with pickupDate)
     const donationHistory = await Donation.find({
       ngo: ngoId,
       status: { $in: ["Completed", "Rejected"] },
@@ -615,35 +482,28 @@ router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
   }
 });
 
-// Route to get all accepted donations by an NGO
 router.get("/accepted-donations", authNgoMiddleware, async (req, res, next) => {
   try {
-      const ngoId = req.user._id; 
+    const ngoId = req.user._id;
 
-      
-      const acceptedDonations = await Donation.find({ 
-          ngo: ngoId, 
-          status: "In Progress"
-      })
-      .populate("donor", "name email phone") // Populate donor details
-      .select("-__v") // Exclude version key
-      .sort({ createdAt: -1 }); // Sort by creation date, most recent first
+    const acceptedDonations = await Donation.find({ ngo: ngoId, status: "In Progress" })
+      .populate("donor", "name email phone")
+      .select("-__v")
+      .sort({ createdAt: -1 });
 
-      // Return the accepted donations
-      res.status(200).json(acceptedDonations);
+    res.status(200).json(acceptedDonations);
   } catch (error) {
-      next(error);
+    next(error);
   }
 });
 
-// Route to post a support request for the authenticated NGO
 router.post("/support", authNgoMiddleware, async (req, res, next) => {
   const { requestId, issue, phone, email, description } = req.body;
-  const ngoId = req.user._id; // Get the NGO ID from the authenticated user
+  const ngoId = req.user._id;
 
   try {
     const supportRequestNgo = new SupportRequestNgo({
-      ngo: ngoId, // Add the NGO ID
+      ngo: ngoId,
       requestId,
       issue,
       phone,
@@ -653,27 +513,19 @@ router.post("/support", authNgoMiddleware, async (req, res, next) => {
     });
 
     await supportRequestNgo.save();
-
     res.status(201).json({ message: "Support request submitted successfully" });
   } catch (error) {
     next(error);
   }
 });
 
-// Route to get all support requests for the authenticated NGO
 router.get("/support-requests", authNgoMiddleware, async (req, res, next) => {
   try {
-      const ngoId = req.user._id; 
-      console.log("NGO ID from token:", ngoId);
-      console.log("NGO user object:", req.user);
-      
-      const supportRequests = await SupportRequestNgo.find({ ngo: ngoId });
-      console.log("Found support requests:", supportRequests);
-      console.log("Number of support requests:", supportRequests.length);
-
-      res.status(200).json(supportRequests);
+    const ngoId = req.user._id;
+    const supportRequests = await SupportRequestNgo.find({ ngo: ngoId });
+    res.status(200).json(supportRequests);
   } catch (error) {
-      next(error);
+    next(error);
   }
 });
 

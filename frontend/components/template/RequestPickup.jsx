@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../src/api/axiosInstance.js";;
 import  { useState } from "react";
 import { useNavigate } from "react-router";
 import Modal from "../Modal";

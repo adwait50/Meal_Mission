@@ -12,8 +12,13 @@ const adminRoutes = require("./routes/adminRoutes.js");
 const path = require("path");
 const cors = require("cors");
 const errorHandler = require("./middlewares/errorHandler.js");
+const redis = require("./utils/redisClient.js");
+const cookieParser = require("cookie-parser");
 
 const app = express();
+
+//jwt cookies refreshs shit
+app.use(cookieParser());
 
 // connect database
 connectDB();

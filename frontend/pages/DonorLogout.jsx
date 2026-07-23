@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../src/api/axiosInstance.js";
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router";
 
