@@ -334,16 +334,36 @@ router.get("/food-pickup-requests", authNgoMiddleware, async (req, res, next) =>
     const currentTime = new Date();
     const fourHoursAgo = new Date(currentTime.getTime() - 4 * 60 * 60 * 1000);
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalCount = await Donation.countDocuments({
+      city: ngoCity,
+      status: "Pending",
+      createdAt: { $gte: fourHoursAgo },
+    });
+
     const requests = await Donation.find({
       city: ngoCity,
       status: "Pending",
-      createdAt: { $gte: fourHoursAgo }
+      createdAt: { $gte: fourHoursAgo },
     })
       .populate("donor", "name email")
       .select("-phone -city -state -status -createdAt -__v -donor")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json(requests);
+    res.status(200).json({
+      requests,
+      pagination: {
+        totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -449,6 +469,9 @@ router.put("/donation/:id/reject", authNgoMiddleware, async (req, res, next) => 
 router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
   try {
     const ngoId = req.user._id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
     const totalDonations = await Donation.countDocuments({ ngo: ngoId });
     const completedDonations = await Donation.countDocuments({ ngo: ngoId, status: "Completed" });
@@ -462,12 +485,19 @@ router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
     const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
     const timesDonated = totalDonations - rejectedDonations;
 
+    const totalCount = await Donation.countDocuments({
+      ngo: ngoId,
+      status: { $in: ["Completed", "Rejected"] },
+    });
+
     const donationHistory = await Donation.find({
       ngo: ngoId,
       status: { $in: ["Completed", "Rejected"] },
     })
       .select("foodItems pickupDate address status quantity requestId")
-      .sort({ pickupDate: -1 });
+      .sort({ pickupDate: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return res.status(200).json({
       totalDonations,
@@ -476,6 +506,12 @@ router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
       totalWeight,
       timesDonated,
       donationHistory,
+      pagination: {
+        totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
+      },
     });
   } catch (error) {
     next(error);

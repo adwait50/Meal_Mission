@@ -158,6 +158,9 @@ router.get("/rejected-ngos", authAdminMiddleware, async (req, res, next) => {
 router.get("/:type-support", authAdminMiddleware, async (req, res, next) => {
   const { type } = req.params;
   const { isCompleted } = req.query;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
   try {
     let supportRequests = [];
@@ -171,27 +174,17 @@ router.get("/:type-support", authAdminMiddleware, async (req, res, next) => {
       query = {};
     } else {
       return res.status(400).json({
-        message:
-          "Invalid isCompleted parameter. Use 'true', 'false', or 'all'.",
+        message: "Invalid isCompleted parameter. Use 'true', 'false', or 'all'.",
       });
     }
 
-    // Determine which model to use based on the type parameter
     if (type === "ngo") {
-      supportRequests = await SupportRequestNgo.find(query).sort({
-        createdAt: -1,
-      });
+      supportRequests = await SupportRequestNgo.find(query).sort({ createdAt: -1 });
     } else if (type === "donor") {
-      supportRequests = await SupportRequestDonor.find(query).sort({
-        createdAt: -1,
-      });
+      supportRequests = await SupportRequestDonor.find(query).sort({ createdAt: -1 });
     } else if (type === "all") {
-      const donorRequests = await SupportRequestDonor.find(query).sort({
-        createdAt: -1,
-      });
-      const ngoRequests = await SupportRequestNgo.find(query).sort({
-        createdAt: -1,
-      });
+      const donorRequests = await SupportRequestDonor.find(query).sort({ createdAt: -1 });
+      const ngoRequests = await SupportRequestNgo.find(query).sort({ createdAt: -1 });
       supportRequests = [...donorRequests, ...ngoRequests];
     } else {
       return res.status(400).json({
@@ -199,8 +192,19 @@ router.get("/:type-support", authAdminMiddleware, async (req, res, next) => {
       });
     }
 
-    res.status(200).json(supportRequests);
-  } catch (error){
+    const totalCount = supportRequests.length;
+    const paginated = supportRequests.slice(skip, skip + limit);
+
+    res.status(200).json({
+      supportRequests: paginated,
+      pagination: {
+        totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    });
+  } catch (error) {
     next(error);
   }
 });
@@ -246,9 +250,27 @@ router.patch(
 // Route to get all NGOs (admin dashboard)
 router.get("/dashboard", authAdminMiddleware, async (req, res, next) => {
   try {
-    const ngos = await NGOModel.find({ isApproved: true }).select("-password"); // only approved NGOs
-    res.status(200).json(ngos);
-  } catch (error){
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalCount = await NGOModel.countDocuments({ isApproved: true });
+
+    const ngos = await NGOModel.find({ isApproved: true })
+      .select("-password")
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      ngos,
+      pagination: {
+        totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    });
+  } catch (error) {
     next(error);
   }
 });

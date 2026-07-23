@@ -322,17 +322,47 @@ router.get("/dashboard", authDonorMiddleware, async (req, res, next) => {
 router.get("/active-requests", authDonorMiddleware, async (req, res, next) => {
   try {
     const donorId = req.user._id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalCount = await Donation.countDocuments({
+      donor: donorId,
+      status: { $in: ["Pending", "In Progress"] },
+    });
 
     const activeRequests = await Donation.find(
-      { donor: donorId, status: { $in: ["Pending", "In Progress"] } },
-      { requestId: 1, status: 1, foodItems: 1, quantity: 1, createdAt: 1, donorName: 1, foodImage: 1 }
-    ).sort({ createdAt: -1 });
+      {
+        donor: donorId,
+        status: { $in: ["Pending", "In Progress"] },
+      },
+      {
+        requestId: 1,
+        status: 1,
+        foodItems: 1,
+        quantity: 1,
+        createdAt: 1,
+        donorName: 1,
+        foodImage: 1,
+      }
+    )
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     if (!activeRequests.length) {
       return res.status(404).json({ message: "No active requests found." });
     }
 
-    return res.status(200).json(activeRequests);
+    return res.status(200).json({
+      activeRequests,
+      pagination: {
+        totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -341,13 +371,23 @@ router.get("/active-requests", authDonorMiddleware, async (req, res, next) => {
 router.get("/donation-history", authDonorMiddleware, async (req, res, next) => {
   try {
     const donorId = req.user._id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalCount = await Donation.countDocuments({
+      donor: donorId,
+      status: { $in: ["Completed", "Rejected", "Cancelled"] },
+    });
 
     const donationHistory = await Donation.find({
       donor: donorId,
       status: { $in: ["Completed", "Rejected", "Cancelled"] },
     })
       .select("foodItem createdAt pickupDate address status quantity requestId")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     const totalWeight = donationHistory
       .filter((d) => d.status === "Completed")
@@ -356,7 +396,18 @@ router.get("/donation-history", authDonorMiddleware, async (req, res, next) => {
     const totalDonations = donationHistory.length;
     const timesDonated = donationHistory.filter((d) => d.status === "Completed").length;
 
-    return res.status(200).json({ totalWeight, totalDonations, timesDonated, donationHistory });
+    return res.status(200).json({
+      totalWeight,
+      totalDonations,
+      timesDonated,
+      donationHistory,
+      pagination: {
+        totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
