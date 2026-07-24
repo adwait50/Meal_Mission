@@ -3,46 +3,145 @@ const NGOModel = require("../models/ngoModel.js");
 const authAdminMiddleware = require("../middlewares/authAdminMiddleware.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const AdminModel = require("../models/Admin.js"); // Import the Admin model
+const AdminModel = require("../models/Admin.js");
 const router = express.Router();
 const RejectedNGO = require("../models/RejectedNGO.js");
 const SupportRequestNgo = require("../models/SupportRequestNgo.js");
 const SupportRequestDonor = require("../models/SupportRequestDonor.js");
 
-//Admin approves NGO
-router.put("/approve-ngo/:id", authAdminMiddleware, async (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return res.status(403).json({ message: "Access denied" });
-  }
-
+/**
+ * @swagger
+ * /api/admin/login:
+ *   post:
+ *     summary: Admin login
+ *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Returns JWT token
+ *       400:
+ *         description: Invalid credentials
+ */
+router.post("/login", async (req, res, next) => {
+  const { email, password } = req.body;
   try {
-    const updatedNgo = await NGOModel.findByIdAndUpdate(
-      req.params.id,
-      { isApproved: true },
-      { new: true }
+    const admin = await AdminModel.findOne({ email });
+    if (!admin) return res.status(400).json({ message: "Invalid email or password" });
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
+
+    const token = jwt.sign(
+      { id: admin._id.toString(), role: "Admin" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
-    if (!updatedNgo) {
-      return res.status(404).json({ message: "NGO not found" });
-    }
-    res.status(200).json(updatedNgo);
+
+    res.status(200).json({ token });
   } catch (error) {
-  next(error);
-}
+    next(error);
+  }
 });
 
-// Admin rejects an NGO
-router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res, next) => {
-  const { id } = req.params; // Get the NGO ID from the URL
-  const { reasonForRejection } = req.body; // Optional reason for rejection
-
+/**
+ * @swagger
+ * /api/admin/pending:
+ *   get:
+ *     summary: Get all pending NGO registrations
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of pending NGOs
+ */
+router.get("/pending", authAdminMiddleware, async (req, res, next) => {
+  if (!req.user.isAdmin) return res.status(403).json({ message: "Access denied" });
   try {
-    // Find the NGO by ID
-    const ngo = await NGOModel.findById(id);
-    if (!ngo) {
-      return res.status(404).json({ message: "NGO not found" });
-    }
+    const pendingNgos = await NGOModel.find({ isApproved: false });
+    res.status(200).json(pendingNgos);
+  } catch (error) {
+    next(error);
+  }
+});
 
-    // Create a new Rejected NGO document
+/**
+ * @swagger
+ * /api/admin/approve-ngo/{id}:
+ *   put:
+ *     summary: Approve an NGO registration
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: NGO approved
+ *       404:
+ *         description: NGO not found
+ */
+router.put("/approve-ngo/:id", authAdminMiddleware, async (req, res, next) => {
+  if (!req.user.isAdmin) return res.status(403).json({ message: "Access denied" });
+  try {
+    const updatedNgo = await NGOModel.findByIdAndUpdate(req.params.id, { isApproved: true }, { new: true });
+    if (!updatedNgo) return res.status(404).json({ message: "NGO not found" });
+    res.status(200).json(updatedNgo);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/admin/reject-ngo/{id}:
+ *   put:
+ *     summary: Reject an NGO registration
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reasonForRejection:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: NGO rejected successfully
+ *       404:
+ *         description: NGO not found
+ */
+router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res, next) => {
+  const { id } = req.params;
+  const { reasonForRejection } = req.body;
+  try {
+    const ngo = await NGOModel.findById(id);
+    if (!ngo) return res.status(404).json({ message: "NGO not found" });
+
     const rejectedNGO = new RejectedNGO({
       name: ngo.name,
       email: ngo.email,
@@ -51,14 +150,11 @@ router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res, next) => {
       phone: ngo.phone,
       state: ngo.state,
       documentProof: ngo.documentProof,
-      isApproved: false, // Mark the NGO as rejected
+      isApproved: false,
       reasonForRejection,
     });
 
-    // Save the rejected NGO to the RejectedNGO collection
     await rejectedNGO.save();
-
-    // Remove the NGO from the pending list
     await NGOModel.findByIdAndDelete(id);
 
     res.status(200).json({ message: "NGO rejected successfully" });
@@ -67,94 +163,90 @@ router.put("/reject-ngo/:id", authAdminMiddleware, async (req, res, next) => {
   }
 });
 
-router.get("/pending", authAdminMiddleware, async (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return res.status(403).json({ message: "Access denied" });
-  }
-
-  try {
-    const pendingNgos = await NGOModel.find({ isApproved: false });   
-    res.status(200).json(pendingNgos);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Route to get NGO information by ID
+/**
+ * @swagger
+ * /api/admin/ngo-info/{id}:
+ *   get:
+ *     summary: Get NGO info by ID
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: NGO details
+ *       404:
+ *         description: NGO not found
+ */
 router.get("/ngo-info/:id", authAdminMiddleware, async (req, res, next) => {
-  console.log("Fetching NGO with ID:", req.params.id); // Debug log
   try {
-    const ngo = await NGOModel.findById(req.params.id).select(
-      "-password -otp -otpExpires -registrationDate -__v"
-    );
-    if (!ngo) {
-      return res.status(404).json({ message: "NGO not found" });
-    }
+    const ngo = await NGOModel.findById(req.params.id).select("-password -otp -otpExpires -registrationDate -__v");
+    if (!ngo) return res.status(404).json({ message: "NGO not found" });
     res.status(200).json(ngo);
-  } catch (error){
-    next(error);
-  }
-});
-
-// Admin Login Route
-router.post("/login", async (req, res, next) => {
-  const { email, password } = req.body;
-
-  try {
-    // Find the admin by email
-    const admin = await AdminModel.findOne({ email });
-    if (!admin) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    // Compare the provided password with the stored hashed password
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-
-    // Generate a JWT token
-    const token = jwt.sign(
-      { id: admin._id.toString(), role: "Admin" },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    // Send the token back to the client
-    res.status(200).json({ token });
   } catch (error) {
     next(error);
   }
 });
 
+/**
+ * @swagger
+ * /api/admin/rejected-ngos:
+ *   get:
+ *     summary: Get all rejected NGOs
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of rejected NGOs
+ */
 router.get("/rejected-ngos", authAdminMiddleware, async (req, res, next) => {
   try {
-    // Fetch all rejected NGOs
     const rejectedNGOs = await RejectedNGO.find().sort({ createdAt: -1 });
-
-    res.status(200).json(rejectedNGOs); //
+    res.status(200).json(rejectedNGOs);
   } catch (error) {
-    console.error("Error fetching rejected NGOs:", error);
     next(error);
   }
 });
-// Route to get NGO information by ID
-// router.get("/:id", async (req, res, next) => {
-//   console.log("Fetching NGO with ID:", req.params.id); // Debug log
-//   try {
-//     const ngo = await NGOModel.findById(req.params.id).select(
-//       "-password -otp -otpExpires -registrationDate -__v"
-//     );
-//     if (!ngo) {
-//       return res.status(404).json({ message: "NGO not found" });
-//     }
-//     res.status(200).json(ngo);
-//   } catch (error) {
-//     console.error("Error fetching NGO:", error);
-//     res.status(500).json({ message: "Error fetching NGO" });
-//   }
-// });
 
+/**
+ * @swagger
+ * /api/admin/{type}-support:
+ *   get:
+ *     summary: Get support requests by type (ngo/donor/all)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [ngo, donor, all]
+ *       - in: query
+ *         name: isCompleted
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: ['true', 'false', 'all']
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Support requests with pagination
+ */
 router.get("/:type-support", authAdminMiddleware, async (req, res, next) => {
   const { type } = req.params;
   const { isCompleted } = req.query;
@@ -166,17 +258,10 @@ router.get("/:type-support", authAdminMiddleware, async (req, res, next) => {
     let supportRequests = [];
     let query = {};
 
-    if (isCompleted === "true") {
-      query.isCompleted = true;
-    } else if (isCompleted === "false") {
-      query.isCompleted = false;
-    } else if (isCompleted === "all") {
-      query = {};
-    } else {
-      return res.status(400).json({
-        message: "Invalid isCompleted parameter. Use 'true', 'false', or 'all'.",
-      });
-    }
+    if (isCompleted === "true") query.isCompleted = true;
+    else if (isCompleted === "false") query.isCompleted = false;
+    else if (isCompleted === "all") query = {};
+    else return res.status(400).json({ message: "Invalid isCompleted parameter. Use 'true', 'false', or 'all'." });
 
     if (type === "ngo") {
       supportRequests = await SupportRequestNgo.find(query).sort({ createdAt: -1 });
@@ -187,9 +272,7 @@ router.get("/:type-support", authAdminMiddleware, async (req, res, next) => {
       const ngoRequests = await SupportRequestNgo.find(query).sort({ createdAt: -1 });
       supportRequests = [...donorRequests, ...ngoRequests];
     } else {
-      return res.status(400).json({
-        message: "Invalid type parameter. Use 'ngo', 'donor', or 'all'.",
-      });
+      return res.status(400).json({ message: "Invalid type parameter. Use 'ngo', 'donor', or 'all'." });
     }
 
     const totalCount = supportRequests.length;
@@ -197,57 +280,79 @@ router.get("/:type-support", authAdminMiddleware, async (req, res, next) => {
 
     res.status(200).json({
       supportRequests: paginated,
-      pagination: {
-        totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit),
-      },
+      pagination: { totalCount, page, limit, totalPages: Math.ceil(totalCount / limit) },
     });
   } catch (error) {
     next(error);
   }
 });
 
-router.patch(
-  "/complete-request/:type/:id",
-  authAdminMiddleware,
-  async (req, res, next) => {
-    const { type, id } = req.params; // Extract type and request ID from the URL
-    try {
-      let updatedRequest;
+/**
+ * @swagger
+ * /api/admin/complete-request/{type}/{id}:
+ *   patch:
+ *     summary: Mark a support request as completed
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [NGO, Donor]
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Support request marked as completed
+ *       404:
+ *         description: Support request not found
+ */
+router.patch("/complete-request/:type/:id", authAdminMiddleware, async (req, res, next) => {
+  const { type, id } = req.params;
+  try {
+    let updatedRequest;
+    if (type === "NGO") {
+      updatedRequest = await SupportRequestNgo.findByIdAndUpdate(id, { isCompleted: true }, { new: true });
+    } else if (type === "Donor") {
+      updatedRequest = await SupportRequestDonor.findByIdAndUpdate(id, { isCompleted: true }, { new: true });
+    } else {
+      return res.status(400).json({ message: "Invalid type parameter. Use 'NGO' or 'Donor'." });
+    }
 
-      // Determine which model to use based on the type parameter
-      if (type === "NGO") {
-        updatedRequest = await SupportRequestNgo.findByIdAndUpdate(
-          id,
-          { isCompleted: true },
-          { new: true } // Return the updated document
-        );
-      } else if (type === "Donor") {
-        updatedRequest = await SupportRequestDonor.findByIdAndUpdate(
-          id,
-          { isCompleted: true },
-          { new: true } // Return the updated document
-        );
-      } else {
-        return res.status(400).json({
-          message: "Invalid type parameter. Use 'ngo' or 'donor'.",
-        });
-      }
-
-      if (!updatedRequest) {
-        return res.status(404).json({ message: "Support request not found." });
-      }
-
-      res.status(200).json(updatedRequest);
-    } catch (error){
+    if (!updatedRequest) return res.status(404).json({ message: "Support request not found." });
+    res.status(200).json(updatedRequest);
+  } catch (error) {
     next(error);
   }
-  }
-);
+});
 
-// Route to get all NGOs (admin dashboard)
+/**
+ * @swagger
+ * /api/admin/dashboard:
+ *   get:
+ *     summary: Get all approved NGOs
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of approved NGOs with pagination
+ */
 router.get("/dashboard", authAdminMiddleware, async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -255,57 +360,68 @@ router.get("/dashboard", authAdminMiddleware, async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const totalCount = await NGOModel.countDocuments({ isApproved: true });
+    const ngos = await NGOModel.find({ isApproved: true }).select("-password").skip(skip).limit(limit);
 
-    const ngos = await NGOModel.find({ isApproved: true })
-      .select("-password")
-      .skip(skip)
-      .limit(limit);
-
-    res.status(200).json({
-      ngos,
-      pagination: {
-        totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-    });
+    res.status(200).json({ ngos, pagination: { totalCount, page, limit, totalPages: Math.ceil(totalCount / limit) } });
   } catch (error) {
     next(error);
   }
 });
 
-// Get details of a specific NGO by _id
+/**
+ * @swagger
+ * /api/admin/ngo/{id}:
+ *   get:
+ *     summary: Get specific NGO details
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: NGO details
+ *       404:
+ *         description: NGO not found
+ *   delete:
+ *     summary: Delete an NGO
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: NGO deleted successfully
+ *       404:
+ *         description: NGO not found
+ */
 router.get("/ngo/:id", authAdminMiddleware, async (req, res, next) => {
   const { id } = req.params;
-
   try {
-    const ngo = await NGOModel.findById(id).select("-password"); // exclude password
-    if (!ngo) {
-      return res.status(404).json({ message: "NGO not found" });
-    }
+    const ngo = await NGOModel.findById(id).select("-password");
+    if (!ngo) return res.status(404).json({ message: "NGO not found" });
     res.status(200).json(ngo);
-  } catch (error){
+  } catch (error) {
     next(error);
   }
 });
 
-// Delete a specific NGO by _id
 router.delete("/ngo/:id", authAdminMiddleware, async (req, res, next) => {
   const { id } = req.params;
-
   try {
     const deletedNGO = await NGOModel.findByIdAndDelete(id);
-
-    if (!deletedNGO) {
-      return res.status(404).json({ message: "NGO not found" });
-    }
-
-    res.status(200).json({
-      message: "NGO deleted successfully",
-      deletedNGO, // optional: returns deleted NGO info
-    });
-  } catch (error){
+    if (!deletedNGO) return res.status(404).json({ message: "NGO not found" });
+    res.status(200).json({ message: "NGO deleted successfully", deletedNGO });
+  } catch (error) {
     next(error);
   }
 });

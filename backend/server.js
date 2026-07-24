@@ -12,8 +12,10 @@ const adminRoutes = require("./routes/adminRoutes.js");
 const path = require("path");
 const cors = require("cors");
 const errorHandler = require("./middlewares/errorHandler.js");
-const redis = require("./utils/redisClient.js");
+const redis = require("./config/redisClient.js");
 const cookieParser = require("cookie-parser");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger.js");
 
 const app = express();
 
@@ -22,6 +24,9 @@ app.use(cookieParser());
 
 // connect database
 connectDB();
+
+//swagger setup
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // request logger
 app.use((req, res, next) => {

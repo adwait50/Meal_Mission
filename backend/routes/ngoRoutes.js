@@ -14,8 +14,7 @@ const validate = require("../middlewares/validate.js");
 const redis = require("../config/redisClient.js");
 const { ngoRegisterSchema, ngoLoginSchema, ngoForgotPasswordSchema, ngoResetPasswordSchema } = require("../validators/ngoValidator.js");
 
-const generateOTP = () =>
-  randomstring.generate({ length: 6, charset: "numeric" });
+const generateOTP = () => randomstring.generate({ length: 6, charset: "numeric" });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -28,37 +27,61 @@ const uploadNgoDocumentToSupabase = async (file) => {
   const randomString = Math.random().toString(36).substring(2, 15);
   const fileExtension = file.originalname.split('.').pop();
   const fileName = `ngo-docs/${timestamp}-${randomString}.${fileExtension}`;
-
   const BUCKET = process.env.SUPABASE_BUCKET;
 
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(fileName, file.buffer, {
-      contentType: file.mimetype,
-      cacheControl: "3600"
-    });
-
+  const { error } = await supabase.storage.from(BUCKET).upload(fileName, file.buffer, { contentType: file.mimetype, cacheControl: "3600" });
   if (error) throw new Error(`Supabase upload error: ${error.message}`);
 
-  const { data: { publicUrl } } = supabase.storage
-    .from(BUCKET)
-    .getPublicUrl(fileName);
-
+  const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(fileName);
   return publicUrl;
 };
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/ngo/register:
+ *   post:
+ *     summary: Register a new NGO
+ *     tags: [NGOs]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password, phone, address, city, state, documentProof]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               documentProof:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: OTP sent to email
+ *       400:
+ *         description: Email already exists
+ */
 router.post("/register", validate(ngoRegisterSchema), upload.single("documentProof"), async (req, res, next) => {
   try {
     const { name, email, password, address, city, state, phone } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: "Please upload ID proof document" });
-    }
+    if (!req.file) return res.status(400).json({ message: "Please upload ID proof document" });
 
     let existingNGO = await NGOModel.findOne({ email });
-
     if (existingNGO) {
       if (!existingNGO.isVerified) {
         const otp = generateOTP();
@@ -82,20 +105,7 @@ router.post("/register", validate(ngoRegisterSchema), upload.single("documentPro
       return next(uploadError);
     }
 
-    const newNGO = new NGOModel({
-      name,
-      email,
-      phone,
-      password: hashedPassword,
-      address,
-      documentProof: documentProofUrl,
-      otp,
-      city: city.toLowerCase(),
-      state: state.toLowerCase(),
-      otpExpires,
-      isApproved: false,
-    });
-
+    const newNGO = new NGOModel({ name, email, phone, password: hashedPassword, address, documentProof: documentProofUrl, otp, city: city.toLowerCase(), state: state.toLowerCase(), otpExpires, isApproved: false });
     await newNGO.save();
     await sendEmail(email, "Your OTP code", `Your OTP is: ${otp}`);
 
@@ -105,17 +115,37 @@ router.post("/register", validate(ngoRegisterSchema), upload.single("documentPro
   }
 });
 
+/**
+ * @swagger
+ * /api/ngo/verify-otp:
+ *   post:
+ *     summary: Verify NGO email OTP
+ *     tags: [NGOs]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, otp]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email verified, awaiting admin approval
+ *       400:
+ *         description: Invalid or expired OTP
+ */
 router.post("/verify-otp", authLimiter, async (req, res, next) => {
   const { email, otp } = req.body;
-
   try {
     const NGO = await NGOModel.findOne({ email });
-
     if (!NGO) return res.status(400).json({ message: "Invalid Email" });
     if (NGO.isVerified) return res.status(400).json({ message: "Email already verified" });
-    if (NGO.otp !== otp || NGO.otpExpires < new Date()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
+    if (NGO.otp !== otp || NGO.otpExpires < new Date()) return res.status(400).json({ message: "Invalid or expired OTP" });
 
     NGO.isVerified = true;
     NGO.otp = null;
@@ -128,12 +158,34 @@ router.post("/verify-otp", authLimiter, async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/ngo/login:
+ *   post:
+ *     summary: NGO login
+ *     tags: [NGOs]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Returns access token
+ *       400:
+ *         description: Invalid credentials or not approved
+ */
 router.post("/login", validate(ngoLoginSchema), authLimiter, async (req, res, next) => {
   const { email, password } = req.body;
-
   try {
     const NGO = await NGOModel.findOne({ email });
-
     if (!NGO) return res.status(400).json({ message: "Invalid email or password" });
     if (!NGO.isVerified) return res.status(400).json({ message: "Email not verified" });
     if (!NGO.isApproved) return res.status(400).json({ message: "Your account is under review." });
@@ -141,17 +193,8 @@ router.post("/login", validate(ngoLoginSchema), authLimiter, async (req, res, ne
     const isMatch = await bcrypt.compare(password.trim(), NGO.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
-    const accessToken = jwt.sign(
-      { id: NGO._id.toString(), role: "NGO" },
-      process.env.JWT_SECRET,
-      { expiresIn: "15m" }
-    );
-
-    const refreshToken = jwt.sign(
-      { id: NGO._id.toString(), role: "NGO" },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d" }
-    );
+    const accessToken = jwt.sign({ id: NGO._id.toString(), role: "NGO" }, process.env.JWT_SECRET, { expiresIn: "15m" });
+    const refreshToken = jwt.sign({ id: NGO._id.toString(), role: "NGO" }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -166,26 +209,28 @@ router.post("/login", validate(ngoLoginSchema), authLimiter, async (req, res, ne
   }
 });
 
+/**
+ * @swagger
+ * /api/ngo/refresh-token:
+ *   post:
+ *     summary: Get new access token using refresh token cookie
+ *     tags: [NGOs]
+ *     responses:
+ *       200:
+ *         description: Returns new access token
+ *       401:
+ *         description: No or revoked refresh token
+ */
 router.post("/refresh-token", async (req, res, next) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-
-    if (!refreshToken) {
-      return res.status(401).json({ message: "No refresh token" });
-    }
+    if (!refreshToken) return res.status(401).json({ message: "No refresh token" });
 
     const isBlacklisted = await redis.get(`bl_${refreshToken}`);
-    if (isBlacklisted) {
-      return res.status(401).json({ message: "Refresh token revoked" });
-    }
+    if (isBlacklisted) return res.status(401).json({ message: "Refresh token revoked" });
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-
-    const accessToken = jwt.sign(
-      { id: decoded.id, role: "NGO" },
-      process.env.JWT_SECRET,
-      { expiresIn: "15m" }
-    );
+    const accessToken = jwt.sign({ id: decoded.id, role: "NGO" }, process.env.JWT_SECRET, { expiresIn: "15m" });
 
     res.status(200).json({ token: accessToken });
   } catch (error) {
@@ -193,14 +238,20 @@ router.post("/refresh-token", async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/ngo/logout:
+ *   post:
+ *     summary: NGO logout — blacklists refresh token
+ *     tags: [NGOs]
+ *     responses:
+ *       200:
+ *         description: Logged out successfully
+ */
 router.post("/logout", async (req, res, next) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-
-    if (refreshToken) {
-      await redis.set(`bl_${refreshToken}`, "true", "EX", 7 * 24 * 60 * 60);
-    }
-
+    if (refreshToken) await redis.set(`bl_${refreshToken}`, "true", "EX", 7 * 24 * 60 * 60);
     res.clearCookie("refreshToken");
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
@@ -208,6 +259,18 @@ router.post("/logout", async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/ngo/dashboard:
+ *   get:
+ *     summary: Get NGO profile
+ *     tags: [NGOs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: NGO profile data
+ */
 router.get("/dashboard", authNgoMiddleware, async (req, res, next) => {
   try {
     const NGO = await NGOModel.findById(req.user._id).select("-password");
@@ -220,20 +283,17 @@ router.get("/dashboard", authNgoMiddleware, async (req, res, next) => {
 
 router.post("/forgot-password", authLimiter, validate(ngoForgotPasswordSchema), async (req, res, next) => {
   const { email } = req.body;
-
   try {
     const NGO = await NGOModel.findOne({ email });
     if (!NGO) return res.status(400).json({ message: "Email not found" });
 
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
-
     NGO.resetPasswordOTP = otp;
     NGO.resetPasswordOTPExpires = otpExpires;
     await NGO.save();
 
     await sendEmail(email, "Password Reset OTP", `Your password reset OTP is: ${otp}`);
-
     res.status(200).json({ message: "Password reset OTP sent to email" });
   } catch (error) {
     next(error);
@@ -242,15 +302,10 @@ router.post("/forgot-password", authLimiter, validate(ngoForgotPasswordSchema), 
 
 router.post("/verify-reset-otp", async (req, res, next) => {
   const { email, otp } = req.body;
-
   try {
     const NGO = await NGOModel.findOne({ email });
     if (!NGO) return res.status(400).json({ message: "Email not found" });
-
-    if (NGO.resetPasswordOTP !== otp || NGO.resetPasswordOTPExpires < new Date()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
-
+    if (NGO.resetPasswordOTP !== otp || NGO.resetPasswordOTPExpires < new Date()) return res.status(400).json({ message: "Invalid or expired OTP" });
     res.status(200).json({ message: "OTP verified successfully" });
   } catch (error) {
     next(error);
@@ -259,21 +314,16 @@ router.post("/verify-reset-otp", async (req, res, next) => {
 
 router.post("/reset-password", validate(ngoResetPasswordSchema), async (req, res, next) => {
   const { email, otp, newPassword } = req.body;
-
   try {
     const NGO = await NGOModel.findOne({ email });
     if (!NGO) return res.status(400).json({ message: "Email not found" });
-
-    if (NGO.resetPasswordOTP !== otp || NGO.resetPasswordOTPExpires < new Date()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
+    if (NGO.resetPasswordOTP !== otp || NGO.resetPasswordOTPExpires < new Date()) return res.status(400).json({ message: "Invalid or expired OTP" });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     NGO.password = hashedPassword;
     NGO.resetPasswordOTP = null;
     NGO.resetPasswordOTPExpires = null;
     await NGO.save();
-
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     next(error);
@@ -282,7 +332,6 @@ router.post("/reset-password", validate(ngoResetPasswordSchema), async (req, res
 
 router.post("/resend-otp", authLimiter, async (req, res, next) => {
   const { email } = req.body;
-
   try {
     const NGO = await NGOModel.findOne({ email });
     if (!NGO) return res.status(400).json({ message: "Email not found" });
@@ -290,13 +339,11 @@ router.post("/resend-otp", authLimiter, async (req, res, next) => {
 
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
-
     NGO.otp = otp;
     NGO.otpExpires = otpExpires;
     await NGO.save();
 
     await sendEmail(email, "Your New OTP Code", `Your OTP is: ${otp}`);
-
     res.status(200).json({ message: "New OTP sent to email" });
   } catch (error) {
     next(error);
@@ -305,26 +352,44 @@ router.post("/resend-otp", authLimiter, async (req, res, next) => {
 
 router.post("/resend-reset-otp", async (req, res, next) => {
   const { email } = req.body;
-
   try {
     const NGO = await NGOModel.findOne({ email });
     if (!NGO) return res.status(400).json({ message: "Email not found" });
 
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
-
     NGO.resetPasswordOTP = otp;
     NGO.resetPasswordOTPExpires = otpExpires;
     await NGO.save();
 
     await sendEmail(email, "Your New Password Reset OTP", `Your password reset OTP is: ${otp}`);
-
     res.status(200).json({ message: "New password reset OTP sent to email" });
   } catch (error) {
     next(error);
   }
 });
 
+/**
+ * @swagger
+ * /api/ngo/food-pickup-requests:
+ *   get:
+ *     summary: Browse pending food pickup requests in NGO's city
+ *     tags: [NGOs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of pending requests with pagination
+ */
 router.get("/food-pickup-requests", authNgoMiddleware, async (req, res, next) => {
   try {
     const ngo = await NGOModel.findById(req.user._id).select("city");
@@ -333,37 +398,19 @@ router.get("/food-pickup-requests", authNgoMiddleware, async (req, res, next) =>
     const ngoCity = ngo.city.toLowerCase();
     const currentTime = new Date();
     const fourHoursAgo = new Date(currentTime.getTime() - 4 * 60 * 60 * 1000);
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const totalCount = await Donation.countDocuments({
-      city: ngoCity,
-      status: "Pending",
-      createdAt: { $gte: fourHoursAgo },
-    });
-
-    const requests = await Donation.find({
-      city: ngoCity,
-      status: "Pending",
-      createdAt: { $gte: fourHoursAgo },
-    })
+    const totalCount = await Donation.countDocuments({ city: ngoCity, status: "Pending", createdAt: { $gte: fourHoursAgo } });
+    const requests = await Donation.find({ city: ngoCity, status: "Pending", createdAt: { $gte: fourHoursAgo } })
       .populate("donor", "name email")
       .select("-phone -city -state -status -createdAt -__v -donor")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    res.status(200).json({
-      requests,
-      pagination: {
-        totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit),
-      },
-    });
+    res.status(200).json({ requests, pagination: { totalCount, page, limit, totalPages: Math.ceil(totalCount / limit) } });
   } catch (error) {
     next(error);
   }
@@ -371,24 +418,16 @@ router.get("/food-pickup-requests", authNgoMiddleware, async (req, res, next) =>
 
 router.put("/donation/:id/status", authNgoMiddleware, async (req, res, next) => {
   const { status } = req.body;
-
   const validStatuses = ["Pending", "Accepted", "In Progress", "Completed"];
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ message: "Invalid status" });
-  }
+  if (!validStatuses.includes(status)) return res.status(400).json({ message: "Invalid status" });
 
   try {
     const donation = await Donation.findById(req.params.id);
-
     if (!donation) return res.status(404).json({ message: "Donation not found" });
-
-    if (donation.ngo && donation.ngo.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    if (donation.ngo && donation.ngo.toString() !== req.user._id.toString()) return res.status(403).json({ message: "Access denied" });
 
     donation.status = status;
     await donation.save();
-
     res.status(200).json({ message: "success", status: donation.status });
   } catch (error) {
     next(error);
@@ -397,33 +436,41 @@ router.put("/donation/:id/status", authNgoMiddleware, async (req, res, next) => 
 
 router.get("/donation/:id", authNgoMiddleware, async (req, res, next) => {
   const { id } = req.params;
-
   try {
-    const donation = await Donation.findById(id)
-      .populate("donor", "name email phone")
-      .select("-__v");
-
+    const donation = await Donation.findById(id).populate("donor", "name email phone").select("-__v");
     if (!donation) return res.status(404).json({ message: "Donation not found" });
-
     res.status(200).json(donation);
   } catch (error) {
     next(error);
   }
 });
 
+/**
+ * @swagger
+ * /api/ngo/donation/{id}/accept:
+ *   put:
+ *     summary: Accept a donation request
+ *     tags: [NGOs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Donation accepted and marked as In Progress
+ *       404:
+ *         description: Donation not found
+ */
 router.put("/donation/:id/accept", authNgoMiddleware, async (req, res, next) => {
   const { id } = req.params;
   const ngoId = req.user._id;
-
   try {
-    const updatedDonation = await Donation.findByIdAndUpdate(
-      id,
-      { status: "In Progress", ngo: ngoId },
-      { new: true }
-    );
-
+    const updatedDonation = await Donation.findByIdAndUpdate(id, { status: "In Progress", ngo: ngoId }, { new: true });
     if (!updatedDonation) return res.status(404).json({ message: "Donation not found" });
-
     res.status(200).json({ message: "Donation accepted and marked as In Progress", donation: updatedDonation });
   } catch (error) {
     next(error);
@@ -432,16 +479,9 @@ router.put("/donation/:id/accept", authNgoMiddleware, async (req, res, next) => 
 
 router.put("/donation/:id/completed", authNgoMiddleware, async (req, res, next) => {
   const { id } = req.params;
-
   try {
-    const updatedDonation = await Donation.findByIdAndUpdate(
-      id,
-      { status: "Completed" },
-      { new: true }
-    );
-
+    const updatedDonation = await Donation.findByIdAndUpdate(id, { status: "Completed" }, { new: true });
     if (!updatedDonation) return res.status(404).json({ message: "Donation not found" });
-
     res.status(200).json({ message: "Donation completed successfully", donation: updatedDonation });
   } catch (error) {
     next(error);
@@ -450,22 +490,36 @@ router.put("/donation/:id/completed", authNgoMiddleware, async (req, res, next) 
 
 router.put("/donation/:id/reject", authNgoMiddleware, async (req, res, next) => {
   const { id } = req.params;
-
   try {
-    const updatedDonation = await Donation.findByIdAndUpdate(
-      id,
-      { status: "Rejected" },
-      { new: true }
-    );
-
+    const updatedDonation = await Donation.findByIdAndUpdate(id, { status: "Rejected" }, { new: true });
     if (!updatedDonation) return res.status(404).json({ message: "Donation not found" });
-
     res.status(200).json({ message: "Donation rejected successfully", donation: updatedDonation });
   } catch (error) {
     next(error);
   }
 });
 
+/**
+ * @swagger
+ * /api/ngo/donation-history:
+ *   get:
+ *     summary: Get NGO donation history
+ *     tags: [NGOs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Donation history with stats and pagination
+ */
 router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
   try {
     const ngoId = req.user._id;
@@ -484,34 +538,17 @@ router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
 
     const totalWeight = totalWeightData ? totalWeightData.totalWeight : 0;
     const timesDonated = totalDonations - rejectedDonations;
+    const totalCount = await Donation.countDocuments({ ngo: ngoId, status: { $in: ["Completed", "Rejected"] } });
 
-    const totalCount = await Donation.countDocuments({
-      ngo: ngoId,
-      status: { $in: ["Completed", "Rejected"] },
-    });
-
-    const donationHistory = await Donation.find({
-      ngo: ngoId,
-      status: { $in: ["Completed", "Rejected"] },
-    })
+    const donationHistory = await Donation.find({ ngo: ngoId, status: { $in: ["Completed", "Rejected"] } })
       .select("foodItems pickupDate address status quantity requestId")
       .sort({ pickupDate: -1 })
       .skip(skip)
       .limit(limit);
 
     return res.status(200).json({
-      totalDonations,
-      completedDonations,
-      rejectedDonations,
-      totalWeight,
-      timesDonated,
-      donationHistory,
-      pagination: {
-        totalCount,
-        page,
-        limit,
-        totalPages: Math.ceil(totalCount / limit),
-      },
+      totalDonations, completedDonations, rejectedDonations, totalWeight, timesDonated, donationHistory,
+      pagination: { totalCount, page, limit, totalPages: Math.ceil(totalCount / limit) },
     });
   } catch (error) {
     next(error);
@@ -521,12 +558,10 @@ router.get("/donation-history", authNgoMiddleware, async (req, res, next) => {
 router.get("/accepted-donations", authNgoMiddleware, async (req, res, next) => {
   try {
     const ngoId = req.user._id;
-
     const acceptedDonations = await Donation.find({ ngo: ngoId, status: "In Progress" })
       .populate("donor", "name email phone")
       .select("-__v")
       .sort({ createdAt: -1 });
-
     res.status(200).json(acceptedDonations);
   } catch (error) {
     next(error);
@@ -536,18 +571,8 @@ router.get("/accepted-donations", authNgoMiddleware, async (req, res, next) => {
 router.post("/support", authNgoMiddleware, async (req, res, next) => {
   const { requestId, issue, phone, email, description } = req.body;
   const ngoId = req.user._id;
-
   try {
-    const supportRequestNgo = new SupportRequestNgo({
-      ngo: ngoId,
-      requestId,
-      issue,
-      phone,
-      email,
-      description,
-      isCompleted: false
-    });
-
+    const supportRequestNgo = new SupportRequestNgo({ ngo: ngoId, requestId, issue, phone, email, description, isCompleted: false });
     await supportRequestNgo.save();
     res.status(201).json({ message: "Support request submitted successfully" });
   } catch (error) {
