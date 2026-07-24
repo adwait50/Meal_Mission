@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";
 
 function ActiveRequests() {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ function ActiveRequests() {
       setError(null);
       const token = localStorage.getItem("Ngotoken");
       
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/accepted-donations`,
         {
           headers: {
@@ -42,7 +42,7 @@ function ActiveRequests() {
     try {
       const token = localStorage.getItem("Ngotoken");
       
-      const response = await axios.put(
+      const response = await api.put(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/completed`,
         {},
         {

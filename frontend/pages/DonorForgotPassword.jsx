@@ -1,6 +1,6 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 // start
-import api from "../../src/api/axiosInstance.js";
+import api from "../src/api/axiosInstance.js";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
@@ -39,7 +39,7 @@ const App = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/donors/forgot-password`,
         { email }
       );
@@ -57,7 +57,7 @@ const App = () => {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/donors/verify-reset-otp`,
         { email, otp }
       );
@@ -81,7 +81,7 @@ const App = () => {
       return;
     }
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/donors/reset-password`,
         { email, otp, newPassword }
       );

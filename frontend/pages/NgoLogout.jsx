@@ -1,4 +1,4 @@
-import api from "../../src/api/axiosInstance.js";
+import api from "../src/api/axiosInstance.js";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
@@ -8,7 +8,7 @@ function NgoLogout() {
   useEffect(() => {
     const logoutUser = async () => {
       try {
-        // await axios.get(`${import.meta.env.VITE_BASE_URL}/api/donors/logout`);
+        // await api.get(`${import.meta.env.VITE_BASE_URL}/api/donors/logout`);
 
         // Clear the token from localStorage
         localStorage.removeItem("Ngotoken");

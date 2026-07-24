@@ -1,4 +1,4 @@
-import api from "../../src/api/axiosInstance.js";
+import api from "../src/api/axiosInstance.js";
 import {
   createContext,
   useCallback,
@@ -35,7 +35,7 @@ export const NgoProvider = ({ children }) => {
       return;
     }
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/dashboard`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -59,7 +59,7 @@ export const NgoProvider = ({ children }) => {
         console.error("No token found for stats");
         return;
       }
-      const res = await axios.get(
+      const res = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/donation-history`,
         {
           headers: { Authorization: `Bearer ${token}` },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 import { useNavigate } from "react-router";
-import api from "../../src/api/axiosInstance.js";
+import api from "../src/api/axiosInstance.js";
 
 function DonorPreviousSupports() {
   const [supports, setSupports] = useState([]);
@@ -27,7 +27,7 @@ function DonorPreviousSupports() {
   const getSupportRequests = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/donors/support-requests`,
         { headers: { Authorization: `Bearer ${token}` } }
       );

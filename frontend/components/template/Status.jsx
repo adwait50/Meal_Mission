@@ -34,7 +34,7 @@ const App = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const res = await axios.get(
+        const res = await api.get(
           `${import.meta.env.VITE_BASE_URL}/api/donors/active-requests`,
           { headers: { Authorization: `Bearer ${token}` } }
         );

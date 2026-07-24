@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import NgoSidebar from "../../components/NgoSidebar";
 import { useNavigate } from "react-router";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";
 
 function NgoPreviousSupport() {
   const [supports, setSupports] = useState([]);
@@ -27,7 +27,7 @@ function NgoPreviousSupport() {
   const getSupportRequests = async () => {
     const token = localStorage.getItem("Ngotoken");
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/support-requests`,
         { headers: { Authorization: `Bearer ${token}` } }
       );

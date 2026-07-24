@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../src/api/axiosInstance.js";
 import { Link } from "react-router-dom";
 
 function PendingNgosContent() {
@@ -8,7 +8,7 @@ function PendingNgosContent() {
   const fetchPendingNgo = async () => {
     try {
       const token = localStorage.getItem("Admintoken");
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/admin/pending`,
         {
           headers: {

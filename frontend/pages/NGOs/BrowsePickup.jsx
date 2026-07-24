@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import NgoSideBar from "../../components/NgoSidebar";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";
 import { Link, useNavigate } from "react-router-dom";
 import { useNgo } from "../../context/NgoContext";
 
@@ -12,7 +12,7 @@ const BrowsePickup = () => {
   const fetchRequests = async () => {
     try {
       const token = localStorage.getItem("Ngotoken");
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/food-pickup-requests`,
         {
           headers: { Authorization: `Bearer ${token}` },

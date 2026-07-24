@@ -1,7 +1,7 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 // start
 import React, { useState } from "react";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../src/api/axiosInstance.js";
 import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 import { State, City } from "country-state-city";
@@ -87,7 +87,7 @@ const App = () => {
         if (value) formDataToSend.append(key, value);
       });
   
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/register`,
         formDataToSend,
         { headers: { "Content-Type": "multipart/form-data" } }
@@ -112,7 +112,7 @@ const App = () => {
     setOtpError("");
     
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/verify-otp`,
         { email: formData.email, otp: formData.otp }
       );

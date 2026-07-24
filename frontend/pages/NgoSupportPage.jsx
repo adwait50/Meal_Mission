@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import NgoSideBar from "../components/NgoSidebar";
 import { Link, useNavigate } from "react-router";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../src/api/axiosInstance.js";
 
 const NgoSupportPage = () => {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ const NgoSupportPage = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("Ngotoken");
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/support`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }

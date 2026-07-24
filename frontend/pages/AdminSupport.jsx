@@ -1,7 +1,7 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState, useEffect } from "react";
 import AdminSideBar from "../components/AdminSideBar";
-import api from "../../src/api/axiosInstance.js";
+import api from "../src/api/axiosInstance.js";
 
 const AdminSupport = () => {
   const [selectedUserType, setSelectedUserType] = useState("all");
@@ -14,7 +14,7 @@ const AdminSupport = () => {
   const fetchrequests = async () => {
     try {
       const token = localStorage.getItem("Admintoken");
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/admin/${selectedUserType}-support`,
         {
           params: { isCompleted },
@@ -41,7 +41,7 @@ const AdminSupport = () => {
   const completeRequest = async (request) => {
     try {
       const token = localStorage.getItem("Admintoken");
-      const response = await axios.patch(
+      const response = await api.patch(
         `${import.meta.env.VITE_BASE_URL}/api/admin/complete-request/${request.type}/${request._id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }

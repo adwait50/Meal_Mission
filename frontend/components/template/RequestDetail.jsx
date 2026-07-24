@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";
 
 function RequestDetail() {
   const { requestId } = useParams();
@@ -26,7 +26,7 @@ function RequestDetail() {
         return;
       }
 
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/donors/donation/${requestId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -74,7 +74,7 @@ function RequestDetail() {
       const isConfirmed = window.confirm("Are you sure you want to cancel this donation request? This action cannot be undone.");
       if (!isConfirmed) return;
   
-      const response = await axios.put(
+      const response = await api.put(
         `${import.meta.env.VITE_BASE_URL}/api/donors/donation/${requestId}/cancel`,
         {}, // empty body
         { headers: { Authorization: `Bearer ${token}` } }

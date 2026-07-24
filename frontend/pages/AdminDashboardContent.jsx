@@ -1,4 +1,4 @@
-import api from "../../src/api/axiosInstance.js";;
+import api from "../src/api/axiosInstance.js";
 import { useEffect, useState } from "react";
 
 function AdminDashboardContent() {
@@ -12,7 +12,7 @@ function AdminDashboardContent() {
     try {
       setLoading(true);
       const token = localStorage.getItem("Admintoken");
-      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/admin/dashboard`, {
+      const response = await api.get(`${import.meta.env.VITE_BASE_URL}/api/admin/dashboard`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -34,7 +34,7 @@ function AdminDashboardContent() {
       if (!isConfirmed) return;
 
       const token = localStorage.getItem("Admintoken");
-      const response = await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/admin/ngo/${id}`, {
+      const response = await api.delete(`${import.meta.env.VITE_BASE_URL}/api/admin/ngo/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

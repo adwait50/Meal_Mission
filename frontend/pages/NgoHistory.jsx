@@ -1,4 +1,4 @@
-import api from "../../src/api/axiosInstance.js";;
+import api from "../src/api/axiosInstance.js";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import NgoSideBar from "../components/NgoSidebar";
@@ -12,7 +12,7 @@ const DonationHistory = () => {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem("Ngotoken");
-        const response = await axios.get(
+        const response = await api.get(
           `${import.meta.env.VITE_BASE_URL}/api/ngo/donation-history`,
           { headers: { Authorization: `Bearer ${token}` } }
         );

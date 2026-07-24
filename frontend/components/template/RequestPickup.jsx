@@ -1,4 +1,4 @@
-import api from "../../../src/api/axiosInstance.js";
+import api from "../../src/api/axiosInstance.js";
 import  { useState } from "react";
 import { useNavigate } from "react-router";
 import Modal from "../Modal";
@@ -75,7 +75,7 @@ const PickupForm = () => {
         }
       });
 
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/pickup/request-pickup`,
         formDataToSend,
         {

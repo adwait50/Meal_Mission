@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";
 
 function DonationDetail() {
   const { requestId } = useParams();
@@ -22,7 +22,7 @@ function DonationDetail() {
       const token = localStorage.getItem("Ngotoken");
       
       // Get the specific donation details using the new route
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}`,
         {
           headers: {
@@ -70,7 +70,7 @@ function DonationDetail() {
         endpoint = `${import.meta.env.VITE_BASE_URL}/api/ngo/donation/${requestId}/status`;
       }
       
-      const response = await axios.put(
+      const response = await api.put(
         endpoint,
         {},
         {

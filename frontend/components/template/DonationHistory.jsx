@@ -1,6 +1,6 @@
 // DonationHistory.jsx
 
-import api from "../../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -18,7 +18,7 @@ const DonationHistory = () => {
         const token = localStorage.getItem("token");
         if (!token) return setLoading(false);
 
-        const response = await axios.get(
+        const response = await api.get(
           `${import.meta.env.VITE_BASE_URL}/api/donors/donation-history`,
           { headers: { Authorization: `Bearer ${token}` } }
         );

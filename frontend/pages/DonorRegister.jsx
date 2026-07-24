@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from "../../src/api/axiosInstance.js";
+import api from "../src/api/axiosInstance.js";
 import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 
@@ -29,7 +29,7 @@ const App = () => {
   const HandleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/donors/register`,
         { name, email, password, phone, address }
       );
@@ -41,7 +41,7 @@ const App = () => {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    const response = await axios.post(
+    const response = await api.post(
       `${import.meta.env.VITE_BASE_URL}/api/donors/verify-otp`,
       { email, otp }
     );

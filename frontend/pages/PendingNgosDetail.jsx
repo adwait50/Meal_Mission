@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from "../../src/api/axiosInstance.js";;
+import api from "../src/api/axiosInstance.js";
 import { useNavigate, useParams } from "react-router-dom";
 import Modal from "../components/Modal";
 
@@ -15,7 +15,7 @@ function PendingNgosDetail() {
   const fetchPendingNgo = async () => {
     try {
       const token = localStorage.getItem("Admintoken");
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/admin/ngo-info/${ngoId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -39,7 +39,7 @@ function PendingNgosDetail() {
       if (!isConfirmed) return;
 
       const token = localStorage.getItem("Admintoken");
-      const response = await axios.put(
+      const response = await api.put(
         `${import.meta.env.VITE_BASE_URL}/api/admin/approve-ngo/${ngoId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
@@ -65,7 +65,7 @@ function PendingNgosDetail() {
       if (!isConfirmed) return;
 
       const token = localStorage.getItem("Admintoken");
-      const response = await axios.put(
+      const response = await api.put(
         `${import.meta.env.VITE_BASE_URL}/api/admin/reject-ngo/${ngoId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }

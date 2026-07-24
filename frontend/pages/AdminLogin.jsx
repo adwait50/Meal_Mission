@@ -1,4 +1,4 @@
-import api from "../../src/api/axiosInstance.js";;
+import api from "../src/api/axiosInstance.js";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -44,7 +44,7 @@ const App = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_BASE_URL}/api/admin/login`,
         { email, password }
       );

@@ -1,4 +1,4 @@
-import api from "../../src/api/axiosInstance.js";
+import api from "../src/api/axiosInstance.js";
 import {
   createContext,
   useCallback,
@@ -37,7 +37,7 @@ export const DonorProvider = ({ children }) => {
 
     try {
       console.log("Fetching donor data...");
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/donors/dashboard`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -70,7 +70,7 @@ export const DonorProvider = ({ children }) => {
     }
 
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_BASE_URL}/api/donors/donation-history`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
