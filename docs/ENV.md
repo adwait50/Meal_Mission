@@ -1,62 +1,80 @@
 ## Environment & Setup
 
-Create a `.env` file in `backend/` with:
+Create a `.env` file at `backend/utils/.env`:
 
 ```
 PORT=5000
 
-# Mongo
-MONGO_URI=mongodb://localhost:27017/mm
+# MongoDB
+MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/<dbname>
 
 # JWT
 JWT_SECRET=replace-with-strong-secret
+JWT_REFRESH_SECRET=replace-with-different-strong-secret
 
 # Supabase (Storage)
 SUPABASE_URL=https://<your-project>.supabase.co
-SUPABASE_ANON_KEY=<public-anon-or-service-key>
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 SUPABASE_BUCKET=<bucket-name>
 
-# Email (used by backend/utils/sendEmail.js)
-# Option A: Generic SMTP (recommended for production)
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=your-user
-SMTP_PASS=your-pass
-SMTP_FROM="MM App <no-reply@example.com>"
+# Email (Gmail with App Password)
+# Requires 2-Step Verification enabled on Gmail account
+# Generate App Password: Google Account → Security → App Passwords
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=xxxx xxxx xxxx xxxx
 
-# Option B: Gmail with App Password (simple)
-# Requires 2-Step Verification enabled on the Gmail account
-# and generating an App Password (16 characters).
-# Uncomment to use:
-# EMAIL_USER=your-email@gmail.com
-# EMAIL_PASS=your-app-password
+# Redis
+REDIS_URL=redis://default:<password>@<host>:<port>
 
-# Option C: Gmail OAuth2 (advanced)
-# If you prefer OAuth2, provide these values. Useful for service
-# accounts with refresh tokens. REDIRECT URI defaults to Google OAuth Playground.
-# EMAIL_USER=your-email@gmail.com
-# GMAIL_CLIENT_ID=...
-# GMAIL_CLIENT_SECRET=...
-# GMAIL_REFRESH_TOKEN=...
-# GMAIL_REDIRECT_URI=https://developers.google.com/oauthplayground
+# Resend (alternative email provider)
+RESEND_API_KEY=re_xxxxxxxxxx
+
+# Environment
+NODE_ENV=development
 ```
 
-### Install & Run
+> Note: When running with Docker, `REDIS_URL` is automatically overridden to `redis://redis:6379` by `docker-compose.yml`. You do not need to change it manually.
 
-```
+---
+
+### Install & Run (Local)
+
+```bash
+# Backend
 cd backend
 npm install
 npm run dev
 
-cd ../frontend
+# Frontend (separate terminal)
+cd frontend
 npm install
 npm run dev
 ```
 
 Frontend runs at `http://localhost:5173`, backend at `http://localhost:5000`.
 
+---
+
+### Run with Docker
+
+```bash
+# From project root
+docker-compose up --build
+```
+
+This starts:
+- Backend on port `5000`
+- Redis on port `6379`
+
+MongoDB and Supabase still use cloud connections from your `.env`.
+
+To stop:
+```bash
+docker-compose down
+```
+
+---
+
 ### CORS
 
-Backend CORS is configured for `http://localhost:5173`. Update in `backend/server.js` if needed.
-
-
+Backend CORS is configured for `http://localhost:5173`. Update `backend/server.js` if deploying to a different origin.
