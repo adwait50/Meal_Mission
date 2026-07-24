@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import api from "../src/api/axiosInstance.js";import { Link, useNavigate } from "react-router";
+import api from "../src/api/axiosInstance.js";
+import { Link, useNavigate } from "react-router";
 import NavBar from "../components/NavBar";
 
 const App = () => {

@@ -1,7 +1,7 @@
 // The exported code uses Tailwind CSS. Install Tailwind CSS in your dev environment to ensure all styles work.
 import React, { useState, useEffect } from "react";
 import AdminSideBar from "../components/AdminSideBar";
-import api from "../src/api/axiosInstance.js";pi/axiosInstance.js";;
+import api from "../src/api/axiosInstance.js";
 
 const AdminSupport = () => {
   const [selectedUserType, setSelectedUserType] = useState("all");
