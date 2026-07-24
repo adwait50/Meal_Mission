@@ -1,4 +1,4 @@
-import api from "../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";;
 import { useEffect, useState } from "react";
 
 function AdminDashboardContent() {

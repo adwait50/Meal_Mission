@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import SideBar from "../components/SideBar";
-import api from "../src/api/axiosInstance.js";
+import api from "../../src/api/axiosInstance.js";
 import { Link, useNavigate } from "react-router";
 
 const App = () => {

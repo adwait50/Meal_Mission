@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import api from "../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";;
 
 function RequestDetail() {
   const { requestId } = useParams();

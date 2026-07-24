@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../src/api/axiosInstance.js";;
+import api from "../../src/api/axiosInstance.js";;
 
 function ActiveRequests() {
   const navigate = useNavigate();
